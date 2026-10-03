@@ -445,57 +445,6 @@ fun SignInScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Bottom Banner Card (Verified Peer Tutors)
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = lightBlueBg,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color(0xFFDBEAFE), RoundedCornerShape(16.dp))
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(CircleShape)
-                            .background(Color.White)
-                            .shadow(1.dp, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.People,
-                            contentDescription = null,
-                            tint = primaryBlue,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = "Find 240+ verified peer tutors",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = textDark
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "STEM, Medicine, Humanities, & Business",
-                            fontSize = 12.sp,
-                            color = textGray
-                        )
-                    }
-                }
-            }
-
             Spacer(modifier = Modifier.height(24.dp))
 
             // Footer Sign Up
