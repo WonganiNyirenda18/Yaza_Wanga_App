@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
                                     // After login, go to Student Profile Setup
                                     currentScreen = AppScreen.STUDENT_PROFILE
                                 },
-                                onStudentPortalClick = {
+                                onGoogleSignInClick = {
                                     currentScreen = AppScreen.STUDENT_PROFILE
                                 }
                             )

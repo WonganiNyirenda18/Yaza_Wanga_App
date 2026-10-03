@@ -1,6 +1,7 @@
 package com.example.yaza_wanga.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,7 +21,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -30,13 +34,60 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
 
+@Composable
+fun GoogleLogo(modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier) {
+        val size = size.minDimension
+        val strokeWidth = size * 0.22f
+
+        // Blue arc (Right/Top)
+        drawArc(
+            color = Color(0xFF4285F4),
+            startAngle = -45f,
+            sweepAngle = 135f,
+            useCenter = false,
+            style = Stroke(width = strokeWidth)
+        )
+        // Green arc (Bottom)
+        drawArc(
+            color = Color(0xFF34A853),
+            startAngle = 90f,
+            sweepAngle = 90f,
+            useCenter = false,
+            style = Stroke(width = strokeWidth)
+        )
+        // Yellow arc (Bottom-Left)
+        drawArc(
+            color = Color(0xFFFBBC05),
+            startAngle = 180f,
+            sweepAngle = 45f,
+            useCenter = false,
+            style = Stroke(width = strokeWidth)
+        )
+        // Red arc (Top-Left)
+        drawArc(
+            color = Color(0xFFEA4335),
+            startAngle = 225f,
+            sweepAngle = 135f,
+            useCenter = false,
+            style = Stroke(width = strokeWidth)
+        )
+        // Horizontal bar of the G (Blue)
+        drawRect(
+            color = Color(0xFF4285F4),
+            topLeft = Offset(center.x, center.y - strokeWidth / 2f),
+            size = Size(size / 2f, strokeWidth)
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignInScreen(
     onBackClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
     onLoginClick: (String, String) -> Unit = { _, _ -> },
-    onStudentPortalClick: () -> Unit = {},
+    onGoogleSignInClick: () -> Unit = {},
     onForgotPasswordClick: () -> Unit = {},
     onSignUpClick: () -> Unit = {}
 ) {
@@ -138,7 +189,7 @@ fun SignInScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // University Peer Network Pill Badge
+            // Yaza Wanga Pill Badge
             Surface(
                 shape = RoundedCornerShape(50.dp),
                 color = Color(0xFFE0ECFF),
@@ -156,7 +207,7 @@ fun SignInScreen(
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
-                        text = "UNIVERSITY PEER NETWORK",
+                        text = "Yaza Wanga",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = primaryBlue,
@@ -203,25 +254,13 @@ fun SignInScreen(
                         .fillMaxWidth()
                         .padding(20.dp)
                 ) {
-                    // School Email Label & Required
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "School Email",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = textDark
-                        )
-                        Text(
-                            text = "Required",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = primaryBlue
-                        )
-                    }
+                    // School Email Label
+                    Text(
+                        text = "School Email",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = textDark
+                    )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -249,26 +288,6 @@ fun SignInScreen(
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    // Info text
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = null,
-                            tint = textGray,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Text(
-                            text = "Only institutional student/staff emails accepted",
-                            fontSize = 12.sp,
-                            color = textGray
-                        )
-                    }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -402,14 +421,14 @@ fun SignInScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Student Portal / EduID Button
+                    // Sign in with Google Button
                     Surface(
                         shape = RoundedCornerShape(14.dp),
                         color = lightBlueBg,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp)
-                            .clickable(onClick = onStudentPortalClick),
+                            .clickable(onClick = onGoogleSignInClick),
                         border = BorderStroke(1.dp, Color(0xFFDBEAFE))
                     ) {
                         Row(
@@ -423,19 +442,15 @@ fun SignInScreen(
                                 modifier = Modifier
                                     .size(32.dp)
                                     .clip(CircleShape)
-                                    .background(primaryBlue),
+                                    .background(Color.White)
+                                    .border(1.dp, Color(0xFFDBEAFE), CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.AccountBalance,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(16.dp)
-                                )
+                                GoogleLogo(modifier = Modifier.size(18.dp))
                             }
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = "Sign in with Student Portal / EduID",
+                                text = "Sign in with Google",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = primaryBlue
