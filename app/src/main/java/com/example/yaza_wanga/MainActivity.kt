@@ -9,14 +9,16 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.yaza_wanga.ui.SignInScreen
-import com.example.yaza_wanga.ui.SignUpScreen
-import com.example.yaza_wanga.ui.UserRole
+import com.example.yaza_wanga.ui.*
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
 
 enum class AppScreen {
     SIGN_IN,
-    SIGN_UP
+    SIGN_UP,
+    STUDENT_PROFILE,
+    STUDENT_DASHBOARD,
+    COURSE_DIRECTORY,
+    COURSE_DETAILS
 }
 
 class MainActivity : ComponentActivity() {
@@ -28,6 +30,7 @@ class MainActivity : ComponentActivity() {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     var currentScreen by remember { mutableStateOf(AppScreen.SIGN_IN) }
                     var signUpRole by remember { mutableStateOf(UserRole.STUDENT) }
+                    var selectedCourseCode by remember { mutableStateOf("INF 212") }
 
                     when (currentScreen) {
                         AppScreen.SIGN_IN -> {
@@ -36,8 +39,12 @@ class MainActivity : ComponentActivity() {
                                     signUpRole = UserRole.STUDENT
                                     currentScreen = AppScreen.SIGN_UP
                                 },
+                                onLoginClick = { _, _ ->
+                                    // After login, go to Student Profile Setup
+                                    currentScreen = AppScreen.STUDENT_PROFILE
+                                },
                                 onStudentPortalClick = {
-                                    // Can also open student portal or switch to sign up
+                                    currentScreen = AppScreen.STUDENT_PROFILE
                                 }
                             )
                         }
@@ -49,6 +56,87 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onSignInClick = {
                                     currentScreen = AppScreen.SIGN_IN
+                                },
+                                onCreateStudentAccount = { _ ->
+                                    // After account creation, redirect to Login / Profile
+                                    currentScreen = AppScreen.STUDENT_PROFILE
+                                },
+                                onCreateTutorAccount = { _ ->
+                                    currentScreen = AppScreen.STUDENT_PROFILE
+                                }
+                            )
+                        }
+                        AppScreen.STUDENT_PROFILE -> {
+                            StudentProfileScreen(
+                                onBackClick = {
+                                    currentScreen = AppScreen.SIGN_IN
+                                },
+                                onProfileClick = {
+                                    // Stay or profile
+                                },
+                                onSaveAndContinue = {
+                                    // Proceed to Dashboard
+                                    currentScreen = AppScreen.STUDENT_DASHBOARD
+                                }
+                            )
+                        }
+                        AppScreen.STUDENT_DASHBOARD -> {
+                            StudentDashboardScreen(
+                                onNavigateHome = {
+                                    currentScreen = AppScreen.STUDENT_DASHBOARD
+                                },
+                                onNavigateCourses = {
+                                    currentScreen = AppScreen.COURSE_DIRECTORY
+                                },
+                                onNavigateTutors = {
+                                    currentScreen = AppScreen.COURSE_DIRECTORY
+                                },
+                                onNavigateAlerts = {
+                                    // Alerts / Notifications
+                                },
+                                onNavigateProfile = {
+                                    currentScreen = AppScreen.STUDENT_PROFILE
+                                },
+                                onViewCourseClick = { code ->
+                                    selectedCourseCode = code
+                                    currentScreen = AppScreen.COURSE_DETAILS
+                                }
+                            )
+                        }
+                        AppScreen.COURSE_DIRECTORY -> {
+                            CourseDirectoryScreen(
+                                onNavigateHome = {
+                                    currentScreen = AppScreen.STUDENT_DASHBOARD
+                                },
+                                onNavigateCourses = {
+                                    currentScreen = AppScreen.COURSE_DIRECTORY
+                                },
+                                onNavigateTutors = {
+                                    currentScreen = AppScreen.COURSE_DIRECTORY
+                                },
+                                onNavigateAlerts = {
+                                    // Alerts
+                                },
+                                onNavigateProfile = {
+                                    currentScreen = AppScreen.STUDENT_PROFILE
+                                },
+                                onViewDetailsClick = { code ->
+                                    selectedCourseCode = code
+                                    currentScreen = AppScreen.COURSE_DETAILS
+                                }
+                            )
+                        }
+                        AppScreen.COURSE_DETAILS -> {
+                            CourseDetailsScreen(
+                                courseCode = selectedCourseCode,
+                                onBackClick = {
+                                    currentScreen = AppScreen.COURSE_DIRECTORY
+                                },
+                                onProfileClick = {
+                                    currentScreen = AppScreen.STUDENT_PROFILE
+                                },
+                                onContactTutor = { _ ->
+                                    // Contact tutor action
                                 }
                             )
                         }
@@ -61,8 +149,8 @@ class MainActivity : ComponentActivity() {
 
 @Preview(showBackground = true)
 @Composable
-fun MainPreview() {
+fun MainAppPreview() {
     Yaza_WangaTheme {
-        SignInScreen()
+        StudentDashboardScreen()
     }
 }
