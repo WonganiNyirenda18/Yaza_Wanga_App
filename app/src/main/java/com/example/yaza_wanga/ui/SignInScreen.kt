@@ -231,18 +231,9 @@ fun SignInScreen(
                         onValueChange = { email = it },
                         placeholder = {
                             Text(
-                                text = "@ student@university.ac.mw",
+                                text = "bsc-inf-15-23@unima.ac.mw",
                                 color = textGray,
                                 fontSize = 14.sp
-                            )
-                        },
-                        leadingIcon = {
-                            Text(
-                                text = "@",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = textGray,
-                                modifier = Modifier.padding(start = 4.dp)
                             )
                         },
                         singleLine = true,
@@ -252,7 +243,9 @@ fun SignInScreen(
                             unfocusedContainerColor = containerBg,
                             disabledContainerColor = containerBg,
                             focusedBorderColor = primaryBlue,
-                            unfocusedBorderColor = Color(0xFFE2E8F0)
+                            unfocusedBorderColor = Color(0xFFE2E8F0),
+                            focusedTextColor = textDark,
+                            unfocusedTextColor = textDark
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -327,7 +320,9 @@ fun SignInScreen(
                             unfocusedContainerColor = containerBg,
                             disabledContainerColor = containerBg,
                             focusedBorderColor = primaryBlue,
-                            unfocusedBorderColor = Color(0xFFE2E8F0)
+                            unfocusedBorderColor = Color(0xFFE2E8F0),
+                            focusedTextColor = textDark,
+                            unfocusedTextColor = textDark
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -442,7 +437,7 @@ fun SignInScreen(
                             Text(
                                 text = "Sign in with Student Portal / EduID",
                                 fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold,
+                                fontWeight = FontWeight.Bold,
                                 color = primaryBlue
                             )
                         }
