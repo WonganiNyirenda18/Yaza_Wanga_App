@@ -1,6 +1,5 @@
 package com.example.yaza_wanga.ui.screens
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,7 +18,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,7 +36,6 @@ fun StudentDashboardScreen(
     onViewCourseClick: (String) -> Unit = {}
 ) {
     val primaryBlue = Color(0xFF1D4ED8)
-    val lightBlueBg = Color(0xFFF0F4FF)
     val containerBg = Color(0xFFF8FAFC)
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
@@ -172,23 +169,22 @@ fun StudentDashboardScreen(
                         .weight(1f)
                         .height(44.dp)
                 ) {
-                    Icon(Icons.Default.Search, null, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.Search, null, tint = Color.White, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Find New Tutor", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text("Find New Tutor", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 }
 
-                OutlinedButton(
+                Button(
                     onClick = {},
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, Color(0xFFDBEAFE)),
-                    colors = ButtonDefaults.outlinedButtonColors(containerColor = lightBlueBg),
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                     modifier = Modifier
                         .weight(1f)
                         .height(44.dp)
                 ) {
-                    Icon(Icons.Default.CalendarToday, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.CalendarToday, null, tint = Color.White, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Book a Session", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
+                    Text("Book a Session", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 }
             }
 
@@ -307,19 +303,6 @@ fun StudentDashboardScreen(
                                 Text("John Banda", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
                             }
                         }
-                        Surface(
-                            shape = RoundedCornerShape(50.dp),
-                            color = Color(0xFFE6F4EA)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(Color(0xFF137333)))
-                                Text("Online", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF137333))
-                            }
-                        }
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -363,23 +346,22 @@ fun StudentDashboardScreen(
                                 .weight(1f)
                                 .height(40.dp)
                         ) {
-                            Icon(Icons.Default.VideoCall, null, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.VideoCall, null, tint = Color.White, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Join Meeting", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("Join Meeting", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         }
 
-                        OutlinedButton(
+                        Button(
                             onClick = {},
                             shape = RoundedCornerShape(10.dp),
-                            border = BorderStroke(1.dp, Color(0xFFDBEAFE)),
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = lightBlueBg),
+                            colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                             modifier = Modifier
                                 .weight(1f)
                                 .height(40.dp)
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.Chat, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
+                            Icon(Icons.AutoMirrored.Filled.Chat, null, tint = Color.White, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Message", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
+                            Text("Message", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         }
                     }
                 }
@@ -416,19 +398,6 @@ fun StudentDashboardScreen(
                                     Text("• Probability & Stats", fontSize = 12.sp, color = textGray)
                                 }
                                 Text("Thokozani Mwale", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
-                            }
-                        }
-                        Surface(
-                            shape = RoundedCornerShape(50.dp),
-                            color = Color(0xFFFEF3C7)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(Color(0xFFD97706)))
-                                Text("In-Person", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFFD97706))
                             }
                         }
                     }
@@ -482,32 +451,30 @@ fun StudentDashboardScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        OutlinedButton(
+                        Button(
                             onClick = {},
                             shape = RoundedCornerShape(10.dp),
-                            border = BorderStroke(1.dp, Color(0xFFDBEAFE)),
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = lightBlueBg),
+                            colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                             modifier = Modifier
                                 .weight(1f)
                                 .height(40.dp)
                         ) {
-                            Icon(Icons.Default.Map, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.Map, null, tint = Color.White, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("View Location", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
+                            Text("View Location", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         }
 
-                        OutlinedButton(
+                        Button(
                             onClick = {},
                             shape = RoundedCornerShape(10.dp),
-                            border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White),
+                            colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                             modifier = Modifier
                                 .weight(1f)
                                 .height(40.dp)
                         ) {
-                            Icon(Icons.Default.CalendarToday, null, tint = textGray, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.CalendarToday, null, tint = Color.White, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Reschedule", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textDark)
+                            Text("Reschedule", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         }
                     }
                 }
@@ -576,47 +543,6 @@ fun StudentDashboardScreen(
                 textDark = textDark,
                 textGray = textGray
             )
-
-            // Study Pods Active Banner
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = lightBlueBg,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color(0xFFDBEAFE), RoundedCornerShape(16.dp))
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(CircleShape)
-                            .background(Color.White)
-                            .shadow(1.dp, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Default.Groups, null, tint = primaryBlue, modifier = Modifier.size(24.dp))
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Study Pods Active", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text("12 classmates collaborating right now", fontSize = 12.sp, color = textGray)
-                    }
-                    Button(
-                        onClick = {},
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
-                    ) {
-                        Text("Join In", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
 
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -719,19 +645,18 @@ fun CourseProgressCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            OutlinedButton(
+            Button(
                 onClick = onViewCourse,
                 shape = RoundedCornerShape(10.dp),
-                border = BorderStroke(1.dp, Color(0xFFDBEAFE)),
-                colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFFF0F4FF)),
+                colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(40.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                    Text("View Course", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
+                    Text("View Course", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     Spacer(modifier = Modifier.width(6.dp))
-                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White, modifier = Modifier.size(16.dp))
                 }
             }
         }

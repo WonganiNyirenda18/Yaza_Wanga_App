@@ -27,8 +27,6 @@ import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
 
 data class TutorModel(
     val name: String,
-    val rating: String,
-    val reviews: String,
     val subtitle: String,
     val mode: String,
     val availability: String,
@@ -46,17 +44,16 @@ fun CourseDetailsScreen(
     onContactTutor: (String) -> Unit = {}
 ) {
     val primaryBlue = Color(0xFF1D4ED8)
-    val lightBlueBg = Color(0xFFF0F4FF)
     val containerBg = Color(0xFFF8FAFC)
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
 
     val tutors = listOf(
-        TutorModel("Chimwemwe Phiri", "5.0", "31", "4th Year • Computer Science", "Both Online & Offline", "Available Today", "Specializes in Frontend, DOM & JavaScript", "FREE • Peer Volunteer", true),
-        TutorModel("Thokozani Mwale", "4.9", "24", "Master's Candidate • Applied S...", "Online Only (Google Meet)", "Available Tomorrow", "HTML/CSS semantic architecture & APIs", "MK 2,500 / session"),
-        TutorModel("John Banda", "4.8", "24", "3rd Year • Information Syste...", "Both Online & Offline", "Available This Week", "Hands-on coding, CSS Grid & responsive layout", "MK 2,000 / session"),
-        TutorModel("Blessings Kaunda", "4.7", "15", "3rd Year • Software Engineer...", "Offline Only (Campus Library)", "Available Mon - Fri", "Lab exercises and exam past papers revision", "MK 1,800 / session"),
-        TutorModel("Alinafe Banda", "4.6", "11", "2nd Year • IT Honours", "Online Only", "Evenings (18:00 - 20:00)", "Beginner foundations & assignments coaching", "FREE • Peer Volunteer")
+        TutorModel("Chimwemwe Phiri", "4th Year • Computer Science", "Both Online & Offline", "Available Today", "Specializes in Frontend, DOM & JavaScript", "FREE • Peer Volunteer", true),
+        TutorModel("Thokozani Mwale", "Master's Candidate • Applied S...", "Online Only (Google Meet)", "Available Tomorrow", "HTML/CSS semantic architecture & APIs", "MK 2,500 / session"),
+        TutorModel("John Banda", "3rd Year • Information Syste...", "Both Online & Offline", "Available This Week", "Hands-on coding, CSS Grid & responsive layout", "MK 2,000 / session"),
+        TutorModel("Blessings Kaunda", "3rd Year • Software Engineer...", "Offline Only (Campus Library)", "Available Mon - Fri", "Lab exercises and exam past papers revision", "MK 1,800 / session"),
+        TutorModel("Alinafe Banda", "2nd Year • IT Honours", "Online Only", "Evenings (18:00 - 20:00)", "Beginner foundations & assignments coaching", "FREE • Peer Volunteer")
     )
 
     Scaffold(
@@ -146,42 +143,17 @@ fun CourseDetailsScreen(
                         .fillMaxWidth()
                         .padding(20.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color(0xFFE0ECFF)
                     ) {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = Color(0xFFE0ECFF)
-                        ) {
-                            Text(
-                                text = "INF 212",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = primaryBlue,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-
-                        Surface(
-                            shape = RoundedCornerShape(50.dp),
-                            color = Color(0xFFFEF3C7)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(Icons.Default.Star, null, tint = Color(0xFFD97706), modifier = Modifier.size(14.dp))
-                                Text(
-                                    text = "4.9 (48 reviews)",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFD97706)
-                                )
-                            }
-                        }
+                        Text(
+                            text = "INF 212",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = primaryBlue,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -258,46 +230,6 @@ fun CourseDetailsScreen(
                                 }
                             }
                         }
-                    }
-                }
-            }
-
-            // Discussion Pod Card
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = lightBlueBg,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color(0xFFDBEAFE), RoundedCornerShape(16.dp))
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(CircleShape)
-                            .background(primaryBlue),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Default.Forum, null, tint = Color.White, modifier = Modifier.size(22.dp))
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("INF 212 Discussion Pod", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text("42 students sharing past notes & coaching tips.", fontSize = 12.sp, color = textGray)
-                    }
-                    Button(
-                        onClick = {},
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
-                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
-                    ) {
-                        Text("Join Pod", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -391,25 +323,6 @@ fun CourseDetailsScreen(
                                     Text(tutor.subtitle, fontSize = 11.sp, color = textGray)
                                 }
                             }
-
-                            Surface(
-                                shape = RoundedCornerShape(50.dp),
-                                color = Color(0xFFFEF3C7)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(Icons.Default.Star, null, tint = Color(0xFFD97706), modifier = Modifier.size(14.dp))
-                                    Text(
-                                        text = "${tutor.rating} (${tutor.reviews})",
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFFD97706)
-                                    )
-                                }
-                            }
                         }
 
                         Spacer(modifier = Modifier.height(10.dp))
@@ -474,43 +387,11 @@ fun CourseDetailsScreen(
                                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                                 modifier = Modifier.height(38.dp)
                             ) {
-                                Icon(Icons.AutoMirrored.Filled.Chat, null, modifier = Modifier.size(14.dp))
+                                Icon(Icons.AutoMirrored.Filled.Chat, null, tint = Color.White, modifier = Modifier.size(14.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("Contact Tutor", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("Contact Tutor", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
                             }
                         }
-                    }
-                }
-            }
-
-            // Bottom Banner Card
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = lightBlueBg,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color(0xFFDBEAFE), RoundedCornerShape(16.dp))
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(primaryBlue),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Default.School, null, tint = Color.White, modifier = Modifier.size(20.dp))
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Ace your INF 212 tests together", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textDark)
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text("Book multiple peer sessions or host a group code...", fontSize = 12.sp, color = textGray)
                     }
                 }
             }

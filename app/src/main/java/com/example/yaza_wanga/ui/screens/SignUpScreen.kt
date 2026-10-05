@@ -46,8 +46,7 @@ fun SignUpScreen(
     var role by remember { mutableStateOf(initialRole) }
 
     // Student form state
-    var studentFirstName by remember { mutableStateOf("") }
-    var studentLastName by remember { mutableStateOf("") }
+    var studentFullName by remember { mutableStateOf("") }
     var studentEmail by remember { mutableStateOf("") }
     var studentId by remember { mutableStateOf("") }
     var studentPassword by remember { mutableStateOf("") }
@@ -57,8 +56,7 @@ fun SignUpScreen(
     var studentConfirmPasswordVisible by remember { mutableStateOf(false) }
 
     // Tutor form state
-    var tutorFirstName by remember { mutableStateOf("") }
-    var tutorLastName by remember { mutableStateOf("") }
+    var tutorFullName by remember { mutableStateOf("") }
     var tutorEmail by remember { mutableStateOf("") }
     var tutorId by remember { mutableStateOf("") }
     var tutorDepartment by remember { mutableStateOf("") }
@@ -338,81 +336,13 @@ fun SignUpScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Info Card at top of form
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = lightBlueBg,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color(0xFFDBEAFE), RoundedCornerShape(16.dp))
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(primaryBlue),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = if (role == UserRole.STUDENT) Icons.Default.People else Icons.Default.VerifiedUser,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text(
-                                text = if (role == UserRole.STUDENT) "Join 1,400+ Verified Students" else "Earn Up to 15,000 MWK / hr",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = textDark
-                            )
-                            if (role == UserRole.STUDENT) {
-                                Icon(
-                                    imageVector = Icons.Default.Verified,
-                                    contentDescription = null,
-                                    tint = primaryBlue,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = if (role == UserRole.STUDENT)
-                                "Instant peer-to-peer tutoring & study resources."
-                            else
-                                "Flexible schedule, verified student peers, secure payouts.",
-                            fontSize = 12.sp,
-                            color = textGray
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Form Fields based on role
             if (role == UserRole.STUDENT) {
                 StudentForm(
-                    firstName = studentFirstName,
-                    onFirstNameChange = { studentFirstName = it },
-                    lastName = studentLastName,
-                    onLastNameChange = { studentLastName = it },
+                    fullName = studentFullName,
+                    onFullNameChange = { studentFullName = it },
                     email = studentEmail,
                     onEmailChange = { studentEmail = it },
                     studentId = studentId,
@@ -430,8 +360,7 @@ fun SignUpScreen(
                     onSubmit = {
                         onCreateStudentAccount(
                             mapOf(
-                                "firstName" to studentFirstName,
-                                "lastName" to studentLastName,
+                                "fullName" to studentFullName,
                                 "email" to studentEmail,
                                 "studentId" to studentId,
                                 "password" to studentPassword
@@ -446,10 +375,8 @@ fun SignUpScreen(
                 )
             } else {
                 TutorForm(
-                    firstName = tutorFirstName,
-                    onFirstNameChange = { tutorFirstName = it },
-                    lastName = tutorLastName,
-                    onLastNameChange = { tutorLastName = it },
+                    fullName = tutorFullName,
+                    onFullNameChange = { tutorFullName = it },
                     email = tutorEmail,
                     onEmailChange = { tutorEmail = it },
                     tutorId = tutorId,
@@ -472,8 +399,7 @@ fun SignUpScreen(
                     onSubmit = {
                         onCreateTutorAccount(
                             mapOf(
-                                "firstName" to tutorFirstName,
-                                "lastName" to tutorLastName,
+                                "fullName" to tutorFullName,
                                 "email" to tutorEmail,
                                 "tutorId" to tutorId,
                                 "department" to tutorDepartment,
@@ -494,8 +420,7 @@ fun SignUpScreen(
 
 @Composable
 fun StudentForm(
-    firstName: String, onFirstNameChange: (String) -> Unit,
-    lastName: String, onLastNameChange: (String) -> Unit,
+    fullName: String, onFullNameChange: (String) -> Unit,
     email: String, onEmailChange: (String) -> Unit,
     studentId: String, onStudentIdChange: (String) -> Unit,
     password: String, onPasswordChange: (String) -> Unit,
@@ -511,72 +436,14 @@ fun StudentForm(
     textGray: Color
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        // First Name & Last Name
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text("First Name", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
-                Spacer(modifier = Modifier.height(6.dp))
-                OutlinedTextField(
-                    value = firstName,
-                    onValueChange = onFirstNameChange,
-                    placeholder = { Text("e.g. Chisomo", color = textGray, fontSize = 13.sp) },
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = containerBg,
-                        unfocusedContainerColor = containerBg,
-                        focusedBorderColor = primaryBlue,
-                        unfocusedBorderColor = Color(0xFFE2E8F0),
-                        focusedTextColor = textDark,
-                        unfocusedTextColor = textDark
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Last Name", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
-                Spacer(modifier = Modifier.height(6.dp))
-                OutlinedTextField(
-                    value = lastName,
-                    onValueChange = onLastNameChange,
-                    placeholder = { Text("e.g. Banda", color = textGray, fontSize = 13.sp) },
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = containerBg,
-                        unfocusedContainerColor = containerBg,
-                        focusedBorderColor = primaryBlue,
-                        unfocusedBorderColor = Color(0xFFE2E8F0),
-                        focusedTextColor = textDark,
-                        unfocusedTextColor = textDark
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // School Email Label & Required
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("School Email", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
-            Text("Required", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = primaryBlue)
-        }
+        // Full Name Field
+        Text("Full Name", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
         Spacer(modifier = Modifier.height(6.dp))
         OutlinedTextField(
-            value = email,
-            onValueChange = onEmailChange,
-            placeholder = { Text("cbanda@poly.ac.mw", color = textGray, fontSize = 13.sp) },
-            leadingIcon = {
-                Text("@", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textGray, modifier = Modifier.padding(start = 4.dp))
-            },
+            value = fullName,
+            onValueChange = onFullNameChange,
+            placeholder = { Text("Wongani Nyirenda", color = textGray, fontSize = 13.sp) },
+            leadingIcon = { Icon(Icons.Default.Person, null, tint = textGray, modifier = Modifier.size(20.dp)) },
             singleLine = true,
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -589,11 +456,28 @@ fun StudentForm(
             ),
             modifier = Modifier.fillMaxWidth()
         )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // School Email Label
+        Text("School Email", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
         Spacer(modifier = Modifier.height(6.dp))
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            Icon(Icons.Default.Info, null, tint = textGray, modifier = Modifier.size(14.dp))
-            Text("Institutional email only: .ac.mw or verified university domain", fontSize = 12.sp, color = textGray)
-        }
+        OutlinedTextField(
+            value = email,
+            onValueChange = onEmailChange,
+            placeholder = { Text("bsc-inf-15-23@unima.ac.mw", color = textGray, fontSize = 13.sp) },
+            singleLine = true,
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = containerBg,
+                unfocusedContainerColor = containerBg,
+                focusedBorderColor = primaryBlue,
+                unfocusedBorderColor = Color(0xFFE2E8F0),
+                focusedTextColor = textDark,
+                unfocusedTextColor = textDark
+            ),
+            modifier = Modifier.fillMaxWidth()
+        )
 
         Spacer(modifier = Modifier.height(14.dp))
 
@@ -617,8 +501,6 @@ fun StudentForm(
             ),
             modifier = Modifier.fillMaxWidth()
         )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text("Used to verify enrollment and department cohort", fontSize = 12.sp, color = textGray)
 
         Spacer(modifier = Modifier.height(14.dp))
 
@@ -653,20 +535,6 @@ fun StudentForm(
             ),
             modifier = Modifier.fillMaxWidth()
         )
-        Spacer(modifier = Modifier.height(6.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val strength = password.length
-            Box(modifier = Modifier.weight(1f).height(3.dp).background(if (strength > 0) primaryBlue else Color(0xFFE2E8F0), RoundedCornerShape(2.dp)))
-            Box(modifier = Modifier.weight(1f).height(3.dp).background(if (strength >= 4) primaryBlue else Color(0xFFE2E8F0), RoundedCornerShape(2.dp)))
-            Box(modifier = Modifier.weight(1f).height(3.dp).background(if (strength >= 8) primaryBlue else Color(0xFFE2E8F0), RoundedCornerShape(2.dp)))
-            Box(modifier = Modifier.weight(1f).height(3.dp).background(if (strength >= 10) primaryBlue else Color(0xFFE2E8F0), RoundedCornerShape(2.dp)))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Security strength", fontSize = 11.sp, color = textGray)
-        }
 
         Spacer(modifier = Modifier.height(14.dp))
 
@@ -765,26 +633,13 @@ fun StudentForm(
                 modifier = Modifier.clickable(onClick = onSignInClick)
             )
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(Icons.Default.VerifiedUser, null, tint = textGray, modifier = Modifier.size(14.dp))
-            Spacer(modifier = Modifier.width(6.dp))
-            Text("Protected by Yaza Wanga Campus Trust", fontSize = 12.sp, color = textGray)
-        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TutorForm(
-    firstName: String, onFirstNameChange: (String) -> Unit,
-    lastName: String, onLastNameChange: (String) -> Unit,
+    fullName: String, onFullNameChange: (String) -> Unit,
     email: String, onEmailChange: (String) -> Unit,
     tutorId: String, onTutorIdChange: (String) -> Unit,
     department: String, onDepartmentChange: (String) -> Unit,
@@ -803,84 +658,14 @@ fun TutorForm(
     textGray: Color
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        // First Name & Last Name
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text("First Name", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
-                Spacer(modifier = Modifier.height(6.dp))
-                OutlinedTextField(
-                    value = firstName,
-                    onValueChange = onFirstNameChange,
-                    placeholder = { Text("Amina", color = textGray, fontSize = 13.sp) },
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = containerBg,
-                        unfocusedContainerColor = containerBg,
-                        focusedBorderColor = primaryBlue,
-                        unfocusedBorderColor = Color(0xFFE2E8F0),
-                        focusedTextColor = textDark,
-                        unfocusedTextColor = textDark
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Last Name", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
-                Spacer(modifier = Modifier.height(6.dp))
-                OutlinedTextField(
-                    value = lastName,
-                    onValueChange = onLastNameChange,
-                    placeholder = { Text("Banda", color = textGray, fontSize = 13.sp) },
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = containerBg,
-                        unfocusedContainerColor = containerBg,
-                        focusedBorderColor = primaryBlue,
-                        unfocusedBorderColor = Color(0xFFE2E8F0),
-                        focusedTextColor = textDark,
-                        unfocusedTextColor = textDark
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // Institutional Staff / Student Email & badge
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Institutional Staff / Student Email", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
-            Surface(
-                shape = RoundedCornerShape(50.dp),
-                color = Color(0xFFE0ECFF)
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Icon(Icons.Default.Verified, null, tint = primaryBlue, modifier = Modifier.size(12.dp))
-                    Text("Official .ac or .edu", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                }
-            }
-        }
+        // Full Name Field
+        Text("Full Name", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
         Spacer(modifier = Modifier.height(6.dp))
         OutlinedTextField(
-            value = email,
-            onValueChange = onEmailChange,
-            placeholder = { Text("a.banda@university.edu", color = textGray, fontSize = 13.sp) },
-            leadingIcon = {
-                Text("@", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textGray, modifier = Modifier.padding(start = 4.dp))
-            },
+            value = fullName,
+            onValueChange = onFullNameChange,
+            placeholder = { Text("Amina Banda", color = textGray, fontSize = 13.sp) },
+            leadingIcon = { Icon(Icons.Default.Person, null, tint = textGray, modifier = Modifier.size(20.dp)) },
             singleLine = true,
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -893,11 +678,28 @@ fun TutorForm(
             ),
             modifier = Modifier.fillMaxWidth()
         )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // School Email
+        Text("Institutional Staff / Student Email", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
         Spacer(modifier = Modifier.height(6.dp))
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            Icon(Icons.Default.Info, null, tint = textGray, modifier = Modifier.size(14.dp))
-            Text("Official university email required for rapid credential verification.", fontSize = 12.sp, color = textGray)
-        }
+        OutlinedTextField(
+            value = email,
+            onValueChange = onEmailChange,
+            placeholder = { Text("bsc-inf-15-23@unima.ac.mw", color = textGray, fontSize = 13.sp) },
+            singleLine = true,
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = containerBg,
+                unfocusedContainerColor = containerBg,
+                focusedBorderColor = primaryBlue,
+                unfocusedBorderColor = Color(0xFFE2E8F0),
+                focusedTextColor = textDark,
+                unfocusedTextColor = textDark
+            ),
+            modifier = Modifier.fillMaxWidth()
+        )
 
         Spacer(modifier = Modifier.height(14.dp))
 
@@ -1035,44 +837,6 @@ fun TutorForm(
             ),
             modifier = Modifier.fillMaxWidth()
         )
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // Academic Integrity Check Info Card
-        Surface(
-            shape = RoundedCornerShape(14.dp),
-            color = Color(0xFFEFF6FF),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, Color(0xFFDBEAFE), RoundedCornerShape(14.dp))
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(primaryBlue),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Default.Security, null, tint = Color.White, modifier = Modifier.size(18.dp))
-                }
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Academic Integrity Check", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textDark)
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        "Tutor accounts undergo quick academic verification by course coordinators before being publicly listed.",
-                        fontSize = 12.sp,
-                        color = textGray
-                    )
-                }
-            }
-        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
