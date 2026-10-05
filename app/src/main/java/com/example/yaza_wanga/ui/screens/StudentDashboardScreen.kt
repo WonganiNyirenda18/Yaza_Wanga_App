@@ -36,6 +36,7 @@ fun StudentDashboardScreen(
     onViewCourseClick: (String) -> Unit = {}
 ) {
     val primaryBlue = Color(0xFF1D4ED8)
+    val lightBlueBg = Color(0xFFF0F4FF)
     val containerBg = Color(0xFFF8FAFC)
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
@@ -156,38 +157,6 @@ fun StudentDashboardScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Action Buttons Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Button(
-                    onClick = {},
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(44.dp)
-                ) {
-                    Icon(Icons.Default.Search, null, tint = Color.White, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Find New Tutor", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                }
-
-                Button(
-                    onClick = {},
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(44.dp)
-                ) {
-                    Icon(Icons.Default.CalendarToday, null, tint = Color.White, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Book a Session", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                }
-            }
-
             // Summary Stats Cards Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -338,6 +307,7 @@ fun StudentDashboardScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
+                        // Primary button
                         Button(
                             onClick = {},
                             shape = RoundedCornerShape(10.dp),
@@ -351,17 +321,19 @@ fun StudentDashboardScreen(
                             Text("Join Meeting", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         }
 
+                        // Faded secondary button
                         Button(
                             onClick = {},
                             shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
+                            colors = ButtonDefaults.buttonColors(containerColor = lightBlueBg),
                             modifier = Modifier
                                 .weight(1f)
                                 .height(40.dp)
+                                .border(1.dp, Color(0xFFDBEAFE), RoundedCornerShape(10.dp))
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.Chat, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                            Icon(Icons.AutoMirrored.Filled.Chat, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Message", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            Text("Message", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
                         }
                     }
                 }
@@ -447,35 +419,17 @@ fun StudentDashboardScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    Button(
+                        onClick = {},
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(40.dp)
                     ) {
-                        Button(
-                            onClick = {},
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(40.dp)
-                        ) {
-                            Icon(Icons.Default.Map, null, tint = Color.White, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("View Location", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                        }
-
-                        Button(
-                            onClick = {},
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(40.dp)
-                        ) {
-                            Icon(Icons.Default.CalendarToday, null, tint = Color.White, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Reschedule", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                        }
+                        Icon(Icons.Default.Map, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("View Location", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     }
                 }
             }
@@ -502,7 +456,6 @@ fun StudentDashboardScreen(
                 progressText = "68%",
                 topics = "14/20 topics",
                 tutor = "John Banda",
-                nextTopic = "React State",
                 onViewCourse = { onViewCourseClick("INF 212") },
                 primaryBlue = primaryBlue,
                 containerBg = containerBg,
@@ -519,7 +472,6 @@ fun StudentDashboardScreen(
                 progressText = "45%",
                 topics = "9/20 topics",
                 tutor = "Chimwemwe Phiri",
-                nextTopic = "SQL Joins & Indexes",
                 onViewCourse = { onViewCourseClick("COM 311") },
                 primaryBlue = primaryBlue,
                 containerBg = containerBg,
@@ -536,7 +488,6 @@ fun StudentDashboardScreen(
                 progressText = "82%",
                 topics = "18/22 topics",
                 tutor = "Thokozani Mwale",
-                nextTopic = "Hypothesis Testing",
                 onViewCourse = { onViewCourseClick("STA 211") },
                 primaryBlue = primaryBlue,
                 containerBg = containerBg,
@@ -558,7 +509,6 @@ fun CourseProgressCard(
     progressText: String,
     topics: String,
     tutor: String,
-    nextTopic: String,
     onViewCourse: () -> Unit,
     primaryBlue: Color,
     containerBg: Color,
@@ -626,7 +576,6 @@ fun CourseProgressCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -635,10 +584,6 @@ fun CourseProgressCard(
                             Text("Assigned Tutor", fontSize = 10.sp, color = textGray)
                             Text(tutor, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = textDark)
                         }
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Next:", fontSize = 11.sp, color = textGray)
-                        Text(nextTopic, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
                     }
                 }
             }

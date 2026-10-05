@@ -35,10 +35,16 @@ fun StudentProfileScreen(
 ) {
     var fullName by remember { mutableStateOf("Wongani Nyirenda") }
     var studentId by remember { mutableStateOf("BCS-2022-0481") }
-    var programme by remember { mutableStateOf("BSc Information Technology") }
-    var department by remember { mutableStateOf("Computer Science & IT") }
+    var programme by remember { mutableStateOf("Computer Science") }
+    var department by remember { mutableStateOf("Computing Department") }
     var yearOfStudy by remember { mutableStateOf("Year 3") }
     var phone by remember { mutableStateOf("+265 991 234 567") }
+
+    var programmeExpanded by remember { mutableStateOf(false) }
+    var departmentExpanded by remember { mutableStateOf(false) }
+
+    val programmes = listOf("Computer Science", "Information Systems", "Computer Network Engineering")
+    val departments = listOf("Computing Department")
 
     val primaryBlue = Color(0xFF1D4ED8)
     val containerBg = Color(0xFFF8FAFC)
@@ -266,47 +272,93 @@ fun StudentProfileScreen(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Programme of Study
+                    // Programme of Study Dropdown
                     Text("Programme of Study", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
                     Spacer(modifier = Modifier.height(6.dp))
-                    OutlinedTextField(
-                        value = programme,
-                        onValueChange = { programme = it },
-                        leadingIcon = { Icon(Icons.AutoMirrored.Filled.MenuBook, null, tint = textGray, modifier = Modifier.size(20.dp)) },
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = containerBg,
-                            unfocusedContainerColor = containerBg,
-                            focusedBorderColor = primaryBlue,
-                            unfocusedBorderColor = Color(0xFFE2E8F0),
-                            focusedTextColor = textDark,
-                            unfocusedTextColor = textDark
-                        ),
+                    ExposedDropdownMenuBox(
+                        expanded = programmeExpanded,
+                        onExpandedChange = { programmeExpanded = it },
                         modifier = Modifier.fillMaxWidth()
-                    )
+                    ) {
+                        OutlinedTextField(
+                            value = programme,
+                            onValueChange = {},
+                            readOnly = true,
+                            leadingIcon = { Icon(Icons.AutoMirrored.Filled.MenuBook, null, tint = textGray, modifier = Modifier.size(20.dp)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = programmeExpanded) },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = containerBg,
+                                unfocusedContainerColor = containerBg,
+                                focusedBorderColor = primaryBlue,
+                                unfocusedBorderColor = Color(0xFFE2E8F0),
+                                focusedTextColor = textDark,
+                                unfocusedTextColor = textDark
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
+                        )
+                        ExposedDropdownMenu(
+                            expanded = programmeExpanded,
+                            onDismissRequest = { programmeExpanded = false }
+                        ) {
+                            programmes.forEach { prog ->
+                                DropdownMenuItem(
+                                    text = { Text(prog) },
+                                    onClick = {
+                                        programme = prog
+                                        programmeExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Department / Faculty
+                    // Department / Faculty Dropdown
                     Text("Department / Faculty", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
                     Spacer(modifier = Modifier.height(6.dp))
-                    OutlinedTextField(
-                        value = department,
-                        onValueChange = { department = it },
-                        leadingIcon = { Icon(Icons.Default.Business, null, tint = textGray, modifier = Modifier.size(20.dp)) },
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = containerBg,
-                            unfocusedContainerColor = containerBg,
-                            focusedBorderColor = primaryBlue,
-                            unfocusedBorderColor = Color(0xFFE2E8F0),
-                            focusedTextColor = textDark,
-                            unfocusedTextColor = textDark
-                        ),
+                    ExposedDropdownMenuBox(
+                        expanded = departmentExpanded,
+                        onExpandedChange = { departmentExpanded = it },
                         modifier = Modifier.fillMaxWidth()
-                    )
+                    ) {
+                        OutlinedTextField(
+                            value = department,
+                            onValueChange = {},
+                            readOnly = true,
+                            leadingIcon = { Icon(Icons.Default.Business, null, tint = textGray, modifier = Modifier.size(20.dp)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = departmentExpanded) },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = containerBg,
+                                unfocusedContainerColor = containerBg,
+                                focusedBorderColor = primaryBlue,
+                                unfocusedBorderColor = Color(0xFFE2E8F0),
+                                focusedTextColor = textDark,
+                                unfocusedTextColor = textDark
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
+                        )
+                        ExposedDropdownMenu(
+                            expanded = departmentExpanded,
+                            onDismissRequest = { departmentExpanded = false }
+                        ) {
+                            departments.forEach { dept ->
+                                DropdownMenuItem(
+                                    text = { Text(dept) },
+                                    onClick = {
+                                        department = dept
+                                        departmentExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(14.dp))
 
