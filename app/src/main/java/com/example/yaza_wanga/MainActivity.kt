@@ -9,7 +9,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.yaza_wanga.ui.*
+import com.example.yaza_wanga.ui.screens.*
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
 
 enum class AppScreen {
