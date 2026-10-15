@@ -86,7 +86,7 @@ fun GoogleLogo(modifier: Modifier = Modifier) {
 fun SignInScreen(
     onBackClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
-    onLoginClick: (String, String) -> Unit = { _, _ -> },
+    onLoginClick: (String, String, UserRole) -> Unit = { _, _, _ -> },
     onGoogleSignInClick: () -> Unit = {},
     onForgotPasswordClick: () -> Unit = {},
     onSignUpClick: () -> Unit = {}
@@ -94,6 +94,7 @@ fun SignInScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var selectedRole by remember { mutableStateOf(UserRole.STUDENT) }
 
     val primaryBlue = Color(0xFF1D4ED8)
     val lightBlueBg = Color(0xFFF0F4FF)
@@ -238,7 +239,63 @@ fun SignInScreen(
                 color = textGray
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(18.dp))
+
+            // Student / Tutor Role Selector
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = Color(0xFFE2E8F0),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(3.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    val isStudent = selectedRole == UserRole.STUDENT
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = if (isStudent) primaryBlue else Color.Transparent,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clickable { selectedRole = UserRole.STUDENT }
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = "Student Sign In",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isStudent) Color.White else textGray
+                            )
+                        }
+                    }
+
+                    val isTutor = selectedRole == UserRole.TUTOR
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = if (isTutor) primaryBlue else Color.Transparent,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clickable { selectedRole = UserRole.TUTOR }
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = "Tutor Sign In",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isTutor) Color.White else textGray
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
 
             // Main Card Form
             Card(
@@ -256,7 +313,7 @@ fun SignInScreen(
                 ) {
                     // School Email Label
                     Text(
-                        text = "School Email",
+                        text = if (selectedRole == UserRole.STUDENT) "School Email" else "Tutor Email / Staff ID Email",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = textDark
@@ -366,7 +423,7 @@ fun SignInScreen(
 
                     // Login Button
                     Button(
-                        onClick = { onLoginClick(email, password) },
+                        onClick = { onLoginClick(email, password, selectedRole) },
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                         modifier = Modifier
@@ -378,8 +435,8 @@ fun SignInScreen(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = "LOGIN",
-                                fontSize = 16.sp,
+                                text = if (selectedRole == UserRole.STUDENT) "LOGIN AS STUDENT" else "LOGIN AS TUTOR",
+                                fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White,
                                 letterSpacing = 1.sp
@@ -460,7 +517,7 @@ fun SignInScreen(
                 }
             }
 
-Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Footer Sign Up
             Row(

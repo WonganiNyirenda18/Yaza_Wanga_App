@@ -40,9 +40,12 @@ class MainActivity : ComponentActivity() {
                                     signUpRole = UserRole.STUDENT
                                     currentScreen = AppScreen.SIGN_UP
                                 },
-                                onLoginClick = { _, _ ->
-                                    // Default to Student Profile Setup
-                                    currentScreen = AppScreen.STUDENT_PROFILE
+                                onLoginClick = { _, _, role ->
+                                    if (role == UserRole.TUTOR) {
+                                        currentScreen = AppScreen.TUTOR_DASHBOARD
+                                    } else {
+                                        currentScreen = AppScreen.STUDENT_PROFILE
+                                    }
                                 },
                                 onGoogleSignInClick = {
                                     currentScreen = AppScreen.STUDENT_PROFILE
@@ -91,7 +94,7 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = AppScreen.COURSE_DIRECTORY
                                 },
                                 onNavigateAlerts = {
-                                    // Alerts / Notifications
+                                    // Alerts
                                 },
                                 onNavigateProfile = {
                                     currentScreen = AppScreen.STUDENT_PROFILE
@@ -108,19 +111,19 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = AppScreen.TUTOR_DASHBOARD
                                 },
                                 onNavigateSessions = {
-                                    // Sessions tab
+                                    // Sessions
                                 },
                                 onNavigateStudents = {
-                                    // Students tab
+                                    // Students
                                 },
                                 onNavigateProfile = {
                                     currentScreen = AppScreen.STUDENT_PROFILE
                                 },
                                 onStartCall = { _ ->
-                                    // Call action
+                                    // Call
                                 },
                                 onViewStudentDetails = { _ ->
-                                    // View student details
+                                    // Student details
                                 }
                             )
                         }
@@ -157,7 +160,7 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = AppScreen.STUDENT_PROFILE
                                 },
                                 onContactTutor = { _ ->
-                                    // Contact tutor action
+                                    // Contact tutor
                                 }
                             )
                         }
