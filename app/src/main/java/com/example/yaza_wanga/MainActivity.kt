@@ -19,6 +19,10 @@ enum class AppScreen {
     STUDENT_DASHBOARD,
     TUTOR_DASHBOARD,
     TUTOR_SESSION,
+    ADMIN_OVERVIEW,
+    ADMIN_USERS,
+    ADMIN_COURSES,
+    ADMIN_CONTENT,
     COURSE_DIRECTORY,
     COURSE_DETAILS
 }
@@ -33,6 +37,16 @@ class MainActivity : ComponentActivity() {
                     var currentScreen by remember { mutableStateOf(AppScreen.SIGN_IN) }
                     var signUpRole by remember { mutableStateOf(UserRole.STUDENT) }
                     var selectedCourseCode by remember { mutableStateOf("INF 212") }
+
+                    fun navigateAdminTab(tabIndex: Int) {
+                        currentScreen = when (tabIndex) {
+                            0 -> AppScreen.ADMIN_OVERVIEW
+                            1 -> AppScreen.ADMIN_USERS
+                            2 -> AppScreen.ADMIN_COURSES
+                            3 -> AppScreen.ADMIN_CONTENT
+                            else -> AppScreen.ADMIN_OVERVIEW
+                        }
+                    }
 
                     when (currentScreen) {
                         AppScreen.SIGN_IN -> {
@@ -49,7 +63,8 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onGoogleSignInClick = {
-                                    currentScreen = AppScreen.STUDENT_PROFILE
+                                    // For testing / demonstration: open Admin Portal or Student Profile
+                                    currentScreen = AppScreen.ADMIN_OVERVIEW
                                 }
                             )
                         }
@@ -76,7 +91,7 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = AppScreen.SIGN_IN
                                 },
                                 onProfileClick = {
-                                    // Stay or profile
+                                    currentScreen = AppScreen.ADMIN_OVERVIEW
                                 },
                                 onSaveAndContinue = {
                                     currentScreen = AppScreen.STUDENT_DASHBOARD
@@ -95,7 +110,7 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = AppScreen.COURSE_DIRECTORY
                                 },
                                 onNavigateAlerts = {
-                                    // Alerts
+                                    currentScreen = AppScreen.ADMIN_OVERVIEW
                                 },
                                 onNavigateProfile = {
                                     currentScreen = AppScreen.STUDENT_PROFILE
@@ -115,17 +130,13 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = AppScreen.TUTOR_SESSION
                                 },
                                 onNavigateStudents = {
-                                    // Students
+                                    currentScreen = AppScreen.ADMIN_USERS
                                 },
                                 onNavigateProfile = {
                                     currentScreen = AppScreen.STUDENT_PROFILE
                                 },
-                                onStartCall = { _ ->
-                                    // Call
-                                },
-                                onViewStudentDetails = { _ ->
-                                    // Student details
-                                }
+                                onStartCall = { _ -> },
+                                onViewStudentDetails = { _ -> }
                             )
                         }
                         AppScreen.TUTOR_SESSION -> {
@@ -134,23 +145,37 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = AppScreen.TUTOR_DASHBOARD
                                 },
                                 onNavigateAnalytics = {
-                                    // Analytics
+                                    currentScreen = AppScreen.ADMIN_OVERVIEW
                                 },
                                 onNavigateUpload = {
-                                    // Upload
+                                    currentScreen = AppScreen.ADMIN_CONTENT
                                 },
                                 onNavigateVerify = {
-                                    // Verify
+                                    currentScreen = AppScreen.ADMIN_USERS
                                 },
-                                onAcceptRequest = { _ ->
-                                    // Accept
-                                },
-                                onDeclineRequest = { _ ->
-                                    // Decline
-                                },
-                                onAttachLink = { _ ->
-                                    // Attach link
-                                }
+                                onAcceptRequest = { _ -> },
+                                onDeclineRequest = { _ -> },
+                                onAttachLink = { _ -> }
+                            )
+                        }
+                        AppScreen.ADMIN_OVERVIEW -> {
+                            AdminOverviewScreen(
+                                onNavigateTab = ::navigateAdminTab
+                            )
+                        }
+                        AppScreen.ADMIN_USERS -> {
+                            AdminUsersScreen(
+                                onNavigateTab = ::navigateAdminTab
+                            )
+                        }
+                        AppScreen.ADMIN_COURSES -> {
+                            AdminCoursesScreen(
+                                onNavigateTab = ::navigateAdminTab
+                            )
+                        }
+                        AppScreen.ADMIN_CONTENT -> {
+                            AdminContentScreen(
+                                onNavigateTab = ::navigateAdminTab
                             )
                         }
                         AppScreen.COURSE_DIRECTORY -> {
@@ -165,7 +190,7 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = AppScreen.COURSE_DIRECTORY
                                 },
                                 onNavigateAlerts = {
-                                    // Alerts
+                                    currentScreen = AppScreen.ADMIN_OVERVIEW
                                 },
                                 onNavigateProfile = {
                                     currentScreen = AppScreen.STUDENT_PROFILE
@@ -185,9 +210,7 @@ class MainActivity : ComponentActivity() {
                                 onProfileClick = {
                                     currentScreen = AppScreen.STUDENT_PROFILE
                                 },
-                                onContactTutor = { _ ->
-                                    // Contact tutor
-                                }
+                                onContactTutor = { _ -> }
                             )
                         }
                     }
@@ -201,6 +224,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainAppPreview() {
     Yaza_WangaTheme {
-        StudentDashboardScreen()
+        AdminOverviewScreen()
     }
 }
