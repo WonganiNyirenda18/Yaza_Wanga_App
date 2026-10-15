@@ -18,6 +18,7 @@ enum class AppScreen {
     STUDENT_PROFILE,
     STUDENT_DASHBOARD,
     TUTOR_DASHBOARD,
+    TUTOR_SESSION,
     COURSE_DIRECTORY,
     COURSE_DETAILS
 }
@@ -111,7 +112,7 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = AppScreen.TUTOR_DASHBOARD
                                 },
                                 onNavigateSessions = {
-                                    // Sessions
+                                    currentScreen = AppScreen.TUTOR_SESSION
                                 },
                                 onNavigateStudents = {
                                     // Students
@@ -124,6 +125,31 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onViewStudentDetails = { _ ->
                                     // Student details
+                                }
+                            )
+                        }
+                        AppScreen.TUTOR_SESSION -> {
+                            TutorSessionScreen(
+                                onNavigateRequests = {
+                                    currentScreen = AppScreen.TUTOR_DASHBOARD
+                                },
+                                onNavigateAnalytics = {
+                                    // Analytics
+                                },
+                                onNavigateUpload = {
+                                    // Upload
+                                },
+                                onNavigateVerify = {
+                                    // Verify
+                                },
+                                onAcceptRequest = { _ ->
+                                    // Accept
+                                },
+                                onDeclineRequest = { _ ->
+                                    // Decline
+                                },
+                                onAttachLink = { _ ->
+                                    // Attach link
                                 }
                             )
                         }
