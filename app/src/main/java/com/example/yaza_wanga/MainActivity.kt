@@ -17,6 +17,7 @@ enum class AppScreen {
     SIGN_UP,
     STUDENT_PROFILE,
     STUDENT_DASHBOARD,
+    TUTOR_DASHBOARD,
     COURSE_DIRECTORY,
     COURSE_DETAILS
 }
@@ -40,7 +41,7 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = AppScreen.SIGN_UP
                                 },
                                 onLoginClick = { _, _ ->
-                                    // After login, go to Student Profile Setup
+                                    // Default to Student Profile Setup
                                     currentScreen = AppScreen.STUDENT_PROFILE
                                 },
                                 onGoogleSignInClick = {
@@ -58,11 +59,10 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = AppScreen.SIGN_IN
                                 },
                                 onCreateStudentAccount = { _ ->
-                                    // After account creation, redirect to Login / Profile
                                     currentScreen = AppScreen.STUDENT_PROFILE
                                 },
                                 onCreateTutorAccount = { _ ->
-                                    currentScreen = AppScreen.STUDENT_PROFILE
+                                    currentScreen = AppScreen.TUTOR_DASHBOARD
                                 }
                             )
                         }
@@ -75,7 +75,6 @@ class MainActivity : ComponentActivity() {
                                     // Stay or profile
                                 },
                                 onSaveAndContinue = {
-                                    // Proceed to Dashboard
                                     currentScreen = AppScreen.STUDENT_DASHBOARD
                                 }
                             )
@@ -100,6 +99,28 @@ class MainActivity : ComponentActivity() {
                                 onViewCourseClick = { code ->
                                     selectedCourseCode = code
                                     currentScreen = AppScreen.COURSE_DETAILS
+                                }
+                            )
+                        }
+                        AppScreen.TUTOR_DASHBOARD -> {
+                            TutorDashboardScreen(
+                                onNavigateDashboard = {
+                                    currentScreen = AppScreen.TUTOR_DASHBOARD
+                                },
+                                onNavigateSessions = {
+                                    // Sessions tab
+                                },
+                                onNavigateStudents = {
+                                    // Students tab
+                                },
+                                onNavigateProfile = {
+                                    currentScreen = AppScreen.STUDENT_PROFILE
+                                },
+                                onStartCall = { _ ->
+                                    // Call action
+                                },
+                                onViewStudentDetails = { _ ->
+                                    // View student details
                                 }
                             )
                         }
