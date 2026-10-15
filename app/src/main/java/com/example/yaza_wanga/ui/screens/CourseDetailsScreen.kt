@@ -11,7 +11,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,10 +28,8 @@ data class TutorModel(
     val name: String,
     val subtitle: String,
     val mode: String,
-    val availability: String,
     val bio: String,
-    val rate: String,
-    val isTopRated: Boolean = false
+    val rate: String
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,40 +46,23 @@ fun CourseDetailsScreen(
     val textGray = Color(0xFF64748B)
 
     val tutors = listOf(
-        TutorModel("Chimwemwe Phiri", "4th Year • Computer Science", "Both Online & Offline", "Available Today", "Specializes in Frontend, DOM & JavaScript", "FREE • Peer Volunteer", true),
-        TutorModel("Thokozani Mwale", "Master's Candidate • Applied S...", "Online Only (Google Meet)", "Available Tomorrow", "HTML/CSS semantic architecture & APIs", "MK 2,500 / session"),
-        TutorModel("John Banda", "3rd Year • Information Syste...", "Both Online & Offline", "Available This Week", "Hands-on coding, CSS Grid & responsive layout", "MK 2,000 / session"),
-        TutorModel("Blessings Kaunda", "3rd Year • Software Engineer...", "Offline Only (Campus Library)", "Available Mon - Fri", "Lab exercises and exam past papers revision", "MK 1,800 / session"),
-        TutorModel("Alinafe Banda", "2nd Year • IT Honours", "Online Only", "Evenings (18:00 - 20:00)", "Beginner foundations & assignments coaching", "FREE • Peer Volunteer")
+        TutorModel("Chimwemwe Phiri", "4th Year • Computer Science", "Both Online & Offline", "Specializes in Frontend, DOM & JavaScript", "FREE • Peer Volunteer"),
+        TutorModel("Thokozani Mwale", "Master's Candidate • Applied Science", "Online Only (Google Meet)", "HTML/CSS semantic architecture & APIs", "MK 2,500 / session"),
+        TutorModel("John Banda", "3rd Year • Information Systems", "Both Online & Offline", "Hands-on coding, CSS Grid & responsive layout", "MK 2,000 / session"),
+        TutorModel("Blessings Kaunda", "3rd Year • Software Engineering", "Offline Only (Campus Library)", "Lab exercises and exam past papers revision", "MK 1,800 / session"),
+        TutorModel("Alinafe Banda", "2nd Year • IT Honours", "Online Only", "Beginner foundations & assignments coaching", "FREE • Peer Volunteer")
     )
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = Color(0xFFE0ECFF)
-                        ) {
-                            Text(
-                                text = courseCode,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = primaryBlue,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
-                        }
-                        Text(
-                            text = "Course Details",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = textDark
-                        )
-                    }
+                    Text(
+                        text = "Course Details",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textDark
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
@@ -94,12 +74,6 @@ fun CourseDetailsScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = {}) {
-                        Icon(Icons.Default.BookmarkBorder, contentDescription = "Bookmark", tint = textDark)
-                    }
-                    IconButton(onClick = {}) {
-                        Icon(Icons.Default.Share, contentDescription = "Share", tint = textDark)
-                    }
                     IconButton(
                         onClick = onProfileClick,
                         modifier = Modifier
@@ -148,7 +122,7 @@ fun CourseDetailsScreen(
                         color = Color(0xFFE0ECFF)
                     ) {
                         Text(
-                            text = "INF 212",
+                            text = courseCode,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = primaryBlue,
@@ -175,7 +149,7 @@ fun CourseDetailsScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Stats Pills Row
+                    // Stats Pills Row (12 modules removed)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -193,23 +167,6 @@ fun CourseDetailsScreen(
                                 Icon(Icons.Default.School, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
                                 Column {
                                     Text("5 Tutors", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = textDark)
-                                }
-                            }
-                        }
-
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = containerBg,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                Icon(Icons.AutoMirrored.Filled.MenuBook, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
-                                Column {
-                                    Text("12 Modules", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = textDark)
                                 }
                             }
                         }
@@ -261,7 +218,7 @@ fun CourseDetailsScreen(
                 }
             }
 
-            // Tutors List
+            // Tutors List (Vertical order: Info -> Mode -> Bio -> Fee -> Contact Button)
             tutors.forEach { tutor ->
                 Card(
                     shape = RoundedCornerShape(20.dp),
@@ -274,123 +231,85 @@ fun CourseDetailsScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
+                        // 1. Tutor Info (Avatar, Name, Subtitle)
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.Top
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Box(modifier = Modifier.size(48.dp)) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .clip(CircleShape)
-                                            .background(Color(0xFFE2E8F0)),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(Icons.Default.Person, null, tint = textGray)
-                                    }
-                                    Box(
-                                        modifier = Modifier
-                                            .size(14.dp)
-                                            .clip(CircleShape)
-                                            .background(Color(0xFF10B981))
-                                            .align(Alignment.BottomEnd)
-                                            .border(2.dp, Color.White, CircleShape)
-                                    )
+                            Box(modifier = Modifier.size(48.dp)) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFFE2E8F0)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.Person, null, tint = textGray)
                                 }
+                                Box(
+                                    modifier = Modifier
+                                        .size(14.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF10B981))
+                                        .align(Alignment.BottomEnd)
+                                        .border(2.dp, Color.White, CircleShape)
+                                )
+                            }
 
-                                Column {
-                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                        Text(tutor.name, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
-                                        if (tutor.isTopRated) {
-                                            Surface(
-                                                shape = RoundedCornerShape(50.dp),
-                                                color = Color(0xFFE0ECFF)
-                                            ) {
-                                                Text(
-                                                    text = "Top Rated",
-                                                    fontSize = 9.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = primaryBlue,
-                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                                )
-                                            }
-                                        }
-                                    }
-                                    Text(tutor.subtitle, fontSize = 11.sp, color = textGray)
-                                }
+                            Column {
+                                Text(tutor.name, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
+                                Text(tutor.subtitle, fontSize = 11.sp, color = textGray)
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        // 2. Mode pill
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = containerBg
                         ) {
-                            Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = containerBg
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(Icons.Default.Videocam, null, tint = primaryBlue, modifier = Modifier.size(12.dp))
-                                    Text(tutor.mode, fontSize = 11.sp, color = textDark)
-                                }
-                            }
-
-                            Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = containerBg
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(Icons.Default.Schedule, null, tint = Color(0xFF10B981), modifier = Modifier.size(12.dp))
-                                    Text(tutor.availability, fontSize = 11.sp, color = textDark)
-                                }
+                                Icon(Icons.Default.Videocam, null, tint = primaryBlue, modifier = Modifier.size(12.dp))
+                                Text(tutor.mode, fontSize = 11.sp, color = textDark)
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(8.dp))
-
+                        // 3. Bio text
                         Text(
                             text = tutor.bio,
                             fontSize = 13.sp,
                             color = textGray
                         )
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        // 4. Session Fee
+                        Column {
+                            Text("Session Fee", fontSize = 10.sp, color = textGray)
+                            Text(
+                                tutor.rate,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (tutor.rate.contains("FREE")) Color(0xFF10B981) else primaryBlue
+                            )
+                        }
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        // 5. Contact Button
+                        Button(
+                            onClick = { onContactTutor(tutor.name) },
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(40.dp)
                         ) {
-                            Column {
-                                Text("Session Fee", fontSize = 10.sp, color = textGray)
-                                Text(tutor.rate, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = if (tutor.rate.contains("FREE")) Color(0xFF10B981) else primaryBlue)
-                            }
-
-                            Button(
-                                onClick = { onContactTutor(tutor.name) },
-                                shape = RoundedCornerShape(10.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                                modifier = Modifier.height(38.dp)
-                            ) {
-                                Icon(Icons.AutoMirrored.Filled.Chat, null, tint = Color.White, modifier = Modifier.size(14.dp))
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("Contact Tutor", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                            }
+                            Icon(Icons.AutoMirrored.Filled.Chat, null, tint = Color.White, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Contact Tutor", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         }
                     }
                 }

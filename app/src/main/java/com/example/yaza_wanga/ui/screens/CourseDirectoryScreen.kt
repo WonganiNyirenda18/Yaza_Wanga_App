@@ -28,8 +28,6 @@ import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
 data class CourseModel(
     val code: String,
     val title: String,
-    val rating: String,
-    val reviews: String,
     val department: String
 )
 
@@ -43,22 +41,23 @@ fun CourseDirectoryScreen(
     onNavigateProfile: () -> Unit = {},
     onViewDetailsClick: (String) -> Unit = {}
 ) {
+    var searchQuery by remember { mutableStateOf("") }
     var selectedDepartment by remember { mutableStateOf("All Departments") }
 
     val departments = listOf("All Departments", "Computer Science & IT", "Mathematics", "Engineering", "Business")
     val quickChips = listOf("INF 212", "Database Systems", "STA 211", "Software Eng", "Calculus")
 
     val courses = listOf(
-        CourseModel("INF 212", "Introduction to Web Development", "4.8", "34 reviews", "Computer Science & IT"),
-        CourseModel("COM 311", "Database Systems & Architecture", "5.0", "28 reviews", "Computer Science & IT"),
-        CourseModel("STA 211", "Probability Theory & Applied Statistics", "4.9", "19 reviews", "Mathematics"),
-        CourseModel("COM 312", "Software Architecture & Agile Methods", "4.7", "41 reviews", "Computer Science & IT"),
-        CourseModel("MAT 201", "Multivariable Calculus & Linear Algebra", "4.9", "31 reviews", "Mathematics"),
-        CourseModel("INF 111", "Algorithms & Data Structures", "4.6", "22 reviews", "Computer Science & IT")
+        CourseModel("INF 212", "Introduction to Web Development", "Computer Science & IT"),
+        CourseModel("COM 311", "Database Systems & Architecture", "Computer Science & IT"),
+        CourseModel("STA 211", "Probability Theory & Applied Statistics", "Mathematics"),
+        CourseModel("COM 312", "Software Architecture & Agile Methods", "Computer Science & IT"),
+        CourseModel("MAT 201", "Multivariable Calculus & Linear Algebra", "Mathematics"),
+        CourseModel("INF 111", "Algorithms & Data Structures", "Computer Science & IT")
     )
 
     val primaryBlue = Color(0xFF1D4ED8)
-    val lightBlueBg = Color(0xFFF0F4FF)
+    val containerBg = Color(0xFFF8FAFC)
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
 
@@ -66,47 +65,14 @@ fun CourseDirectoryScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = "Courses",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = textDark
-                        )
-                        Text(
-                            text = "YAZA WANGA PEER HUB",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = primaryBlue,
-                            letterSpacing = 0.5.sp
-                        )
-                    }
-                },
-                navigationIcon = {
-                    Box(
-                        modifier = Modifier
-                            .padding(start = 12.dp)
-                            .size(36.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(primaryBlue),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.MenuBook,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
+                    Text(
+                        text = "Courses",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textDark
+                    )
                 },
                 actions = {
-                    IconButton(onClick = {}) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
-                            tint = textDark
-                        )
-                    }
                     IconButton(
                         onClick = onNavigateProfile,
                         modifier = Modifier
@@ -178,6 +144,39 @@ fun CourseDirectoryScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Search Bar right after Header
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = {
+                    Text(
+                        text = "Search Courses",
+                        color = textGray,
+                        fontSize = 14.sp
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = textGray,
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = containerBg,
+                    unfocusedContainerColor = containerBg,
+                    disabledContainerColor = containerBg,
+                    focusedBorderColor = primaryBlue,
+                    unfocusedBorderColor = Color(0xFFE2E8F0),
+                    focusedTextColor = textDark,
+                    unfocusedTextColor = textDark
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
             // Quick horizontal filter chips
             Row(
                 modifier = Modifier
@@ -238,49 +237,23 @@ fun CourseDirectoryScreen(
                 }
             }
 
-            // Browse Course Directory Header & Accredited badge
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "Browse Course Directory",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textDark
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = "${courses.size} curriculum modules available",
-                        fontSize = 12.sp,
-                        color = textGray
-                    )
-                }
-
-                Surface(
-                    shape = RoundedCornerShape(50.dp),
-                    color = lightBlueBg,
-                    border = BorderStroke(1.dp, Color(0xFFDBEAFE))
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(Icons.Default.Verified, null, tint = primaryBlue, modifier = Modifier.size(14.dp))
-                        Text(
-                            text = "Accredited",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = primaryBlue
-                        )
-                    }
-                }
+            // Browse Course Directory Header
+            Column {
+                Text(
+                    text = "Browse Course Directory",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textDark
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "${courses.size} curriculum modules available",
+                    fontSize = 12.sp,
+                    color = textGray
+                )
             }
 
-            // Course Cards List
+            // Course Cards List (Ratings removed)
             courses.forEach { course ->
                 Card(
                     shape = RoundedCornerShape(20.dp),
@@ -295,42 +268,17 @@ fun CourseDirectoryScreen(
                             .fillMaxWidth()
                             .padding(16.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFFE0ECFF)
                         ) {
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = Color(0xFFE0ECFF)
-                            ) {
-                                Text(
-                                    text = course.code,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = primaryBlue,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                )
-                            }
-
-                            Surface(
-                                shape = RoundedCornerShape(50.dp),
-                                color = Color(0xFFFEF3C7)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(Icons.Default.Star, null, tint = Color(0xFFD97706), modifier = Modifier.size(14.dp))
-                                    Text(
-                                        text = "${course.rating} (${course.reviews})",
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFFD97706)
-                                    )
-                                }
-                            }
+                            Text(
+                                text = course.code,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = primaryBlue,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
                         }
 
                         Spacer(modifier = Modifier.height(10.dp))
@@ -347,8 +295,7 @@ fun CourseDirectoryScreen(
                         Button(
                             onClick = { onViewDetailsClick(course.code) },
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = lightBlueBg),
-                            border = BorderStroke(1.dp, Color(0xFFDBEAFE)),
+                            colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(44.dp)
@@ -357,7 +304,7 @@ fun CourseDirectoryScreen(
                                 text = "View Details",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = primaryBlue
+                                color = Color.White
                             )
                         }
                     }
