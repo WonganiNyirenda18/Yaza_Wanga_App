@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
 
 enum class UserRole {
-    STUDENT, TUTOR
+    STUDENT, TUTOR, ADMIN
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -752,7 +752,7 @@ fun TutorForm(
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryNotEditable, true)
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
             )
             ExposedDropdownMenu(
                 expanded = departmentExpanded,
@@ -838,7 +838,7 @@ fun TutorForm(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
         // Terms Checkbox
         Row(

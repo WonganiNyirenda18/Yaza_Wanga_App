@@ -241,7 +241,7 @@ fun SignInScreen(
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // Student / Tutor Role Selector
+            // Student / Tutor / Admin Role Selector
             Surface(
                 shape = RoundedCornerShape(14.dp),
                 color = Color(0xFFE2E8F0),
@@ -266,8 +266,8 @@ fun SignInScreen(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text(
-                                text = "Student Sign In",
-                                fontSize = 13.sp,
+                                text = "Student",
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = if (isStudent) Color.White else textGray
                             )
@@ -285,10 +285,29 @@ fun SignInScreen(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text(
-                                text = "Tutor Sign In",
-                                fontSize = 13.sp,
+                                text = "Tutor",
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = if (isTutor) Color.White else textGray
+                            )
+                        }
+                    }
+
+                    val isAdmin = selectedRole == UserRole.ADMIN
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = if (isAdmin) primaryBlue else Color.Transparent,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clickable { selectedRole = UserRole.ADMIN }
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = "Admin",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isAdmin) Color.White else textGray
                             )
                         }
                     }
@@ -311,9 +330,13 @@ fun SignInScreen(
                         .fillMaxWidth()
                         .padding(20.dp)
                 ) {
-                    // School Email Label
+                    // Email Label
                     Text(
-                        text = if (selectedRole == UserRole.STUDENT) "School Email" else "Tutor Email / Staff ID Email",
+                        text = when (selectedRole) {
+                            UserRole.STUDENT -> "School Email"
+                            UserRole.TUTOR -> "Tutor Email / Staff ID Email"
+                            UserRole.ADMIN -> "Administrator Email"
+                        },
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = textDark
@@ -327,7 +350,7 @@ fun SignInScreen(
                         onValueChange = { email = it },
                         placeholder = {
                             Text(
-                                text = "bsc-inf-15-23@unima.ac.mw",
+                                text = if (selectedRole == UserRole.ADMIN) "admin@unima.ac.mw" else "bsc-inf-15-23@unima.ac.mw",
                                 color = textGray,
                                 fontSize = 14.sp
                             )
@@ -423,7 +446,10 @@ fun SignInScreen(
 
                     // Login Button
                     Button(
-                        onClick = { onLoginClick(email, password, selectedRole) },
+                        onClick = {
+                            val roleToUse = if (email.lowercase().contains("admin")) UserRole.ADMIN else selectedRole
+                            onLoginClick(email, password, roleToUse)
+                        },
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                         modifier = Modifier
@@ -435,7 +461,11 @@ fun SignInScreen(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = if (selectedRole == UserRole.STUDENT) "LOGIN AS STUDENT" else "LOGIN AS TUTOR",
+                                text = when (selectedRole) {
+                                    UserRole.STUDENT -> "LOGIN AS STUDENT"
+                                    UserRole.TUTOR -> "LOGIN AS TUTOR"
+                                    UserRole.ADMIN -> "LOGIN AS ADMIN"
+                                },
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White,
