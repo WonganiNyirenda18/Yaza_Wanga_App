@@ -41,21 +41,12 @@ fun AdminUsersScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = "YAZA WANGA",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = primaryBlue,
-                            letterSpacing = 0.5.sp
-                        )
-                        Text(
-                            text = "Users",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = textDark
-                        )
-                    }
+                    Text(
+                        text = "Users",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textDark
+                    )
                 },
                 navigationIcon = {
                     Box(
@@ -75,23 +66,6 @@ fun AdminUsersScreen(
                     }
                 },
                 actions = {
-                    Box(modifier = Modifier.padding(end = 4.dp)) {
-                        IconButton(onClick = {}) {
-                            Icon(
-                                imageVector = Icons.Default.Notifications,
-                                contentDescription = "Alerts",
-                                tint = textDark
-                            )
-                        }
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(Color.Red)
-                                .align(Alignment.TopEnd)
-                                .offset(x = (-8).dp, y = 8.dp)
-                        )
-                    }
                     IconButton(
                         onClick = {},
                         modifier = Modifier
@@ -124,25 +98,19 @@ fun AdminUsersScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Header & Total Users Badge
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(primaryBlue))
-                        Text("ACADEMIC GOVERNANCE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                    }
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text("User Directory & Verification", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textDark)
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text("Review credential portfolios, triage verification pipelines, and manage institutional standing.", fontSize = 12.sp, color = textGray)
+            // Header Description
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(primaryBlue))
+                    Text("ACADEMIC GOVERNANCE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
                 }
+                Spacer(modifier = Modifier.height(2.dp))
+                Text("User Directory & Verification", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textDark)
+                Spacer(modifier = Modifier.height(2.dp))
+                Text("Review credential portfolios, triage verification pipelines, and manage institutional standing.", fontSize = 12.sp, color = textGray)
             }
 
-            // Stats Cards Row
+            // Stats Cards Row (Equal Size: Pending Vetting & Active Tutors)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -153,40 +121,40 @@ fun AdminUsersScreen(
                     color = lightBlueBg,
                     modifier = Modifier.weight(1f).border(1.dp, Color(0xFFDBEAFE), RoundedCornerShape(16.dp))
                 ) {
-                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         Box(modifier = Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFFDBEAFE)), contentAlignment = Alignment.Center) {
                             Icon(Icons.Default.PersonSearch, null, tint = primaryBlue, modifier = Modifier.size(18.dp))
                         }
                         Column {
-                            Text("Pending Vetting", fontSize = 10.sp, color = textGray)
-                            Text("3 In Queue", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
+                            Text("Pending Vetting", fontSize = 11.sp, color = textGray)
+                            Text("3 In Queue", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
                         }
                     }
                 }
 
-                // Active Peer Tutors Card
+                // Active Tutors Card
                 Surface(
                     shape = RoundedCornerShape(16.dp),
                     color = Color(0xFFE6F4EA),
                     modifier = Modifier.weight(1f).border(1.dp, Color(0xFFC6F6D5), RoundedCornerShape(16.dp))
                 ) {
-                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         Box(modifier = Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFFC6F6D5)), contentAlignment = Alignment.Center) {
                             Icon(Icons.Default.Verified, null, tint = Color(0xFF137333), modifier = Modifier.size(18.dp))
                         }
                         Column {
-                            Text("Active Peer Tutors", fontSize = 10.sp, color = textGray)
-                            Text("580 Verified", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
+                            Text("Active Tutors", fontSize = 11.sp, color = textGray)
+                            Text("580 Verified", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
                         }
                     }
                 }
             }
 
-            // Search Bar
+            // Search Bar ("Search student or tutor")
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                placeholder = { Text("Search student or tutor by name, email, or...", color = textGray, fontSize = 13.sp) },
+                placeholder = { Text("Search student or tutor", color = textGray, fontSize = 13.sp) },
                 leadingIcon = { Icon(Icons.Default.Search, null, tint = textGray, modifier = Modifier.size(20.dp)) },
                 trailingIcon = { if (searchQuery.isNotEmpty()) IconButton(onClick = { searchQuery = "" }) { Icon(Icons.Default.Close, null, tint = textGray) } },
                 singleLine = true,
@@ -223,18 +191,26 @@ fun AdminUsersScreen(
                 }
             }
 
-            // Priority Verification Queue Header
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            // Verification Queue Header (Instead of Priority Verification Queue & Requires Attention)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Icon(Icons.Default.HourglassTop, null, tint = primaryBlue, modifier = Modifier.size(18.dp))
-                    Text("Priority Verification Queue", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textDark)
+                    Text("Verification Queue", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textDark)
                 }
-                Surface(shape = RoundedCornerShape(50.dp), color = Color(0xFFFEF2F2)) {
-                    Text("Requires Attention", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626), modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
-                }
+                Text(
+                    text = "View More",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = primaryBlue,
+                    modifier = Modifier.clickable {}
+                )
             }
 
-            // Verification Queue Item 1
+            // Verification Queue Item 1 (Chimwemwe Chirwa - Grade removed, buttons fixed)
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -254,10 +230,6 @@ fun AdminUsersScreen(
                                 }
                                 Text("c.chirwa@poly.ac.mw", fontSize = 11.sp, color = textGray)
                             }
-                        }
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text("3.92", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                            Text("Grade A Verified", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF16A34A))
                         }
                     }
 
@@ -284,7 +256,7 @@ fun AdminUsersScreen(
                         ) {
                             Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(14.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Approve Tutor", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            Text("Approve", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         }
 
                         Button(
@@ -314,7 +286,7 @@ fun AdminUsersScreen(
                 Text("Sort by Activity ▾", fontSize = 12.sp, color = primaryBlue, modifier = Modifier.clickable {})
             }
 
-            // Active Directory Item 1 (John Banda)
+            // Active Directory Item 1 (John Banda - rating and master tutor removed, sentences finished)
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -332,11 +304,8 @@ fun AdminUsersScreen(
                                     Text("John Banda", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
                                     Icon(Icons.Default.Verified, null, tint = primaryBlue, modifier = Modifier.size(14.dp))
                                 }
-                                Text("INF 212 • STA 211 Master Tutor", fontSize = 11.sp, color = textGray)
+                                Text("INF 212 & STA 211 Certified Tutor", fontSize = 11.sp, color = textGray)
                             }
-                        }
-                        Surface(shape = RoundedCornerShape(50.dp), color = Color(0xFFFEF3C7)) {
-                            Text("⭐ 4.8", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFD97706), modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
                         }
                     }
 
@@ -364,7 +333,7 @@ fun AdminUsersScreen(
                     Text("Invite Faculty", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 }
 
-                Button(onClick = {}, shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = lightBlueBg), modifier = Modifier.weight(1f).height(46.dp)) {
+                Button(onClick = {}, shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(lightBlueBg), modifier = Modifier.weight(1f).height(46.dp)) {
                     Icon(Icons.Default.Download, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
                     Text("Export Registry", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
