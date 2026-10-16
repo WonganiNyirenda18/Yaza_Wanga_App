@@ -86,7 +86,7 @@ fun GoogleLogo(modifier: Modifier = Modifier) {
 fun SignInScreen(
     onBackClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
-    onLoginClick: (String, String, UserRole) -> Unit = { _, _, _ -> },
+    onLoginClick: (String, String) -> Unit = { _, _ -> },
     onGoogleSignInClick: () -> Unit = {},
     onForgotPasswordClick: () -> Unit = {},
     onSignUpClick: () -> Unit = {}
@@ -94,7 +94,6 @@ fun SignInScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    var selectedRole by remember { mutableStateOf(UserRole.STUDENT) }
 
     val primaryBlue = Color(0xFF1D4ED8)
     val lightBlueBg = Color(0xFFF0F4FF)
@@ -239,82 +238,7 @@ fun SignInScreen(
                 color = textGray
             )
 
-            Spacer(modifier = Modifier.height(18.dp))
-
-            // Student / Tutor / Admin Role Selector
-            Surface(
-                shape = RoundedCornerShape(14.dp),
-                color = Color(0xFFE2E8F0),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(3.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    val isStudent = selectedRole == UserRole.STUDENT
-                    Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = if (isStudent) primaryBlue else Color.Transparent,
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .clickable { selectedRole = UserRole.STUDENT }
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                text = "Student",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isStudent) Color.White else textGray
-                            )
-                        }
-                    }
-
-                    val isTutor = selectedRole == UserRole.TUTOR
-                    Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = if (isTutor) primaryBlue else Color.Transparent,
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .clickable { selectedRole = UserRole.TUTOR }
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                text = "Tutor",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isTutor) Color.White else textGray
-                            )
-                        }
-                    }
-
-                    val isAdmin = selectedRole == UserRole.ADMIN
-                    Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = if (isAdmin) primaryBlue else Color.Transparent,
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .clickable { selectedRole = UserRole.ADMIN }
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                text = "Admin",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isAdmin) Color.White else textGray
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Main Card Form
             Card(
@@ -330,13 +254,9 @@ fun SignInScreen(
                         .fillMaxWidth()
                         .padding(20.dp)
                 ) {
-                    // Email Label
+                    // School Email Label
                     Text(
-                        text = when (selectedRole) {
-                            UserRole.STUDENT -> "School Email"
-                            UserRole.TUTOR -> "Tutor Email / Staff ID Email"
-                            UserRole.ADMIN -> "Administrator Email"
-                        },
+                        text = "School Email / Username",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = textDark
@@ -344,13 +264,13 @@ fun SignInScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Email TextField
+                    // Email / Username TextField
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
                         placeholder = {
                             Text(
-                                text = if (selectedRole == UserRole.ADMIN) "admin@unima.ac.mw" else "bsc-inf-15-23@unima.ac.mw",
+                                text = "bsc-inf-15-23@unima.ac.mw (or admin)",
                                 color = textGray,
                                 fontSize = 14.sp
                             )
@@ -446,10 +366,7 @@ fun SignInScreen(
 
                     // Login Button
                     Button(
-                        onClick = {
-                            val roleToUse = if (email.lowercase().contains("admin")) UserRole.ADMIN else selectedRole
-                            onLoginClick(email, password, roleToUse)
-                        },
+                        onClick = { onLoginClick(email, password) },
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                         modifier = Modifier
@@ -461,11 +378,7 @@ fun SignInScreen(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = when (selectedRole) {
-                                    UserRole.STUDENT -> "LOGIN AS STUDENT"
-                                    UserRole.TUTOR -> "LOGIN AS TUTOR"
-                                    UserRole.ADMIN -> "LOGIN AS ADMIN"
-                                },
+                                text = "LOGIN",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White,

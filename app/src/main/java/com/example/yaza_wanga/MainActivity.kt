@@ -55,16 +55,16 @@ class MainActivity : ComponentActivity() {
                                     signUpRole = UserRole.STUDENT
                                     currentScreen = AppScreen.SIGN_UP
                                 },
-                                onLoginClick = { _, _, role ->
-                                    if (role == UserRole.TUTOR) {
-                                        currentScreen = AppScreen.TUTOR_DASHBOARD
+                                onLoginClick = { email, password ->
+                                    val trimmedEmail = email.trim().lowercase()
+                                    if ((trimmedEmail == "admin" || trimmedEmail == "admin@unima.ac.mw") && password == "admin") {
+                                        currentScreen = AppScreen.ADMIN_OVERVIEW
                                     } else {
                                         currentScreen = AppScreen.STUDENT_PROFILE
                                     }
                                 },
                                 onGoogleSignInClick = {
-                                    // For testing / demonstration: open Admin Portal or Student Profile
-                                    currentScreen = AppScreen.ADMIN_OVERVIEW
+                                    currentScreen = AppScreen.STUDENT_PROFILE
                                 }
                             )
                         }
@@ -91,7 +91,7 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = AppScreen.SIGN_IN
                                 },
                                 onProfileClick = {
-                                    currentScreen = AppScreen.ADMIN_OVERVIEW
+                                    // Profile
                                 },
                                 onSaveAndContinue = {
                                     currentScreen = AppScreen.STUDENT_DASHBOARD
@@ -110,7 +110,7 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = AppScreen.COURSE_DIRECTORY
                                 },
                                 onNavigateAlerts = {
-                                    currentScreen = AppScreen.ADMIN_OVERVIEW
+                                    // Alerts
                                 },
                                 onNavigateProfile = {
                                     currentScreen = AppScreen.STUDENT_PROFILE
@@ -190,7 +190,7 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = AppScreen.COURSE_DIRECTORY
                                 },
                                 onNavigateAlerts = {
-                                    currentScreen = AppScreen.ADMIN_OVERVIEW
+                                    // Alerts
                                 },
                                 onNavigateProfile = {
                                     currentScreen = AppScreen.STUDENT_PROFILE
@@ -224,6 +224,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainAppPreview() {
     Yaza_WangaTheme {
-        AdminOverviewScreen()
+        StudentDashboardScreen()
     }
 }
