@@ -88,21 +88,12 @@ fun AdminOverviewScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = "YAZA WANGA",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = primaryBlue,
-                            letterSpacing = 0.5.sp
-                        )
-                        Text(
-                            text = "Overview",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = textDark
-                        )
-                    }
+                    Text(
+                        text = "Overview",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textDark
+                    )
                 },
                 navigationIcon = {
                     Box(
@@ -122,23 +113,6 @@ fun AdminOverviewScreen(
                     }
                 },
                 actions = {
-                    Box(modifier = Modifier.padding(end = 4.dp)) {
-                        IconButton(onClick = {}) {
-                            Icon(
-                                imageVector = Icons.Default.Notifications,
-                                contentDescription = "Alerts",
-                                tint = textDark
-                            )
-                        }
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(Color.Red)
-                                .align(Alignment.TopEnd)
-                                .offset(x = (-8).dp, y = 8.dp)
-                        )
-                    }
                     IconButton(
                         onClick = {},
                         modifier = Modifier
@@ -249,7 +223,7 @@ fun AdminOverviewScreen(
                 }
             }
 
-            // Stats 2x2 Grid
+            // Stats 2x2 Grid (Total Users, Active Courses, No. Students, No. of Tutors)
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     // Total Users
@@ -275,24 +249,25 @@ fun AdminOverviewScreen(
                 }
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    // Tutoring Hours
+                    // No. Students
                     AdminStatCard(
-                        title = "Tutoring Hours",
-                        value = "3,240 h",
-                        badge = "⭐ 94.2% 5-star",
-                        badgeColor = Color(0xFF16A34A),
-                        subtext = "94.2% 5-star rating",
-                        icon = Icons.Default.Schedule,
+                        title = "No. Students",
+                        value = "840",
+                        badge = "Active",
+                        badgeColor = primaryBlue,
+                        subtext = "Enrolled learners",
+                        icon = Icons.Default.Person,
                         modifier = Modifier.weight(1f)
                     )
 
-                    // Escrow Volume
+                    // No. of Tutors
                     AdminStatCard(
-                        title = "Escrow Volume",
-                        value = "MK 2.45M",
-                        valueColor = primaryBlue,
-                        subtext = "MK 245k reserve held",
-                        icon = Icons.Default.AccountBalanceWallet,
+                        title = "No. of Tutors",
+                        value = "580",
+                        badge = "Verified",
+                        badgeColor = Color(0xFF16A34A),
+                        subtext = "Peer mentors",
+                        icon = Icons.Default.VerifiedUser,
                         modifier = Modifier.weight(1f)
                     )
                 }
