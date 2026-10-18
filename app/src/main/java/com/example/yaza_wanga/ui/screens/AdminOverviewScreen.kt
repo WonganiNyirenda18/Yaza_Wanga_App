@@ -163,44 +163,19 @@ fun AdminOverviewScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Good Morning Header & System Status
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "Good morning, ...",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textDark
-                    )
-                    Text(
-                        text = "Lead Campus Administrator",
-                        fontSize = 12.sp,
-                        color = textGray
-                    )
-                }
-
-                Surface(
-                    shape = RoundedCornerShape(50.dp),
-                    color = Color(0xFFE6F4EA)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(Color(0xFF137333)))
-                        Text(
-                            text = "System Operational",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF137333)
-                        )
-                    }
-                }
+            // Good morning & "Admin"
+            Column {
+                Text(
+                    text = "Good morning, ...",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textDark
+                )
+                Text(
+                    text = "Admin",
+                    fontSize = 12.sp,
+                    color = textGray
+                )
             }
 
             // Top Action Pills Row
@@ -244,23 +219,20 @@ fun AdminOverviewScreen(
             // Stats 2x2 Grid (Total Users, Active Courses, No. Students, No. of Tutors)
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    // Total Users
+                    // Total Users (No percent, no std/tut subtext)
                     AdminStatCard(
                         title = "Total Users",
                         value = "1,420",
-                        badge = "+14%",
-                        subtext = "840 std • 580 tut",
+                        subtext = "",
                         icon = Icons.Default.Group,
                         modifier = Modifier.weight(1f)
                     )
 
-                    // Active Courses
+                    // Active Courses (No 6 facs, no syllabus cov subtext)
                     AdminStatCard(
                         title = "Active Courses",
                         value = "48",
-                        badge = "6 Facs",
-                        subtext = "98.4% syllabus cov.",
-                        subtextColor = Color(0xFF16A34A),
+                        subtext = "",
                         icon = Icons.Default.School,
                         modifier = Modifier.weight(1f)
                     )
@@ -288,82 +260,6 @@ fun AdminOverviewScreen(
                         icon = Icons.Default.VerifiedUser,
                         modifier = Modifier.weight(1f)
                     )
-                }
-            }
-
-            // Live Tutoring Radar Section
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Icon(Icons.Default.CellTower, null, tint = primaryBlue, modifier = Modifier.size(18.dp))
-                    Text("Live Tutoring Radar", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textDark)
-                }
-
-                Surface(shape = RoundedCornerShape(50.dp), color = lightBlueBg) {
-                    Text("2 active", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
-                }
-            }
-
-            // Live Radar Card 1
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
-            ) {
-                Column(modifier = Modifier.padding(14.dp)) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Box(modifier = Modifier.size(36.dp).clip(CircleShape).background(Color(0xFFE0ECFF)), contentAlignment = Alignment.Center) {
-                                Text("CP", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                            }
-                            Column {
-                                Text("INF 212: Web Dev", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
-                                Text("Chimwemwe P. ➔ Wongani N.", fontSize = 11.sp, color = textGray)
-                            }
-                        }
-                        Surface(shape = RoundedCornerShape(50.dp), color = Color(0xFFE0ECFF)) {
-                            Text("• Online", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = primaryBlue, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("🎥 Google Meet Bridge active", fontSize = 11.sp, color = textGray)
-                        Text("42 min elapsed", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = textDark)
-                    }
-                }
-            }
-
-            // Live Radar Card 2
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
-            ) {
-                Column(modifier = Modifier.padding(14.dp)) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Box(modifier = Modifier.size(36.dp).clip(CircleShape).background(Color(0xFFE0ECFF)), contentAlignment = Alignment.Center) {
-                                Text("CP", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                            }
-                            Column {
-                                Text("COM 311: Database", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
-                                Text("Chisomo P. ➔ Davie G.", fontSize = 11.sp, color = textGray)
-                            }
-                        }
-                        Surface(shape = RoundedCornerShape(50.dp), color = Color(0xFFF1F5F9)) {
-                            Text("• In-Person", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = textGray, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("📍 Library Study Pod 3B", fontSize = 11.sp, color = textGray)
-                        Text("18 min elapsed", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = textDark)
-                    }
                 }
             }
 
@@ -430,8 +326,10 @@ fun AdminStatCard(
                     Text(badge, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = badgeColor)
                 }
             }
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(subtext, fontSize = 11.sp, color = subtextColor)
+            if (subtext.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(subtext, fontSize = 11.sp, color = subtextColor)
+            }
         }
     }
 }
