@@ -39,77 +39,54 @@ fun AdminContentScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = "YAZA WANGA",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = primaryBlue,
-                            letterSpacing = 0.5.sp
-                        )
+            Column {
+                TopAppBar(
+                    title = {
                         Text(
                             text = "Content",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = textDark
                         )
-                    }
-                },
-                navigationIcon = {
-                    Box(
-                        modifier = Modifier
-                            .padding(start = 12.dp)
-                            .size(36.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(primaryBlue),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.School,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                },
-                actions = {
-                    Box(modifier = Modifier.padding(end = 4.dp)) {
-                        IconButton(onClick = {}) {
-                            Icon(
-                                imageVector = Icons.Default.Notifications,
-                                contentDescription = "Alerts",
-                                tint = textDark
-                            )
-                        }
+                    },
+                    navigationIcon = {
                         Box(
                             modifier = Modifier
-                                .size(8.dp)
+                                .padding(start = 12.dp)
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(primaryBlue),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.School,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(
+                            onClick = {},
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(38.dp)
                                 .clip(CircleShape)
-                                .background(Color.Red)
-                                .align(Alignment.TopEnd)
-                                .offset(x = (-8).dp, y = 8.dp)
-                        )
-                    }
-                    IconButton(
-                        onClick = {},
-                        modifier = Modifier
-                            .padding(end = 8.dp)
-                            .size(38.dp)
-                            .clip(CircleShape)
-                            .background(primaryBlue)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Profile",
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
+                                .background(primaryBlue)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = "Profile",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                )
+                HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
+            }
         },
         bottomBar = {
             AdminBottomBar(currentTab = 3, onSelectTab = onNavigateTab)

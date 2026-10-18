@@ -36,41 +36,56 @@ fun AdminBottomBar(
         containerColor = Color.White,
         tonalElevation = 8.dp
     ) {
-        NavigationBarItem(
-            selected = currentTab == 0,
-            onClick = { onSelectTab(0) },
-            icon = { Icon(Icons.Default.GridView, contentDescription = "Overview") },
-            label = { Text("Overview") },
-            colors = NavigationBarItemDefaults.colors(selectedIconColor = primaryBlue, selectedTextColor = primaryBlue, unselectedIconColor = textGray, unselectedTextColor = textGray)
+        val tabs = listOf(
+            Triple(0, "Overview", Icons.Default.GridView),
+            Triple(1, "Users", Icons.Default.Group),
+            Triple(2, "Courses", Icons.AutoMirrored.Filled.MenuBook),
+            Triple(3, "Content", Icons.Default.VerifiedUser),
+            Triple(4, "Finance", Icons.Default.AccountBalanceWallet)
         )
-        NavigationBarItem(
-            selected = currentTab == 1,
-            onClick = { onSelectTab(1) },
-            icon = { Icon(Icons.Default.Group, contentDescription = "Users") },
-            label = { Text("Users") },
-            colors = NavigationBarItemDefaults.colors(selectedIconColor = primaryBlue, selectedTextColor = primaryBlue, unselectedIconColor = textGray, unselectedTextColor = textGray)
-        )
-        NavigationBarItem(
-            selected = currentTab == 2,
-            onClick = { onSelectTab(2) },
-            icon = { Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = "Courses") },
-            label = { Text("Courses") },
-            colors = NavigationBarItemDefaults.colors(selectedIconColor = primaryBlue, selectedTextColor = primaryBlue, unselectedIconColor = textGray, unselectedTextColor = textGray)
-        )
-        NavigationBarItem(
-            selected = currentTab == 3,
-            onClick = { onSelectTab(3) },
-            icon = { Icon(Icons.Default.VerifiedUser, contentDescription = "Content") },
-            label = { Text("Content") },
-            colors = NavigationBarItemDefaults.colors(selectedIconColor = primaryBlue, selectedTextColor = primaryBlue, unselectedIconColor = textGray, unselectedTextColor = textGray)
-        )
-        NavigationBarItem(
-            selected = currentTab == 4,
-            onClick = { onSelectTab(4) },
-            icon = { Icon(Icons.Default.AccountBalanceWallet, contentDescription = "Finance") },
-            label = { Text("Finance") },
-            colors = NavigationBarItemDefaults.colors(selectedIconColor = primaryBlue, selectedTextColor = primaryBlue, unselectedIconColor = textGray, unselectedTextColor = textGray)
-        )
+
+        tabs.forEach { (index, label, icon) ->
+            val selected = currentTab == index
+            NavigationBarItem(
+                selected = selected,
+                onClick = { onSelectTab(index) },
+                icon = {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = label,
+                            tint = if (selected) primaryBlue else textGray
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Box(
+                            modifier = Modifier
+                                .width(24.dp)
+                                .height(3.dp)
+                                .clip(RoundedCornerShape(1.5.dp))
+                                .background(if (selected) primaryBlue else Color.Transparent)
+                        )
+                    }
+                },
+                label = {
+                    Text(
+                        text = label,
+                        fontSize = 11.sp,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                        color = if (selected) primaryBlue else textGray
+                    )
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    indicatorColor = Color.Transparent,
+                    selectedIconColor = primaryBlue,
+                    selectedTextColor = primaryBlue,
+                    unselectedIconColor = textGray,
+                    unselectedTextColor = textGray
+                )
+            )
+        }
     }
 }
 
@@ -86,51 +101,54 @@ fun AdminOverviewScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Overview",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textDark
-                    )
-                },
-                navigationIcon = {
-                    Box(
-                        modifier = Modifier
-                            .padding(start = 12.dp)
-                            .size(36.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(primaryBlue),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.School,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
+            Column {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = "Overview",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = textDark
                         )
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = {},
-                        modifier = Modifier
-                            .padding(end = 8.dp)
-                            .size(38.dp)
-                            .clip(CircleShape)
-                            .background(primaryBlue)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Profile",
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
+                    },
+                    navigationIcon = {
+                        Box(
+                            modifier = Modifier
+                                .padding(start = 12.dp)
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(primaryBlue),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.School,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(
+                            onClick = {},
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(38.dp)
+                                .clip(CircleShape)
+                                .background(primaryBlue)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = "Profile",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                )
+                HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
+            }
         },
         bottomBar = {
             AdminBottomBar(currentTab = 0, onSelectTab = onNavigateTab)

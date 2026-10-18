@@ -39,51 +39,54 @@ fun AdminUsersScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Users",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textDark
-                    )
-                },
-                navigationIcon = {
-                    Box(
-                        modifier = Modifier
-                            .padding(start = 12.dp)
-                            .size(36.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(primaryBlue),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.School,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
+            Column {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = "Users",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = textDark
                         )
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = {},
-                        modifier = Modifier
-                            .padding(end = 8.dp)
-                            .size(38.dp)
-                            .clip(CircleShape)
-                            .background(primaryBlue)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Profile",
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
+                    },
+                    navigationIcon = {
+                        Box(
+                            modifier = Modifier
+                                .padding(start = 12.dp)
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(primaryBlue),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.School,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(
+                            onClick = {},
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(38.dp)
+                                .clip(CircleShape)
+                                .background(primaryBlue)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = "Profile",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                )
+                HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
+            }
         },
         bottomBar = {
             AdminBottomBar(currentTab = 1, onSelectTab = onNavigateTab)
@@ -191,7 +194,7 @@ fun AdminUsersScreen(
                 }
             }
 
-            // Verification Queue Header (Instead of Priority Verification Queue & Requires Attention)
+            // Verification Queue Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -210,7 +213,7 @@ fun AdminUsersScreen(
                 )
             }
 
-            // Verification Queue Item 1 (Chimwemwe Chirwa - Grade removed, buttons fixed)
+            // Verification Queue Item 1
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -286,7 +289,7 @@ fun AdminUsersScreen(
                 Text("Sort by Activity ▾", fontSize = 12.sp, color = primaryBlue, modifier = Modifier.clickable {})
             }
 
-            // Active Directory Item 1 (John Banda - rating and master tutor removed, sentences finished)
+            // Active Directory Item 1
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
