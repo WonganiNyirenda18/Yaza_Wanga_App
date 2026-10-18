@@ -105,24 +105,26 @@ fun AdminCoursesScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Title & New Course Action
-            Row(
+            // Title & New Course Action (Stacked Vertically)
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column {
-                    Text("ACADEMICS PORTAL", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                    Text("Curriculum & Staff", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textDark)
-                }
+                Text(
+                    text = "Curriculum & Staff",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textDark
+                )
 
                 Button(
                     onClick = {},
                     shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = primaryBlue)
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
+                    modifier = Modifier.height(40.dp)
                 ) {
                     Icon(Icons.Default.Add, null, tint = Color.White, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text("New Course", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 }
             }
