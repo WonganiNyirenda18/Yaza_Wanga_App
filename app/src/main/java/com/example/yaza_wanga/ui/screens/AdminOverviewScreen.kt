@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.yaza_wanga.ui.components.YazaWangaLogo
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
 
 @Composable
@@ -112,20 +113,8 @@ fun AdminOverviewScreen(
                         )
                     },
                     navigationIcon = {
-                        Box(
-                            modifier = Modifier
-                                .padding(start = 12.dp)
-                                .size(36.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(primaryBlue),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.School,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
-                            )
+                        Box(modifier = Modifier.padding(start = 12.dp)) {
+                            YazaWangaLogo(size = 36.dp)
                         }
                     },
                     actions = {
@@ -219,7 +208,7 @@ fun AdminOverviewScreen(
             // Stats 2x2 Grid (Total Users, Active Courses, No. Students, No. of Tutors)
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    // Total Users (No percent, no std/tut subtext)
+                    // Total Users
                     AdminStatCard(
                         title = "Total Users",
                         value = "1,420",
@@ -228,7 +217,7 @@ fun AdminOverviewScreen(
                         modifier = Modifier.weight(1f)
                     )
 
-                    // Active Courses (No 6 facs, no syllabus cov subtext)
+                    // Active Courses
                     AdminStatCard(
                         title = "Active Courses",
                         value = "48",
