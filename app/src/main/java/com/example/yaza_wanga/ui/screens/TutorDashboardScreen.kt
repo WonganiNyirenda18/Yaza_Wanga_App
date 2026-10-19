@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.yaza_wanga.ui.components.YazaWangaLogo
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,20 +63,8 @@ fun TutorDashboardScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(
-                        onClick = onNavigateProfile,
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                            .size(38.dp)
-                            .clip(CircleShape)
-                            .background(primaryBlue)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Profile",
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
+                    Box(modifier = Modifier.padding(start = 12.dp)) {
+                        YazaWangaLogo(size = 36.dp)
                     }
                 },
                 actions = {
