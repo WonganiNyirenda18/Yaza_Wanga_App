@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -125,48 +126,66 @@ fun StudentProfileScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Profile Picture Upload Avatar Section
+            // Profile Picture Upload Avatar Section with Plus Badge & Format Note
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Box(
                     modifier = Modifier
                         .size(96.dp)
-                        .clip(CircleShape)
-                        .background(lightBlueBg)
-                        .border(2.dp, primaryBlue, CircleShape)
-                        .clickable { /* Upload picture action */ },
-                    contentAlignment = Alignment.Center
+                        .clickable { /* Upload action */ }
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.CameraAlt,
-                        contentDescription = "Upload Photo",
-                        tint = primaryBlue,
-                        modifier = Modifier.size(36.dp)
-                    )
-                    // Camera badge overlay
+                    // Main circular avatar background
                     Box(
                         modifier = Modifier
-                            .size(28.dp)
+                            .size(96.dp)
+                            .clip(CircleShape)
+                            .background(lightBlueBg)
+                            .border(2.dp, primaryBlue, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CameraAlt,
+                            contentDescription = "Upload Photo",
+                            tint = primaryBlue,
+                            modifier = Modifier.size(36.dp)
+                        )
+                    }
+
+                    // Plus / Add badge positioned cleanly at bottom-right
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
                             .clip(CircleShape)
                             .background(primaryBlue)
+                            .border(2.dp, Color.White, CircleShape)
                             .align(Alignment.BottomEnd),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
-                            contentDescription = "Add",
+                            contentDescription = "Add Photo",
                             tint = Color.White,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(18.dp)
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(2.dp))
+
                 Text(
                     text = "Upload Profile Picture",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = primaryBlue
+                )
+
+                Text(
+                    text = "Supported: PNG, JPG • Max size: 5MB",
+                    fontSize = 11.sp,
+                    color = textGray,
+                    textAlign = TextAlign.Center
                 )
             }
 
