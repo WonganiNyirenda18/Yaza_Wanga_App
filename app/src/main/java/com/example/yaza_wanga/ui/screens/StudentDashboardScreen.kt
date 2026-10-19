@@ -116,12 +116,14 @@ fun StudentDashboardScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Blue Header Section (Scrolls naturally along with content)
+            // Blue Header Section (Scrolls naturally along with content, with generous top/bottom spacing)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(primaryBlue)
+                    .padding(bottom = 56.dp) // Generous bottom space in blue header before card overlap
             ) {
+                Spacer(modifier = Modifier.height(8.dp))
                 TopAppBar(
                     title = {
                         Text(
@@ -155,7 +157,6 @@ fun StudentDashboardScreen(
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
                 )
-                Spacer(modifier = Modifier.height(20.dp))
             }
 
             // Scrollable Content Column connected/overlapping the blue header
@@ -163,7 +164,7 @@ fun StudentDashboardScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
-                    .offset(y = (-44).dp),
+                    .offset(y = (-48).dp), // Balanced overlap
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Airtel-Inspired Account & Stats Card (Wongani Nyirenda) overlapping the blue background
