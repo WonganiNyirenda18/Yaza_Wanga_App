@@ -12,7 +12,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.yaza_wanga.ui.components.YazaWangaLogo
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,20 +33,19 @@ fun StudentProfileScreen(
     onProfileClick: () -> Unit = {},
     onSaveAndContinue: () -> Unit = {}
 ) {
-    var fullName by remember { mutableStateOf("Wongani Nyirenda") }
-    var studentId by remember { mutableStateOf("BCS-2022-0481") }
-    var programme by remember { mutableStateOf("Computer Science") }
-    var department by remember { mutableStateOf("Computing Department") }
+    var department by remember { mutableStateOf("") }
+    var programme by remember { mutableStateOf("") }
     var yearOfStudy by remember { mutableStateOf("Year 3") }
-    var phone by remember { mutableStateOf("+265 991 234 567") }
+    var phone by remember { mutableStateOf("") }
 
-    var programmeExpanded by remember { mutableStateOf(false) }
     var departmentExpanded by remember { mutableStateOf(false) }
+    var programmeExpanded by remember { mutableStateOf(false) }
 
-    val programmes = listOf("Computer Science", "Information Systems", "Computer Network Engineering")
-    val departments = listOf("Computing Department")
+    val departments = listOf("Computing Department", "Department of Mathematics & Statistics", "Department of Physics", "Department of Business Studies")
+    val programmes = listOf("Computer Science", "Information Systems", "Computer Network Engineering", "Business Information Technology")
 
     val primaryBlue = Color(0xFF1D4ED8)
+    val lightBlueBg = Color(0xFFF0F4FF)
     val containerBg = Color(0xFFF8FAFC)
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
@@ -59,22 +58,9 @@ fun StudentProfileScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(primaryBlue),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.School,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
+                        YazaWangaLogo(size = 36.dp)
                         Text(
-                            text = "Academic Profile Setup",
+                            text = "Profile Setup",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = textDark
@@ -118,83 +104,75 @@ fun StudentProfileScreen(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Heading
-            Text(
-                text = "Complete Your Profile",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = textDark
-            )
+            // Header instructions
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Complete Your Profile",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textDark
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Please verify your academic details and upload a photo to personalize your peer tutoring dashboard.",
+                    fontSize = 13.sp,
+                    color = textGray
+                )
+            }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-            // Student Photo Avatar
-            Box(
-                modifier = Modifier.size(90.dp),
-                contentAlignment = Alignment.BottomEnd
+            // Profile Picture Upload Avatar Section
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Box(
                     modifier = Modifier
-                        .size(90.dp)
+                        .size(96.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFE2E8F0))
-                        .border(2.dp, primaryBlue, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = null,
-                        tint = textGray,
-                        modifier = Modifier.size(50.dp)
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .background(primaryBlue)
-                        .border(2.dp, Color.White, CircleShape),
+                        .background(lightBlueBg)
+                        .border(2.dp, primaryBlue, CircleShape)
+                        .clickable { /* Upload picture action */ },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.CameraAlt,
                         contentDescription = "Upload Photo",
-                        tint = Color.White,
-                        modifier = Modifier.size(16.dp)
+                        tint = primaryBlue,
+                        modifier = Modifier.size(36.dp)
                     )
+                    // Camera badge overlay
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(primaryBlue)
+                            .align(Alignment.BottomEnd),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 }
-            }
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
                 Text(
-                    text = "Upload Student Photo",
+                    text = "Upload Profile Picture",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = primaryBlue
                 )
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = null,
-                    tint = primaryBlue,
-                    modifier = Modifier.size(14.dp)
-                )
             }
-            Text(
-                text = "JPG, PNG or HEIC (Max 5MB)",
-                fontSize = 11.sp,
-                color = textGray
-            )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // Academic Credentials Card
+            // Profile Form Card
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -206,185 +184,118 @@ fun StudentProfileScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(20.dp)
+                        .padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.School,
-                            contentDescription = null,
-                            tint = primaryBlue,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Text(
-                            text = "Academic Credentials",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = textDark
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Full Name
-                    Text("Full Name", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    OutlinedTextField(
-                        value = fullName,
-                        onValueChange = { fullName = it },
-                        leadingIcon = { Icon(Icons.Default.Badge, null, tint = textGray, modifier = Modifier.size(20.dp)) },
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = containerBg,
-                            unfocusedContainerColor = containerBg,
-                            focusedBorderColor = primaryBlue,
-                            unfocusedBorderColor = Color(0xFFE2E8F0),
-                            focusedTextColor = textDark,
-                            unfocusedTextColor = textDark
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // Student Registration ID
-                    Text("Student Registration ID", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    OutlinedTextField(
-                        value = studentId,
-                        onValueChange = { studentId = it },
-                        leadingIcon = { Icon(Icons.Default.Fingerprint, null, tint = textGray, modifier = Modifier.size(20.dp)) },
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = containerBg,
-                            unfocusedContainerColor = containerBg,
-                            focusedBorderColor = primaryBlue,
-                            unfocusedBorderColor = Color(0xFFE2E8F0),
-                            focusedTextColor = textDark,
-                            unfocusedTextColor = textDark
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // Programme of Study Dropdown
-                    Text("Programme of Study", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    ExposedDropdownMenuBox(
-                        expanded = programmeExpanded,
-                        onExpandedChange = { programmeExpanded = it },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        OutlinedTextField(
-                            value = programme,
-                            onValueChange = {},
-                            readOnly = true,
-                            leadingIcon = { Icon(Icons.AutoMirrored.Filled.MenuBook, null, tint = textGray, modifier = Modifier.size(20.dp)) },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = programmeExpanded) },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = containerBg,
-                                unfocusedContainerColor = containerBg,
-                                focusedBorderColor = primaryBlue,
-                                unfocusedBorderColor = Color(0xFFE2E8F0),
-                                focusedTextColor = textDark,
-                                unfocusedTextColor = textDark
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
-                        )
-                        ExposedDropdownMenu(
-                            expanded = programmeExpanded,
-                            onDismissRequest = { programmeExpanded = false }
-                        ) {
-                            programmes.forEach { prog ->
-                                DropdownMenuItem(
-                                    text = { Text(prog) },
-                                    onClick = {
-                                        programme = prog
-                                        programmeExpanded = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // Department / Faculty Dropdown
-                    Text("Department / Faculty", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    ExposedDropdownMenuBox(
-                        expanded = departmentExpanded,
-                        onExpandedChange = { departmentExpanded = it },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        OutlinedTextField(
-                            value = department,
-                            onValueChange = {},
-                            readOnly = true,
-                            leadingIcon = { Icon(Icons.Default.Business, null, tint = textGray, modifier = Modifier.size(20.dp)) },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = departmentExpanded) },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = containerBg,
-                                unfocusedContainerColor = containerBg,
-                                focusedBorderColor = primaryBlue,
-                                unfocusedBorderColor = Color(0xFFE2E8F0),
-                                focusedTextColor = textDark,
-                                unfocusedTextColor = textDark
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
-                        )
-                        ExposedDropdownMenu(
+                    // 1. Department Dropdown
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("Department", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+                        ExposedDropdownMenuBox(
                             expanded = departmentExpanded,
-                            onDismissRequest = { departmentExpanded = false }
+                            onExpandedChange = { departmentExpanded = it },
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            departments.forEach { dept ->
-                                DropdownMenuItem(
-                                    text = { Text(dept) },
-                                    onClick = {
-                                        department = dept
-                                        departmentExpanded = false
-                                    }
-                                )
+                            OutlinedTextField(
+                                value = department,
+                                onValueChange = {},
+                                readOnly = true,
+                                placeholder = { Text("Select your department...", color = textGray, fontSize = 13.sp) },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = departmentExpanded) },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedContainerColor = containerBg,
+                                    unfocusedContainerColor = containerBg,
+                                    focusedBorderColor = primaryBlue,
+                                    unfocusedBorderColor = Color(0xFFE2E8F0),
+                                    focusedTextColor = textDark,
+                                    unfocusedTextColor = textDark
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
+                            )
+                            ExposedDropdownMenu(
+                                expanded = departmentExpanded,
+                                onDismissRequest = { departmentExpanded = false }
+                            ) {
+                                departments.forEach { dept ->
+                                    DropdownMenuItem(
+                                        text = { Text(dept) },
+                                        onClick = {
+                                            department = dept
+                                            departmentExpanded = false
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // Year of Study (Years 1 to 4 only)
-                    Text("Year of Study", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    val years = listOf("Year 1", "Year 2", "Year 3", "Year 4")
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        years.forEach { y ->
-                            val selected = yearOfStudy == y
-                            Surface(
-                                shape = RoundedCornerShape(10.dp),
-                                color = if (selected) primaryBlue else containerBg,
+                    // 2. Programme of Study Dropdown
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("Programme of Study", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+                        ExposedDropdownMenuBox(
+                            expanded = programmeExpanded,
+                            onExpandedChange = { programmeExpanded = it },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            OutlinedTextField(
+                                value = programme,
+                                onValueChange = {},
+                                readOnly = true,
+                                placeholder = { Text("Select your programme...", color = textGray, fontSize = 13.sp) },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = programmeExpanded) },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedContainerColor = containerBg,
+                                    unfocusedContainerColor = containerBg,
+                                    focusedBorderColor = primaryBlue,
+                                    unfocusedBorderColor = Color(0xFFE2E8F0),
+                                    focusedTextColor = textDark,
+                                    unfocusedTextColor = textDark
+                                ),
                                 modifier = Modifier
-                                    .weight(1f)
-                                    .height(40.dp)
-                                    .clickable { yearOfStudy = y },
-                                border = BorderStroke(1.dp, if (selected) primaryBlue else Color(0xFFE2E8F0))
+                                    .fillMaxWidth()
+                                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
+                            )
+                            ExposedDropdownMenu(
+                                expanded = programmeExpanded,
+                                onDismissRequest = { programmeExpanded = false }
                             ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                        if (selected) {
-                                            Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(14.dp))
+                                programmes.forEach { prog ->
+                                    DropdownMenuItem(
+                                        text = { Text(prog) },
+                                        onClick = {
+                                            programme = prog
+                                            programmeExpanded = false
                                         }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // 3. Year of Study Selection
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("Year of Study", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            listOf("Year 1", "Year 2", "Year 3", "Year 4").forEach { yr ->
+                                val selected = yearOfStudy == yr
+                                Surface(
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = if (selected) primaryBlue else Color.White,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(40.dp)
+                                        .clickable { yearOfStudy = yr },
+                                    border = BorderStroke(1.dp, if (selected) primaryBlue else Color(0xFFE2E8F0))
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
                                         Text(
-                                            text = y,
+                                            text = yr,
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = if (selected) Color.White else textDark
@@ -395,78 +306,67 @@ fun StudentProfileScreen(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // Phone Number / WhatsApp
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Phone Number / WhatsApp", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
-                        Text("Tutor updates", fontSize = 11.sp, color = textGray)
+                    // 4. Phone Number (Faded placeholder "+265 995 358 915")
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("Phone Number", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+                        OutlinedTextField(
+                            value = phone,
+                            onValueChange = { phone = it },
+                            placeholder = { Text("+265 995 358 915", color = textGray.copy(alpha = 0.6f), fontSize = 13.sp) },
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = containerBg,
+                                unfocusedContainerColor = containerBg,
+                                focusedBorderColor = primaryBlue,
+                                unfocusedBorderColor = Color(0xFFE2E8F0),
+                                focusedTextColor = textDark,
+                                unfocusedTextColor = textDark
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
-                    Spacer(modifier = Modifier.height(6.dp))
-                    OutlinedTextField(
-                        value = phone,
-                        onValueChange = { phone = it },
-                        leadingIcon = { Icon(Icons.Default.Phone, null, tint = textGray, modifier = Modifier.size(20.dp)) },
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = containerBg,
-                            unfocusedContainerColor = containerBg,
-                            focusedBorderColor = primaryBlue,
-                            unfocusedBorderColor = Color(0xFFE2E8F0),
-                            focusedTextColor = textDark,
-                            unfocusedTextColor = textDark
-                        ),
-                        modifier = Modifier.fillMaxWidth()
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Continue to Dashboard Button
+            Button(
+                onClick = onSaveAndContinue,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Continue to Dashboard",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        letterSpacing = 0.5.sp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Save & Continue Button (Centered Text)
-            Button(
-                onClick = onSaveAndContinue,
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(54.dp)
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "SAVE & CONTINUE TO DASHBOARD",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            letterSpacing = 0.5.sp
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
-            }
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
-@Preview(showBackground = true, widthDp = 392, heightDp = 950)
+@Preview(showBackground = true, widthDp = 392, heightDp = 1000)
 @Composable
 fun StudentProfilePreview() {
     Yaza_WangaTheme {
