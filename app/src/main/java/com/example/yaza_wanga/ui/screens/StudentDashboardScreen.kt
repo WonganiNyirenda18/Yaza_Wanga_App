@@ -3,13 +3,13 @@ package com.example.yaza_wanga.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,7 +38,6 @@ fun StudentDashboardScreen(
 ) {
     val primaryBlue = Color(0xFF1D4ED8)
     val lightBlueBg = Color(0xFFF0F4FF)
-    val containerBg = Color(0xFFF8FAFC)
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
 
@@ -329,18 +329,20 @@ fun StudentDashboardScreen(
                 }
             }
 
-            // Scheduled Sessions Section Header
+            // Quick Actions Section (Airtel-Inspired Grid)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(primaryBlue))
-                    Text("Scheduled Sessions", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textDark)
-                }
                 Text(
-                    text = "View Calendar",
+                    text = "Quick Actions",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textDark
+                )
+                Text(
+                    text = "View All",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = primaryBlue,
@@ -348,199 +350,142 @@ fun StudentDashboardScreen(
                 )
             }
 
-            // Scheduled Session Card 1 (Online)
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            val quickActions = listOf(
+                Triple("My Courses", Icons.AutoMirrored.Filled.MenuBook, onNavigateCourses),
+                Triple("My Sessions", Icons.Default.CalendarToday, {}),
+                Triple("Materials", Icons.Default.FolderOpen, {}),
+                Triple("Progress", Icons.Default.TrendingUp, {}),
+                Triple("Tutors", Icons.Default.School, onNavigateTutors),
+                Triple("Settings", Icons.Default.Settings, {}),
+                Triple("Payments", Icons.Default.AccountBalanceWallet, {}),
+                Triple("Yaza Assist", Icons.Default.SmartToy, {})
+            )
+
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
+                    .background(Color.White, RoundedCornerShape(16.dp))
+                    .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
+                    .padding(vertical = 12.dp, horizontal = 8.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                quickActions.chunked(4).forEachIndexed { rowIndex, rowItems ->
+                    if (rowIndex > 0) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        horizontalArrangement = Arrangement.SpaceAround
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Box(
+                        rowItems.forEach { (label, icon, onClick) ->
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
                                 modifier = Modifier
-                                    .size(44.dp)
-                                    .clip(CircleShape)
-                                    .background(Color(0xFFE2E8F0)),
-                                contentAlignment = Alignment.Center
+                                    .width(72.dp)
+                                    .clickable(onClick = onClick)
+                                    .padding(vertical = 4.dp)
                             ) {
-                                Icon(Icons.Default.Person, null, tint = textGray)
-                            }
-                            Column {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Text("INF 212", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                                    Text("• Web Development", fontSize = 12.sp, color = textGray)
+                                Surface(
+                                    shape = RoundedCornerShape(14.dp),
+                                    color = lightBlueBg,
+                                    modifier = Modifier.size(50.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            imageVector = icon,
+                                            contentDescription = label,
+                                            tint = primaryBlue,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
                                 }
-                                Text("John Banda", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
+                                Text(
+                                    text = label,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = textDark,
+                                    maxLines = 1,
+                                    textAlign = TextAlign.Center
+                                )
                             }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = containerBg,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Icon(Icons.Default.VideoCall, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
-                                Text("Google Meet Room", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textDark)
-                                Text("(Link active)", fontSize = 12.sp, color = textGray)
-                            }
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Icon(Icons.Default.Schedule, null, tint = textGray, modifier = Modifier.size(14.dp))
-                                    Text("Today, 16:00 - 17:30", fontSize = 12.sp, color = textGray)
-                                }
-                                Text("In 2h 19m", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        // Primary button
-                        Button(
-                            onClick = {},
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(40.dp)
-                        ) {
-                            Icon(Icons.Default.VideoCall, null, tint = Color.White, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Join Meeting", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                        }
-
-                        // Faded secondary button
-                        Button(
-                            onClick = {},
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = lightBlueBg),
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(40.dp)
-                                .border(1.dp, Color(0xFFDBEAFE), RoundedCornerShape(10.dp))
-                        ) {
-                            Icon(Icons.AutoMirrored.Filled.Chat, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Message", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
                         }
                     }
                 }
             }
 
-            // Scheduled Session Card 2 (In-Person)
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            // Promotional / Feature Moving Banner Cards Carousel
+            Text(
+                text = "Discover Yaza Wanga",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = textDark
+            )
+
+            val banners = listOf(
+                Triple(
+                    "Peer Mentorship Drive",
+                    "Connect with top-tier student tutors across Computing & Science faculties with verified grades.",
+                    primaryBlue
+                ),
+                Triple(
+                    "Mid-Semester Study Drive",
+                    "Peer-to-peer engagement is up 32% across Science & Engineering faculties ahead of week 8 milestone exams.",
+                    Color(0xFF0F766E)
+                ),
+                Triple(
+                    "Yaza Assist AI",
+                    "Instant 24/7 academic Q&A and syllabus guidance powered by your department's curriculum.",
+                    Color(0xFF7C3AED)
+                )
+            )
+
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                banners.forEach { (title, subtitle, bannerColor) ->
+                    Card(
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = bannerColor),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        modifier = Modifier
+                            .width(280.dp)
+                            .height(140.dp)
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Box(
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .clip(CircleShape)
-                                    .background(Color(0xFFE2E8F0)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(Icons.Default.Person, null, tint = textGray)
-                            }
-                            Column {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Text("COM 311", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                                    Text("• Database Systems", fontSize = 12.sp, color = textGray)
-                                }
-                                Text("Chisomo Phiri", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = containerBg,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Icon(Icons.Default.LocationOn, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
-                                Text("Library Study Pod 3B", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textDark)
-                                Text("(In-Person)", fontSize = 12.sp, color = textGray)
-                            }
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Icon(Icons.Default.Schedule, null, tint = textGray, modifier = Modifier.size(14.dp))
-                                    Text("Tomorrow, 14:00 - 15:30", fontSize = 12.sp, color = textGray)
-                                }
-                                Text("In 22h", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = textGray)
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Button(
-                            onClick = {},
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
+                        Column(
                             modifier = Modifier
-                                .weight(1f)
-                                .height(40.dp)
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Icon(Icons.Default.Directions, null, tint = Color.White, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Get Directions", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                        }
-
-                        Button(
-                            onClick = {},
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = lightBlueBg),
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(40.dp)
-                                .border(1.dp, Color(0xFFDBEAFE), RoundedCornerShape(10.dp))
-                        ) {
-                            Icon(Icons.AutoMirrored.Filled.Chat, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Message", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Surface(
+                                    shape = RoundedCornerShape(50.dp),
+                                    color = Color.White.copy(alpha = 0.2f)
+                                ) {
+                                    Text(
+                                        text = "Featured",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                    )
+                                }
+                                Text(
+                                    text = title,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                                Text(
+                                    text = subtitle,
+                                    fontSize = 11.sp,
+                                    color = Color.White.copy(alpha = 0.9f),
+                                    maxLines = 2
+                                )
+                            }
                         }
                     }
                 }
