@@ -98,41 +98,64 @@ fun StudentDashboardScreen(
                 containerColor = Color.White,
                 tonalElevation = 8.dp
             ) {
-                NavigationBarItem(
-                    selected = true,
-                    onClick = onNavigateHome,
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                    label = { Text("Home") },
-                    colors = NavigationBarItemDefaults.colors(selectedIconColor = primaryBlue, selectedTextColor = primaryBlue)
+                val tabs = listOf(
+                    Triple(0, "Home", Icons.Default.Home),
+                    Triple(1, "Courses", Icons.AutoMirrored.Filled.MenuBook),
+                    Triple(2, "Tutors", Icons.Default.School),
+                    Triple(3, "Alerts", Icons.Default.Notifications),
+                    Triple(4, "Profile", Icons.Default.Person)
                 )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onNavigateCourses,
-                    icon = { Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = "Courses") },
-                    label = { Text("Courses") },
-                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = textGray, unselectedTextColor = textGray)
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onNavigateTutors,
-                    icon = { Icon(Icons.Default.School, contentDescription = "Tutors") },
-                    label = { Text("Tutors") },
-                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = textGray, unselectedTextColor = textGray)
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onNavigateAlerts,
-                    icon = { Icon(Icons.Default.Notifications, contentDescription = "Alerts") },
-                    label = { Text("Alerts") },
-                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = textGray, unselectedTextColor = textGray)
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onNavigateProfile,
-                    icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                    label = { Text("Profile") },
-                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = textGray, unselectedTextColor = textGray)
-                )
+
+                tabs.forEach { (index, label, icon) ->
+                    val selected = index == 0
+                    NavigationBarItem(
+                        selected = selected,
+                        onClick = {
+                            when (index) {
+                                0 -> onNavigateHome()
+                                1 -> onNavigateCourses()
+                                2 -> onNavigateTutors()
+                                3 -> onNavigateAlerts()
+                                4 -> onNavigateProfile()
+                            }
+                        },
+                        icon = {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = label,
+                                    tint = if (selected) primaryBlue else textGray
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .width(24.dp)
+                                        .height(3.dp)
+                                        .clip(RoundedCornerShape(1.5.dp))
+                                        .background(if (selected) primaryBlue else Color.Transparent)
+                                )
+                            }
+                        },
+                        label = {
+                            Text(
+                                text = label,
+                                fontSize = 11.sp,
+                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                                color = if (selected) primaryBlue else textGray
+                            )
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            indicatorColor = Color.Transparent,
+                            selectedIconColor = primaryBlue,
+                            selectedTextColor = primaryBlue,
+                            unselectedIconColor = textGray,
+                            unselectedTextColor = textGray
+                        )
+                    )
+                }
             }
         },
         containerColor = Color(0xFFF8FAFC)
@@ -155,31 +178,35 @@ fun StudentDashboardScreen(
                     .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    // Top Row: Name & Manage Account
+                    // Top Row: Name & Manage Account (Manage Account not bold)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Top
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "WONGANI NYIRENDA",
-                                fontSize = 16.sp,
+                                fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = textDark
+                                color = textDark,
+                                maxLines = 1
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "Prepaid - 995358915",
+                                text = "Student - 995358915",
                                 fontSize = 12.sp,
-                                color = textGray
+                                color = textGray,
+                                maxLines = 1
                             )
                         }
 
+                        Spacer(modifier = Modifier.width(8.dp))
+
                         Text(
                             text = "Manage Account",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Normal,
                             color = primaryBlue,
                             modifier = Modifier.clickable { onNavigateProfile() }
                         )
@@ -189,16 +216,16 @@ fun StudentDashboardScreen(
                     HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Middle Stats Row (3 Columns: Enrolled Course, Active Tutors, Upcoming)
+                    // Middle Stats Row (3 Columns separated by Vertical Dividers)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         // Column 1: Enrolled Course
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "3",
-                                fontSize = 22.sp,
+                                fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = textDark
                             )
@@ -206,15 +233,21 @@ fun StudentDashboardScreen(
                             Text(
                                 text = "Enrolled Course",
                                 fontSize = 11.sp,
-                                color = textGray
+                                color = textGray,
+                                maxLines = 1
                             )
                         }
+
+                        VerticalDivider(
+                            color = Color(0xFFE2E8F0),
+                            modifier = Modifier.height(36.dp).padding(horizontal = 8.dp)
+                        )
 
                         // Column 2: Active Tutors
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "4",
-                                fontSize = 22.sp,
+                                fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = textDark
                             )
@@ -222,15 +255,21 @@ fun StudentDashboardScreen(
                             Text(
                                 text = "Active Tutors",
                                 fontSize = 11.sp,
-                                color = textGray
+                                color = textGray,
+                                maxLines = 1
                             )
                         }
+
+                        VerticalDivider(
+                            color = Color(0xFFE2E8F0),
+                            modifier = Modifier.height(36.dp).padding(horizontal = 8.dp)
+                        )
 
                         // Column 3: Upcoming
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "2",
-                                fontSize = 22.sp,
+                                fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = textDark
                             )
@@ -238,7 +277,8 @@ fun StudentDashboardScreen(
                             Text(
                                 text = "Upcoming",
                                 fontSize = 11.sp,
-                                color = textGray
+                                color = textGray,
+                                maxLines = 1
                             )
                         }
                     }
@@ -247,54 +287,58 @@ fun StudentDashboardScreen(
                     HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Bottom Buttons Row (Both say "View Course")
+                    // Bottom Buttons Row (Both say "View Course" on one single line)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Button(
                             onClick = { onViewCourseClick("INF 212") },
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(10.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEF2F2)),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
                             modifier = Modifier
                                 .weight(1f)
-                                .height(44.dp)
+                                .height(40.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.MenuBook,
                                 contentDescription = null,
                                 tint = Color(0xFFDC2626),
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(14.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = "View Course",
-                                fontSize = 12.sp,
+                                fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFFDC2626)
+                                color = Color(0xFFDC2626),
+                                maxLines = 1
                             )
                         }
 
                         Button(
                             onClick = { onViewCourseClick("STA 211") },
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(10.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEF2F2)),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
                             modifier = Modifier
                                 .weight(1f)
-                                .height(44.dp)
+                                .height(40.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.MenuBook,
                                 contentDescription = null,
                                 tint = Color(0xFFDC2626),
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(14.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = "View Course",
-                                fontSize = 12.sp,
+                                fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFFDC2626)
+                                color = Color(0xFFDC2626),
+                                maxLines = 1
                             )
                         }
                     }
