@@ -45,21 +45,12 @@ fun StudentDashboardScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = "Student Home",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = textDark
-                        )
-                        Text(
-                            text = "YAZA WANGA PEER HUB",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = primaryBlue,
-                            letterSpacing = 0.5.sp
-                        )
-                    }
+                    Text(
+                        text = "Student Home",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textDark
+                    )
                 },
                 navigationIcon = {
                     Box(modifier = Modifier.padding(start = 12.dp)) {
@@ -67,13 +58,6 @@ fun StudentDashboardScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = {}) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
-                            tint = textDark
-                        )
-                    }
                     IconButton(
                         onClick = onNavigateProfile,
                         modifier = Modifier
