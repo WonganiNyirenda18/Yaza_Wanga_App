@@ -67,6 +67,8 @@ class MainActivity : ComponentActivity() {
                                     val trimmedEmail = email.trim().lowercase()
                                     if ((trimmedEmail == "admin" || trimmedEmail == "admin@unima.ac.mw") && password == "admin") {
                                         currentScreen = AppScreen.ADMIN_OVERVIEW
+                                    } else if ((trimmedEmail == "tutor" || trimmedEmail == "tutor@unima.ac.mw") && password == "tutor") {
+                                        currentScreen = AppScreen.TUTOR_DASHBOARD
                                     } else {
                                         currentScreen = AppScreen.STUDENT_PROFILE
                                     }
