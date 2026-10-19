@@ -13,6 +13,7 @@ import com.example.yaza_wanga.ui.screens.*
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
 
 enum class AppScreen {
+    SPLASH,
     SIGN_IN,
     SIGN_UP,
     STUDENT_PROFILE,
@@ -34,7 +35,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             Yaza_WangaTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    var currentScreen by remember { mutableStateOf(AppScreen.SIGN_IN) }
+                    var currentScreen by remember { mutableStateOf(AppScreen.SPLASH) }
                     var signUpRole by remember { mutableStateOf(UserRole.STUDENT) }
                     var selectedCourseCode by remember { mutableStateOf("INF 212") }
 
@@ -49,6 +50,13 @@ class MainActivity : ComponentActivity() {
                     }
 
                     when (currentScreen) {
+                        AppScreen.SPLASH -> {
+                            SplashScreen(
+                                onSplashFinished = {
+                                    currentScreen = AppScreen.SIGN_IN
+                                }
+                            )
+                        }
                         AppScreen.SIGN_IN -> {
                             SignInScreen(
                                 onSignUpClick = {
