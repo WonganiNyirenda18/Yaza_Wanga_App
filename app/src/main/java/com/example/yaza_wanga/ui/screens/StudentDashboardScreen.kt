@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.yaza_wanga.ui.components.YazaBottomBar
 import com.example.yaza_wanga.ui.components.YazaWangaLogo
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
 
@@ -43,69 +44,25 @@ fun StudentDashboardScreen(
 
     Scaffold(
         bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 8.dp
-            ) {
-                val tabs = listOf(
+            YazaBottomBar(
+                tabs = listOf(
                     Triple(0, "Home", Icons.Default.Home),
                     Triple(1, "Courses", Icons.AutoMirrored.Filled.MenuBook),
                     Triple(2, "Tutors", Icons.Default.School),
                     Triple(3, "Alerts", Icons.Default.Notifications),
                     Triple(4, "Profile", Icons.Default.Person)
-                )
-
-                tabs.forEach { (index, label, icon) ->
-                    val selected = index == 0
-                    NavigationBarItem(
-                        selected = selected,
-                        onClick = {
-                            when (index) {
-                                0 -> onNavigateHome()
-                                1 -> onNavigateCourses()
-                                2 -> onNavigateTutors()
-                                3 -> onNavigateAlerts()
-                                4 -> onNavigateProfile()
-                            }
-                        },
-                        icon = {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Icon(
-                                    imageVector = icon,
-                                    contentDescription = label,
-                                    tint = if (selected) primaryBlue else textGray
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .width(24.dp)
-                                        .height(3.dp)
-                                        .clip(RoundedCornerShape(1.5.dp))
-                                        .background(if (selected) primaryBlue else Color.Transparent)
-                                )
-                            }
-                        },
-                        label = {
-                            Text(
-                                text = label,
-                                fontSize = 11.sp,
-                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                                color = if (selected) primaryBlue else textGray
-                            )
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = Color.Transparent,
-                            selectedIconColor = primaryBlue,
-                            selectedTextColor = primaryBlue,
-                            unselectedIconColor = textGray,
-                            unselectedTextColor = textGray
-                        )
-                    )
+                ),
+                currentTab = 0,
+                onSelectTab = { index ->
+                    when (index) {
+                        0 -> onNavigateHome()
+                        1 -> onNavigateCourses()
+                        2 -> onNavigateTutors()
+                        3 -> onNavigateAlerts()
+                        4 -> onNavigateProfile()
+                    }
                 }
-            }
+            )
         },
         containerColor = Color(0xFFF8FAFC)
     ) { innerPadding ->
@@ -121,7 +78,7 @@ fun StudentDashboardScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(primaryBlue)
-                    .padding(bottom = 56.dp) // Generous bottom space in blue header before card overlap
+                    .padding(bottom = 56.dp)
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
                 TopAppBar(
@@ -164,7 +121,7 @@ fun StudentDashboardScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
-                    .offset(y = (-48).dp), // Balanced overlap
+                    .offset(y = (-48).dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Airtel-Inspired Account & Stats Card (Wongani Nyirenda) overlapping the blue background
