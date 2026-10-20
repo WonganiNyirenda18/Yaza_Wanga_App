@@ -20,6 +20,7 @@ enum class AppScreen {
     STUDENT_DASHBOARD,
     TUTOR_DASHBOARD,
     TUTOR_SESSION,
+    TUTOR_STUDENTS,
     ADMIN_OVERVIEW,
     ADMIN_USERS,
     ADMIN_COURSES,
@@ -140,7 +141,7 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = AppScreen.TUTOR_SESSION
                                 },
                                 onNavigateStudents = {
-                                    currentScreen = AppScreen.ADMIN_USERS
+                                    currentScreen = AppScreen.TUTOR_STUDENTS
                                 },
                                 onNavigateProfile = {
                                     currentScreen = AppScreen.STUDENT_PROFILE
@@ -161,11 +162,29 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = AppScreen.ADMIN_CONTENT
                                 },
                                 onNavigateVerify = {
-                                    currentScreen = AppScreen.ADMIN_USERS
+                                    currentScreen = AppScreen.TUTOR_STUDENTS
                                 },
                                 onAcceptRequest = { _ -> },
                                 onDeclineRequest = { _ -> },
                                 onAttachLink = { _ -> }
+                            )
+                        }
+                        AppScreen.TUTOR_STUDENTS -> {
+                            TutorStudentsScreen(
+                                onNavigateDashboard = {
+                                    currentScreen = AppScreen.TUTOR_DASHBOARD
+                                },
+                                onNavigateSessions = {
+                                    currentScreen = AppScreen.TUTOR_SESSION
+                                },
+                                onNavigateStudents = {
+                                    currentScreen = AppScreen.TUTOR_STUDENTS
+                                },
+                                onNavigateProfile = {
+                                    currentScreen = AppScreen.STUDENT_PROFILE
+                                },
+                                onMessageStudent = { _ -> },
+                                onViewStudentDetails = { _ -> }
                             )
                         }
                         AppScreen.ADMIN_OVERVIEW -> {
