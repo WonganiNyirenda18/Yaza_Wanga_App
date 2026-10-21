@@ -147,6 +147,9 @@ class MainActivity : ComponentActivity() {
                                 onNavigateProfile = {
                                     currentScreen = AppScreen.STUDENT_PROFILE
                                 },
+                                onUploadNotesClick = {
+                                    currentScreen = AppScreen.TUTOR_UPLOAD_MATERIAL
+                                },
                                 onStartCall = { _ -> },
                                 onViewStudentDetails = { _ -> }
                             )

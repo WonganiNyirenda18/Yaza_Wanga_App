@@ -34,6 +34,7 @@ fun TutorDashboardScreen(
     onNavigateSessions: () -> Unit = {},
     onNavigateStudents: () -> Unit = {},
     onNavigateProfile: () -> Unit = {},
+    onUploadNotesClick: () -> Unit = {},
     onStartCall: (String) -> Unit = {},
     onViewStudentDetails: (String) -> Unit = {}
 ) {
@@ -44,84 +45,115 @@ fun TutorDashboardScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = "PEER MENTORSHIP",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = primaryBlue,
-                            letterSpacing = 0.5.sp
-                        )
-                        Text(
-                            text = "Yaza Wanga Tutor",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = textDark
-                        )
-                    }
-                },
-                navigationIcon = {
-                    Box(modifier = Modifier.padding(start = 12.dp)) {
-                        YazaWangaLogo(size = 36.dp)
-                    }
-                },
-                actions = {
-                    Box(modifier = Modifier.padding(end = 12.dp)) {
-                        IconButton(onClick = {}) {
-                            Icon(
-                                imageVector = Icons.Default.Notifications,
-                                contentDescription = "Alerts",
-                                tint = textDark
+            Column {
+                TopAppBar(
+                    title = {
+                        Column {
+                            Text(
+                                text = "PEER MENTORSHIP",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = primaryBlue,
+                                letterSpacing = 0.5.sp
+                            )
+                            Text(
+                                text = "Yaza Wanga Tutor",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = textDark
                             )
                         }
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(Color.Red)
-                                .align(Alignment.TopEnd)
-                                .offset(x = (-8).dp, y = 8.dp)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
+                    },
+                    navigationIcon = {
+                        Box(modifier = Modifier.padding(start = 12.dp)) {
+                            YazaWangaLogo(size = 36.dp)
+                        }
+                    },
+                    actions = {
+                        Box(modifier = Modifier.padding(end = 12.dp)) {
+                            IconButton(onClick = {}) {
+                                Icon(
+                                    imageVector = Icons.Default.Notifications,
+                                    contentDescription = "Alerts",
+                                    tint = textDark
+                                )
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.Red)
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = (-8).dp, y = 8.dp)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                )
+                HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
+            }
         },
         bottomBar = {
             NavigationBar(
                 containerColor = Color.White,
                 tonalElevation = 8.dp
             ) {
-                NavigationBarItem(
-                    selected = true,
-                    onClick = onNavigateDashboard,
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Dashboard") },
-                    label = { Text("Dashboard") },
-                    colors = NavigationBarItemDefaults.colors(selectedIconColor = primaryBlue, selectedTextColor = primaryBlue)
+                val tabs = listOf(
+                    Triple(0, "Dashboard", Icons.Default.Home),
+                    Triple(1, "Sessions", Icons.Default.CalendarToday),
+                    Triple(2, "Students", Icons.Default.School),
+                    Triple(3, "Profile", Icons.Default.Person)
                 )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onNavigateSessions,
-                    icon = { Icon(Icons.Default.CalendarToday, contentDescription = "Sessions") },
-                    label = { Text("Sessions") },
-                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = textGray, unselectedTextColor = textGray)
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onNavigateStudents,
-                    icon = { Icon(Icons.Default.School, contentDescription = "Students") },
-                    label = { Text("Students") },
-                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = textGray, unselectedTextColor = textGray)
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onNavigateProfile,
-                    icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                    label = { Text("Profile") },
-                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = textGray, unselectedTextColor = textGray)
-                )
+
+                tabs.forEach { (index, label, icon) ->
+                    val selected = index == 0 // Dashboard selected
+                    NavigationBarItem(
+                        selected = selected,
+                        onClick = {
+                            when (index) {
+                                0 -> onNavigateDashboard()
+                                1 -> onNavigateSessions()
+                                2 -> onNavigateStudents()
+                                3 -> onNavigateProfile()
+                            }
+                        },
+                        icon = {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = label,
+                                    tint = if (selected) primaryBlue else textGray
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .width(24.dp)
+                                        .height(3.dp)
+                                        .clip(RoundedCornerShape(1.5.dp))
+                                        .background(if (selected) primaryBlue else Color.Transparent)
+                                )
+                            }
+                        },
+                        label = {
+                            Text(
+                                text = label,
+                                fontSize = 11.sp,
+                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                                color = if (selected) primaryBlue else textGray
+                            )
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            indicatorColor = Color.Transparent,
+                            selectedIconColor = primaryBlue,
+                            selectedTextColor = primaryBlue,
+                            unselectedIconColor = textGray,
+                            unselectedTextColor = textGray
+                        )
+                    )
+                }
             }
         },
         containerColor = Color(0xFFF8FAFC)
@@ -251,10 +283,10 @@ fun TutorDashboardScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    QuickActionButton(icon = Icons.Default.CalendarMonth, label = "Set Avail.")
-                    QuickActionButton(icon = Icons.Default.Link, label = "Share Link")
-                    QuickActionButton(icon = Icons.AutoMirrored.Filled.NoteAdd, label = "Upload Notes")
-                    QuickActionButton(icon = Icons.Default.Tune, label = "Courses")
+                    QuickActionButton(icon = Icons.Default.CalendarMonth, label = "Set Avail.") {}
+                    QuickActionButton(icon = Icons.Default.Link, label = "Share Link") {}
+                    QuickActionButton(icon = Icons.AutoMirrored.Filled.NoteAdd, label = "Upload Notes", onClick = onUploadNotesClick)
+                    QuickActionButton(icon = Icons.Default.Tune, label = "Courses") {}
                 }
             }
 
@@ -617,7 +649,8 @@ fun TutorStatCard(
 @Composable
 fun QuickActionButton(
     icon: ImageVector,
-    label: String
+    label: String,
+    onClick: () -> Unit = {}
 ) {
     val primaryBlue = Color(0xFF1D4ED8)
     val textDark = Color(0xFF0F172A)
@@ -632,20 +665,20 @@ fun QuickActionButton(
             modifier = Modifier
                 .size(64.dp)
                 .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
-                .clickable {},
+                .clickable(onClick = onClick),
             shadowElevation = 1.dp
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(icon, null, tint = primaryBlue, modifier = Modifier.size(24.dp))
             }
         }
-        Text(label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+    Text(label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = textDark)
     }
 }
 
 @Preview(showBackground = true, widthDp = 392, heightDp = 1000)
 @Composable
-fun TutorDashboardPreview() {
+fun TutorDashboardScreenPreview() {
     Yaza_WangaTheme {
         TutorDashboardScreen()
     }
