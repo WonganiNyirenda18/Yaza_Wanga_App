@@ -155,22 +155,25 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         AppScreen.TUTOR_SESSION -> {
-                            TutorSessionScreen(
-                                onNavigateRequests = {
+                            TutorCreateSessionScreen(
+                                onBackClick = {
                                     currentScreen = AppScreen.TUTOR_DASHBOARD
                                 },
-                                onNavigateAnalytics = {
-                                    currentScreen = AppScreen.ADMIN_OVERVIEW
+                                onNavigateDashboard = {
+                                    currentScreen = AppScreen.TUTOR_DASHBOARD
                                 },
-                                onNavigateUpload = {
-                                    currentScreen = AppScreen.TUTOR_UPLOAD_MATERIAL
+                                onNavigateSessions = {
+                                    currentScreen = AppScreen.TUTOR_SESSION
                                 },
-                                onNavigateVerify = {
+                                onNavigateStudents = {
                                     currentScreen = AppScreen.TUTOR_STUDENTS
                                 },
-                                onAcceptRequest = { _ -> },
-                                onDeclineRequest = { _ -> },
-                                onAttachLink = { _ -> }
+                                onNavigateProfile = {
+                                    currentScreen = AppScreen.STUDENT_PROFILE
+                                },
+                                onCreateSessionSuccess = {
+                                    currentScreen = AppScreen.TUTOR_DASHBOARD
+                                }
                             )
                         }
                         AppScreen.TUTOR_STUDENTS -> {
