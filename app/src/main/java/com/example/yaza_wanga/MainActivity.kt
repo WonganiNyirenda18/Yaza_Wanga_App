@@ -21,6 +21,7 @@ enum class AppScreen {
     TUTOR_DASHBOARD,
     TUTOR_SESSION,
     TUTOR_STUDENTS,
+    TUTOR_UPLOAD_MATERIAL,
     ADMIN_OVERVIEW,
     ADMIN_USERS,
     ADMIN_COURSES,
@@ -159,7 +160,7 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = AppScreen.ADMIN_OVERVIEW
                                 },
                                 onNavigateUpload = {
-                                    currentScreen = AppScreen.ADMIN_CONTENT
+                                    currentScreen = AppScreen.TUTOR_UPLOAD_MATERIAL
                                 },
                                 onNavigateVerify = {
                                     currentScreen = AppScreen.TUTOR_STUDENTS
@@ -185,6 +186,28 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onMessageStudent = { _ -> },
                                 onViewStudentDetails = { _ -> }
+                            )
+                        }
+                        AppScreen.TUTOR_UPLOAD_MATERIAL -> {
+                            TutorUploadMaterialScreen(
+                                onBackClick = {
+                                    currentScreen = AppScreen.TUTOR_DASHBOARD
+                                },
+                                onNavigateDashboard = {
+                                    currentScreen = AppScreen.TUTOR_DASHBOARD
+                                },
+                                onNavigateSessions = {
+                                    currentScreen = AppScreen.TUTOR_SESSION
+                                },
+                                onNavigateStudents = {
+                                    currentScreen = AppScreen.TUTOR_STUDENTS
+                                },
+                                onNavigateProfile = {
+                                    currentScreen = AppScreen.STUDENT_PROFILE
+                                },
+                                onPublishSuccess = {
+                                    currentScreen = AppScreen.TUTOR_DASHBOARD
+                                }
                             )
                         }
                         AppScreen.ADMIN_OVERVIEW -> {
