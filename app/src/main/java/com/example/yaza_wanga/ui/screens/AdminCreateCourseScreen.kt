@@ -40,7 +40,7 @@ fun AdminCreateCourseScreen(
     var facultyDropdownExpanded by remember { mutableStateOf(false) }
     var courseDescription by remember { mutableStateOf("Foundational principles of frontend architecture, semantic web development, responsive CSS layouts, and modern JavaScript programming paradigms for interactive web apps.") }
     var targetYear by remember { mutableStateOf("Year 2") }
-    var scheduledSemester by remember { mutableStateOf("Semester 1 (Autumn)") }
+    var scheduledSemester by remember { mutableStateOf("Semester 1") }
     var allowPeerTutoring by remember { mutableStateOf(true) }
 
     val primaryBlue = Color(0xFF1D4ED8)
@@ -120,22 +120,8 @@ fun AdminCreateCourseScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Workspace Badge & Header
+            // Header Title & Subtitle (Governance & institution cards removed)
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Surface(
-                    shape = RoundedCornerShape(50.dp),
-                    color = lightBlueBg
-                ) {
-                    Text(
-                        text = "• ACADEMIC GOVERNANCE • NEW CURRICULUM",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = primaryBlue,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        letterSpacing = 0.5.sp
-                    )
-                }
-                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = "Create New Course",
                     fontSize = 22.sp,
@@ -147,35 +133,6 @@ fun AdminCreateCourseScreen(
                     fontSize = 13.sp,
                     color = textGray
                 )
-            }
-
-            // Institution Info Card
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
-            ) {
-                Row(
-                    modifier = Modifier.padding(14.dp).fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Box(
-                            modifier = Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)).background(lightBlueBg),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.School, null, tint = primaryBlue, modifier = Modifier.size(18.dp))
-                        }
-                        Column {
-                            Text("Institution: Yaza Wanga University", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textDark)
-                        }
-                    }
-                    Surface(shape = RoundedCornerShape(50.dp), color = Color(0xFFE6F4EA)) {
-                        Text("Active Term", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF137333), modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
-                    }
-                }
             }
 
             // Course Name Section *
@@ -207,14 +164,13 @@ fun AdminCreateCourseScreen(
                 Text("Full academic course title as reflected in the university syllabus.", fontSize = 11.sp, color = textGray)
             }
 
-            // Course Code Section *
+            // Course Code Section * (Prefix + Level badge removed)
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text("Course Code", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
                         Text("*", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
                     }
-                    Text("Prefix + Level", fontSize = 12.sp, color = primaryBlue, fontWeight = FontWeight.Bold)
                 }
 
                 Row(
@@ -338,7 +294,7 @@ fun AdminCreateCourseScreen(
                 }
             }
 
-            // Course Description & Scope *
+            // Course Description & Scope * (Include tags removed)
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -363,30 +319,16 @@ fun AdminCreateCourseScreen(
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
-
-                // Include tags row
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Include tags:", fontSize = 11.sp, color = textGray)
-                    Surface(shape = RoundedCornerShape(50.dp), color = lightBlueBg) {
-                        Text("+ Prerequisites", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
-                    }
-                    Surface(shape = RoundedCornerShape(50.dp), color = lightBlueBg) {
-                        Text("+ Practical Lab", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
-                    }
-                    Surface(shape = RoundedCornerShape(50.dp), color = lightBlueBg) {
-                        Text("+ 60% Exam", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
-                    }
-                }
             }
 
-            // Target Academic Year & Scheduled Semester
+            // Target Academic Year (Postgrad removed, Year 4 added)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Target Academic Year", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    listOf("Year 1", "Year 2", "Year 3", "Postgrad").forEach { yr ->
+                    listOf("Year 1", "Year 2", "Year 3", "Year 4").forEach { yr ->
                         val selected = targetYear == yr
                         Surface(
                             shape = RoundedCornerShape(10.dp),
@@ -410,14 +352,14 @@ fun AdminCreateCourseScreen(
                 }
             }
 
-            // Scheduled Semester
+            // Scheduled Semester (Autumn & Spring removed, Semester 1 & Semester 2)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Scheduled Semester", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    listOf("Semester 1 (Autumn)", "Semester 2 (Spring)").forEach { sem ->
+                    listOf("Semester 1", "Semester 2").forEach { sem ->
                         val selected = scheduledSemester == sem
                         Card(
                             shape = RoundedCornerShape(14.dp),
@@ -435,7 +377,7 @@ fun AdminCreateCourseScreen(
                                 Icon(Icons.Default.DateRange, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
                                 Text(
                                     text = sem,
-                                    fontSize = 12.sp,
+                                    fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = if (selected) primaryBlue else textDark
                                 )
