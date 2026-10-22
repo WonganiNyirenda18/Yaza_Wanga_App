@@ -28,7 +28,8 @@ import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminCoursesScreen(
-    onNavigateTab: (Int) -> Unit = {}
+    onNavigateTab: (Int) -> Unit = {},
+    onNewCourseClick: () -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedFaculty by remember { mutableStateOf("All Faculties") }
@@ -118,7 +119,7 @@ fun AdminCoursesScreen(
                 )
 
                 Button(
-                    onClick = {},
+                    onClick = onNewCourseClick,
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                     modifier = Modifier.height(40.dp)

@@ -23,6 +23,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,11 +44,39 @@ fun TutorCreateSessionScreen(
     var sessionDate by remember { mutableStateOf("10/24/2024") }
     var sessionTime by remember { mutableStateOf("04:00 PM") }
 
+    // DatePicker state
+    var showDatePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState()
+
     val primaryBlue = Color(0xFF1D4ED8)
     val lightBlueBg = Color(0xFFF0F4FF)
     val containerBg = Color(0xFFF8FAFC)
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val formatter = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+                        sessionDate = formatter.format(Date(millis))
+                    }
+                    showDatePicker = false
+                }) {
+                    Text("OK", fontWeight = FontWeight.Bold, color = primaryBlue)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel", color = textGray)
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -89,7 +119,7 @@ fun TutorCreateSessionScreen(
                                 imageVector = Icons.Default.Person,
                                 contentDescription = "Profile",
                                 tint = Color.White,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(22.dp)
                             )
                         }
                     },
@@ -200,7 +230,7 @@ fun TutorCreateSessionScreen(
                 )
             }
 
-            // Section 1: Select Course *
+            // Section 1: Select Course * (Reduced size bar, "18 enrolled" removed)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -214,43 +244,38 @@ fun TutorCreateSessionScreen(
                     Text("3 Courses Active", fontSize = 12.sp, color = textGray)
                 }
 
-                // Active Course Selector Card
+                // Active Course Selector Card (Compact size)
                 Card(
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
                     elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, primaryBlue, RoundedCornerShape(16.dp))
+                        .border(1.dp, primaryBlue, RoundedCornerShape(14.dp))
                         .clickable { courseDropdownExpanded = !courseDropdownExpanded }
                 ) {
                     Row(
-                        modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp).fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Box(
                                 modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(RoundedCornerShape(10.dp))
+                                    .size(32.dp)
+                                    .clip(RoundedCornerShape(8.dp))
                                     .background(lightBlueBg),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.AutoMirrored.Filled.MenuBook, null, tint = primaryBlue, modifier = Modifier.size(20.dp))
+                                Icon(Icons.AutoMirrored.Filled.MenuBook, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
                             }
                             Column {
-                                Text("ACTIVE COURSE", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                                Text(selectedCourse, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
+                                Text("ACTIVE COURSE", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
+                                Text(selectedCourse, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textDark)
                             }
                         }
 
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Surface(shape = RoundedCornerShape(50.dp), color = lightBlueBg) {
-                                Text("18 enrolled", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
-                            }
-                            Icon(if (courseDropdownExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null, tint = primaryBlue)
-                        }
+                        Icon(if (courseDropdownExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null, tint = primaryBlue)
                     }
                 }
 
@@ -491,7 +516,7 @@ fun TutorCreateSessionScreen(
                 }
             }
 
-            // Section 3: Date, Time & Duration *
+            // Section 3: Date, Time & Duration * (Popup calendar on date click)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text("3. Date, Time & Duration", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
@@ -508,25 +533,27 @@ fun TutorCreateSessionScreen(
                         modifier = Modifier.padding(16.dp).fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        // Date Input
+                        // Date Input (Clickable popup calendar)
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text("Date", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = textGray)
-                            OutlinedTextField(
-                                value = sessionDate,
-                                onValueChange = { sessionDate = it },
-                                leadingIcon = { Icon(Icons.Default.CalendarToday, null, tint = primaryBlue, modifier = Modifier.size(16.dp)) },
-                                singleLine = true,
-                                shape = RoundedCornerShape(10.dp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedContainerColor = containerBg,
-                                    unfocusedContainerColor = containerBg,
-                                    focusedBorderColor = primaryBlue,
-                                    unfocusedBorderColor = Color(0xFFE2E8F0),
-                                    focusedTextColor = textDark,
-                                    unfocusedTextColor = textDark
-                                ),
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                            Box(modifier = Modifier.fillMaxWidth().clickable { showDatePicker = true }) {
+                                OutlinedTextField(
+                                    value = sessionDate,
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    enabled = false, // Disable direct manual typing, tap opens calendar picker
+                                    leadingIcon = { Icon(Icons.Default.CalendarToday, null, tint = primaryBlue, modifier = Modifier.size(16.dp)) },
+                                    singleLine = true,
+                                    shape = RoundedCornerShape(10.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        disabledContainerColor = containerBg,
+                                        disabledTextColor = textDark,
+                                        disabledBorderColor = Color(0xFFE2E8F0),
+                                        disabledLeadingIconColor = primaryBlue
+                                    ),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
 
                         // Time Input

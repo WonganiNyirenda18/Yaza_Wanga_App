@@ -25,6 +25,7 @@ enum class AppScreen {
     ADMIN_OVERVIEW,
     ADMIN_USERS,
     ADMIN_COURSES,
+    ADMIN_CREATE_COURSE,
     ADMIN_CONTENT,
     COURSE_DIRECTORY,
     COURSE_DETAILS
@@ -228,7 +229,21 @@ class MainActivity : ComponentActivity() {
                         }
                         AppScreen.ADMIN_COURSES -> {
                             AdminCoursesScreen(
-                                onNavigateTab = ::navigateAdminTab
+                                onNavigateTab = ::navigateAdminTab,
+                                onNewCourseClick = {
+                                    currentScreen = AppScreen.ADMIN_CREATE_COURSE
+                                }
+                            )
+                        }
+                        AppScreen.ADMIN_CREATE_COURSE -> {
+                            AdminCreateCourseScreen(
+                                onBackClick = {
+                                    currentScreen = AppScreen.ADMIN_COURSES
+                                },
+                                onNavigateTab = ::navigateAdminTab,
+                                onPublishSuccess = {
+                                    currentScreen = AppScreen.ADMIN_COURSES
+                                }
                             )
                         }
                         AppScreen.ADMIN_CONTENT -> {
