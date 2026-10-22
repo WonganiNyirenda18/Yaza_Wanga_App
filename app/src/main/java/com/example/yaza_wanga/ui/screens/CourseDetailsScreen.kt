@@ -40,7 +40,10 @@ fun CourseDetailsScreen(
     onProfileClick: () -> Unit = {},
     onContactTutor: (String) -> Unit = {}
 ) {
+    var isEnrolled by remember { mutableStateOf(false) }
+
     val primaryBlue = Color(0xFF1D4ED8)
+    val lightBlueBg = Color(0xFFF0F4FF)
     val containerBg = Color(0xFFF8FAFC)
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
@@ -86,7 +89,7 @@ fun CourseDetailsScreen(
                             imageVector = Icons.Default.Person,
                             contentDescription = "Profile",
                             tint = Color.White,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(22.dp)
                         )
                     }
                 },
@@ -103,7 +106,7 @@ fun CourseDetailsScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Course Header Card
+            // Course Header Card with Enroll Course Primary Button
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -149,7 +152,7 @@ fun CourseDetailsScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Stats Pills Row (12 modules removed)
+                    // Stats Pills Row
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -188,6 +191,35 @@ fun CourseDetailsScreen(
                             }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Enroll Course Primary Button
+                    Button(
+                        onClick = { isEnrolled = true },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isEnrolled) Color(0xFF10B981) else primaryBlue,
+                            disabledContainerColor = Color(0xFF10B981)
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(46.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isEnrolled) Icons.Default.Check else Icons.Default.School,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (isEnrolled) "Enrolled in Course" else "Enroll Course",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
                 }
             }
 
@@ -199,7 +231,11 @@ fun CourseDetailsScreen(
             ) {
                 Column {
                     Text("Registered Tutors", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textDark)
-                    Text("Sorted by highest student rating", fontSize = 12.sp, color = textGray)
+                    Text(
+                        text = if (isEnrolled) "Sorted by highest student rating" else "Enroll course to unlock tutor contact",
+                        fontSize = 12.sp,
+                        color = if (isEnrolled) textGray else primaryBlue
+                    )
                 }
 
                 Surface(
@@ -218,7 +254,7 @@ fun CourseDetailsScreen(
                 }
             }
 
-            // Tutors List (Vertical order: Info -> Mode -> Bio -> Fee -> Contact Button)
+            // Tutors List (Vertical order: Info -> Mode -> Bio -> Fee -> Secondary Contact Button)
             tutors.forEach { tutor ->
                 Card(
                     shape = RoundedCornerShape(20.dp),
@@ -298,18 +334,33 @@ fun CourseDetailsScreen(
                             )
                         }
 
-                        // 5. Contact Button
+                        // 5. Secondary Contact Button (Active only after enrollment)
                         Button(
                             onClick = { onContactTutor(tutor.name) },
+                            enabled = isEnrolled,
                             shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isEnrolled) lightBlueBg else Color(0xFFF1F5F9),
+                                disabledContainerColor = Color(0xFFF1F5F9)
+                            ),
+                            border = if (isEnrolled) BorderStroke(1.dp, primaryBlue) else null,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(40.dp)
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.Chat, null, tint = Color.White, modifier = Modifier.size(14.dp))
+                            Icon(
+                                Icons.AutoMirrored.Filled.Chat,
+                                null,
+                                tint = if (isEnrolled) primaryBlue else textGray,
+                                modifier = Modifier.size(14.dp)
+                            )
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Contact Tutor", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            Text(
+                                text = if (isEnrolled) "Contact Tutor" else "Enroll to Contact",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isEnrolled) primaryBlue else textGray
+                            )
                         }
                     }
                 }
@@ -320,7 +371,7 @@ fun CourseDetailsScreen(
     }
 }
 
-@Preview(showBackground = true, widthDp = 392, heightDp = 950)
+@Preview(showBackground = true, widthDp = 392, heightDp = 1200)
 @Composable
 fun CourseDetailsPreview() {
     Yaza_WangaTheme {
