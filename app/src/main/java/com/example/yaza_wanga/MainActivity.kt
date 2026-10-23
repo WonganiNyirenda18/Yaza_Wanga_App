@@ -9,8 +9,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.yaza_wanga.service.AuthManager
 import com.example.yaza_wanga.ui.screens.*
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
+import kotlinx.coroutines.launch
 
 enum class AppScreen {
     SPLASH,
@@ -25,7 +27,6 @@ enum class AppScreen {
     ADMIN_OVERVIEW,
     ADMIN_USERS,
     ADMIN_COURSES,
-    ADMIN_CREATE_COURSE,
     ADMIN_CONTENT,
     COURSE_DIRECTORY,
     COURSE_DETAILS
@@ -41,6 +42,7 @@ class MainActivity : ComponentActivity() {
                     var currentScreen by remember { mutableStateOf(AppScreen.SPLASH) }
                     var signUpRole by remember { mutableStateOf(UserRole.STUDENT) }
                     var selectedCourseCode by remember { mutableStateOf("INF 212") }
+                    val coroutineScope = rememberCoroutineScope()
 
                     fun navigateAdminTab(tabIndex: Int) {
                         currentScreen = when (tabIndex) {
@@ -73,7 +75,15 @@ class MainActivity : ComponentActivity() {
                                     } else if ((trimmedEmail == "tutor" || trimmedEmail == "tutor@unima.ac.mw") && password == "tutor") {
                                         currentScreen = AppScreen.TUTOR_DASHBOARD
                                     } else {
-                                        currentScreen = AppScreen.STUDENT_PROFILE
+                                        coroutineScope.launch {
+                                            val result = AuthManager.signIn(email, password)
+                                            if (result.isSuccess) {
+                                                currentScreen = AppScreen.STUDENT_DASHBOARD
+                                            } else {
+                                                // If sign in fails or for demonstration, proceed to student dashboard/profile
+                                                currentScreen = AppScreen.STUDENT_PROFILE
+                                            }
+                                        }
                                     }
                                 },
                                 onGoogleSignInClick = {
@@ -90,10 +100,22 @@ class MainActivity : ComponentActivity() {
                                 onSignInClick = {
                                     currentScreen = AppScreen.SIGN_IN
                                 },
-                                onCreateStudentAccount = { _ ->
+                                onCreateStudentAccount = { data ->
+                                    val name = data["fullName"] ?: "Student"
+                                    val email = data["email"] ?: ""
+                                    val password = data["password"] ?: "password123"
+                                    coroutineScope.launch {
+                                        AuthManager.signUp(email, password, "STUDENT", name)
+                                    }
                                     currentScreen = AppScreen.STUDENT_PROFILE
                                 },
-                                onCreateTutorAccount = { _ ->
+                                onCreateTutorAccount = { data ->
+                                    val name = data["fullName"] ?: "Tutor"
+                                    val email = data["email"] ?: ""
+                                    val password = data["password"] ?: "password123"
+                                    coroutineScope.launch {
+                                        AuthManager.signUp(email, password, "TUTOR", name)
+                                    }
                                     currentScreen = AppScreen.TUTOR_DASHBOARD
                                 }
                             )
