@@ -27,6 +27,7 @@ enum class AppScreen {
     ADMIN_OVERVIEW,
     ADMIN_USERS,
     ADMIN_COURSES,
+    ADMIN_CREATE_COURSE,
     ADMIN_CONTENT,
     COURSE_DIRECTORY,
     COURSE_DETAILS
@@ -80,7 +81,6 @@ class MainActivity : ComponentActivity() {
                                             if (result.isSuccess) {
                                                 currentScreen = AppScreen.STUDENT_DASHBOARD
                                             } else {
-                                                // If sign in fails or for demonstration, proceed to student dashboard/profile
                                                 currentScreen = AppScreen.STUDENT_PROFILE
                                             }
                                         }
