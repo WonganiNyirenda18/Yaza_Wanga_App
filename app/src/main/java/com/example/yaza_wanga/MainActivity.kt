@@ -21,6 +21,7 @@ enum class AppScreen {
     STUDENT_PROFILE,
     STUDENT_DASHBOARD,
     TUTOR_DASHBOARD,
+    TUTOR_PROFILE,
     TUTOR_SESSION,
     TUTOR_STUDENTS,
     TUTOR_UPLOAD_MATERIAL,
@@ -116,7 +117,7 @@ class MainActivity : ComponentActivity() {
                                     coroutineScope.launch {
                                         AuthManager.signUp(email, password, "TUTOR", name)
                                     }
-                                    currentScreen = AppScreen.TUTOR_DASHBOARD
+                                    currentScreen = AppScreen.TUTOR_PROFILE
                                 }
                             )
                         }
@@ -175,6 +176,19 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onStartCall = { _ -> },
                                 onViewStudentDetails = { _ -> }
+                            )
+                        }
+                        AppScreen.TUTOR_PROFILE -> {
+                            TutorProfileScreen(
+                                onBackClick = {
+                                    currentScreen = AppScreen.SIGN_IN
+                                },
+                                onProfileClick = {
+                                    // Profile
+                                },
+                                onCompleteSetup = {
+                                    currentScreen = AppScreen.TUTOR_DASHBOARD
+                                }
                             )
                         }
                         AppScreen.TUTOR_SESSION -> {

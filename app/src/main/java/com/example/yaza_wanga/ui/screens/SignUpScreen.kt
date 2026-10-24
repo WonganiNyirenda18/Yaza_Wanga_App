@@ -31,7 +31,7 @@ import com.example.yaza_wanga.ui.components.YazaWangaLogo
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
 
 enum class UserRole {
-    STUDENT, TUTOR, ADMIN
+    STUDENT, TUTOR
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,10 +46,9 @@ fun SignUpScreen(
 ) {
     var role by remember { mutableStateOf(initialRole) }
 
-    // Student form state
+    // Student form state (studentId removed)
     var studentFullName by remember { mutableStateOf("") }
     var studentEmail by remember { mutableStateOf("") }
-    var studentId by remember { mutableStateOf("") }
     var studentPassword by remember { mutableStateOf("") }
     var studentConfirmPassword by remember { mutableStateOf("") }
     var studentTermsAccepted by remember { mutableStateOf(false) }
@@ -333,8 +332,6 @@ fun SignUpScreen(
                     onFullNameChange = { studentFullName = it },
                     email = studentEmail,
                     onEmailChange = { studentEmail = it },
-                    studentId = studentId,
-                    onStudentIdChange = { studentId = it },
                     password = studentPassword,
                     onPasswordChange = { studentPassword = it },
                     confirmPassword = studentConfirmPassword,
@@ -350,7 +347,6 @@ fun SignUpScreen(
                             mapOf(
                                 "fullName" to studentFullName,
                                 "email" to studentEmail,
-                                "studentId" to studentId,
                                 "password" to studentPassword
                             )
                         )
@@ -410,7 +406,6 @@ fun SignUpScreen(
 fun StudentForm(
     fullName: String, onFullNameChange: (String) -> Unit,
     email: String, onEmailChange: (String) -> Unit,
-    studentId: String, onStudentIdChange: (String) -> Unit,
     password: String, onPasswordChange: (String) -> Unit,
     confirmPassword: String, onConfirmPasswordChange: (String) -> Unit,
     termsAccepted: Boolean, onTermsAcceptedChange: (Boolean) -> Unit,
@@ -454,29 +449,6 @@ fun StudentForm(
             value = email,
             onValueChange = onEmailChange,
             placeholder = { Text("bsc-inf-15-23@unima.ac.mw", color = textGray, fontSize = 13.sp) },
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = containerBg,
-                unfocusedContainerColor = containerBg,
-                focusedBorderColor = primaryBlue,
-                unfocusedBorderColor = Color(0xFFE2E8F0),
-                focusedTextColor = textDark,
-                unfocusedTextColor = textDark
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // Student ID / Reg No.
-        Text("Student ID / Reg No.", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
-        Spacer(modifier = Modifier.height(6.dp))
-        OutlinedTextField(
-            value = studentId,
-            onValueChange = onStudentIdChange,
-            placeholder = { Text("BSC/INF/21/042", color = textGray, fontSize = 13.sp) },
-            leadingIcon = { Icon(Icons.Default.Badge, null, tint = textGray, modifier = Modifier.size(20.dp)) },
             singleLine = true,
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
