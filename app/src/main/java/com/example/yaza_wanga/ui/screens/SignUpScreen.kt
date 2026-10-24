@@ -46,7 +46,7 @@ fun SignUpScreen(
 ) {
     var role by remember { mutableStateOf(initialRole) }
 
-    // Student form state (studentId removed)
+    // Student form state
     var studentFullName by remember { mutableStateOf("") }
     var studentEmail by remember { mutableStateOf("") }
     var studentPassword by remember { mutableStateOf("") }
@@ -55,32 +55,20 @@ fun SignUpScreen(
     var studentPasswordVisible by remember { mutableStateOf(false) }
     var studentConfirmPasswordVisible by remember { mutableStateOf(false) }
 
-    // Tutor form state
+    // Tutor form state (tutorId & department removed)
     var tutorFullName by remember { mutableStateOf("") }
     var tutorEmail by remember { mutableStateOf("") }
-    var tutorId by remember { mutableStateOf("") }
-    var tutorDepartment by remember { mutableStateOf("") }
     var tutorPassword by remember { mutableStateOf("") }
     var tutorConfirmPassword by remember { mutableStateOf("") }
     var tutorTermsAccepted by remember { mutableStateOf(false) }
     var tutorPasswordVisible by remember { mutableStateOf(false) }
     var tutorConfirmPasswordVisible by remember { mutableStateOf(false) }
-    var departmentExpanded by remember { mutableStateOf(false) }
 
     val primaryBlue = Color(0xFF1D4ED8)
     val lightBlueBg = Color(0xFFF0F4FF)
     val containerBg = Color(0xFFF8FAFC)
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
-
-    val faculties = listOf(
-        "Faculty of Science & Technology",
-        "Faculty of Medicine & Health Sciences",
-        "Faculty of Humanities & Social Sciences",
-        "Faculty of Business & Economics",
-        "Faculty of Engineering",
-        "Faculty of Law"
-    )
 
     Scaffold(
         topBar = {
@@ -138,7 +126,7 @@ fun SignUpScreen(
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Badges row
+            // Badges row (Student badge only, tutor peer network / accredited portal badges removed)
             if (role == UserRole.STUDENT) {
                 Surface(
                     shape = RoundedCornerShape(50.dp),
@@ -166,59 +154,29 @@ fun SignUpScreen(
                     }
                 }
             } else {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Surface(
+                    shape = RoundedCornerShape(50.dp),
+                    color = Color(0xFFE0ECFF),
+                    modifier = Modifier.padding(bottom = 8.dp)
                 ) {
-                    Surface(
-                        shape = RoundedCornerShape(50.dp),
-                        color = Color(0xFFE0ECFF)
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.School,
-                                contentDescription = null,
-                                tint = primaryBlue,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Text(
-                                text = "ACADEMIC PEER NETWORK",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = primaryBlue
-                            )
-                        }
-                    }
-
-                    Surface(
-                        shape = RoundedCornerShape(50.dp),
-                        color = Color(0xFFE6F4EA)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Verified,
-                                contentDescription = null,
-                                tint = Color(0xFF137333),
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Text(
-                                text = "Accredited Portal",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF137333)
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.School,
+                            contentDescription = null,
+                            tint = primaryBlue,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = "TUTOR REGISTRATION",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = primaryBlue,
+                            letterSpacing = 0.5.sp
+                        )
                     }
                 }
             }
@@ -363,13 +321,6 @@ fun SignUpScreen(
                     onFullNameChange = { tutorFullName = it },
                     email = tutorEmail,
                     onEmailChange = { tutorEmail = it },
-                    tutorId = tutorId,
-                    onTutorIdChange = { tutorId = it },
-                    department = tutorDepartment,
-                    onDepartmentChange = { tutorDepartment = it },
-                    faculties = faculties,
-                    departmentExpanded = departmentExpanded,
-                    onDepartmentExpandedChange = { departmentExpanded = it },
                     password = tutorPassword,
                     onPasswordChange = { tutorPassword = it },
                     confirmPassword = tutorConfirmPassword,
@@ -385,8 +336,6 @@ fun SignUpScreen(
                             mapOf(
                                 "fullName" to tutorFullName,
                                 "email" to tutorEmail,
-                                "tutorId" to tutorId,
-                                "department" to tutorDepartment,
                                 "password" to tutorPassword
                             )
                         )
@@ -443,7 +392,7 @@ fun StudentForm(
         Spacer(modifier = Modifier.height(14.dp))
 
         // School Email Label
-        Text("School Email", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+        Text("Student email", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
         Spacer(modifier = Modifier.height(6.dp))
         OutlinedTextField(
             value = email,
@@ -601,10 +550,6 @@ fun StudentForm(
 fun TutorForm(
     fullName: String, onFullNameChange: (String) -> Unit,
     email: String, onEmailChange: (String) -> Unit,
-    tutorId: String, onTutorIdChange: (String) -> Unit,
-    department: String, onDepartmentChange: (String) -> Unit,
-    faculties: List<String>,
-    departmentExpanded: Boolean, onDepartmentExpandedChange: (Boolean) -> Unit,
     password: String, onPasswordChange: (String) -> Unit,
     confirmPassword: String, onConfirmPasswordChange: (String) -> Unit,
     termsAccepted: Boolean, onTermsAcceptedChange: (Boolean) -> Unit,
@@ -642,7 +587,7 @@ fun TutorForm(
         Spacer(modifier = Modifier.height(14.dp))
 
         // School Email
-        Text("Institutional Staff / Student Email", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+        Text("Student email", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
         Spacer(modifier = Modifier.height(6.dp))
         OutlinedTextField(
             value = email,
@@ -660,75 +605,6 @@ fun TutorForm(
             ),
             modifier = Modifier.fillMaxWidth()
         )
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // Student ID / Staff ID
-        Text("Student ID / Staff ID", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
-        Spacer(modifier = Modifier.height(6.dp))
-        OutlinedTextField(
-            value = tutorId,
-            onValueChange = onTutorIdChange,
-            placeholder = { Text("e.g. STU-2023-8891", color = textGray, fontSize = 13.sp) },
-            leadingIcon = { Icon(Icons.Default.Badge, null, tint = textGray, modifier = Modifier.size(20.dp)) },
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = containerBg,
-                unfocusedContainerColor = containerBg,
-                focusedBorderColor = primaryBlue,
-                unfocusedBorderColor = Color(0xFFE2E8F0),
-                focusedTextColor = textDark,
-                unfocusedTextColor = textDark
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // Academic Department / Faculty Dropdown
-        Text("Academic Department / Faculty", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
-        Spacer(modifier = Modifier.height(6.dp))
-        ExposedDropdownMenuBox(
-            expanded = departmentExpanded,
-            onExpandedChange = { onDepartmentExpandedChange(it) },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            OutlinedTextField(
-                value = department,
-                onValueChange = {},
-                readOnly = true,
-                placeholder = { Text("Select your faculty or school...", color = textGray, fontSize = 13.sp) },
-                leadingIcon = { Icon(Icons.Default.Business, null, tint = textGray, modifier = Modifier.size(20.dp)) },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = departmentExpanded) },
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = containerBg,
-                    unfocusedContainerColor = containerBg,
-                    focusedBorderColor = primaryBlue,
-                    unfocusedBorderColor = Color(0xFFE2E8F0),
-                    focusedTextColor = textDark,
-                    unfocusedTextColor = textDark
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
-            )
-            ExposedDropdownMenu(
-                expanded = departmentExpanded,
-                onDismissRequest = { onDepartmentExpandedChange(false) }
-            ) {
-                faculties.forEach { faculty ->
-                    DropdownMenuItem(
-                        text = { Text(faculty) },
-                        onClick = {
-                            onDepartmentChange(faculty)
-                            onDepartmentExpandedChange(false)
-                        }
-                    )
-                }
-            }
-        }
 
         Spacer(modifier = Modifier.height(14.dp))
 
