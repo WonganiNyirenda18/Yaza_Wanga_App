@@ -4,15 +4,16 @@ import com.example.yaza_wanga.data.model.Department
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
-class DepartmentRepository(private val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
-    suspend fun getDepartments(): Result<List<Department>> {
+open class DepartmentRepository(private val db: FirebaseFirestore? = null) {
+    private val safeDb get() = db ?: FirebaseFirestore.getInstance()
+
+    open suspend fun getDepartments(): Result<List<Department>> {
         return try {
-            val snapshot = db.collection("departments").get().await()
+            val snapshot = safeDb.collection("departments").get().await()
             val list = snapshot.documents.mapNotNull { doc ->
                 doc.data?.let { Department.fromMap(it) }
             }
             if (list.isEmpty()) {
-                // Return default departments if empty
                 val defaults = listOf(
                     Department("comp", "Computer Science & IT", "Faculty of Information Sciences", "INF", "Computing and Information Technology"),
                     Department("math", "Mathematics", "Faculty of Physical Sciences", "MAT", "Applied Mathematics & Statistics"),
@@ -28,9 +29,9 @@ class DepartmentRepository(private val db: FirebaseFirestore = FirebaseFirestore
         }
     }
 
-    suspend fun saveDepartment(department: Department): Result<Unit> {
+    open suspend fun saveDepartment(department: Department): Result<Unit> {
         return try {
-            db.collection("departments").document(department.id).set(department.toMap()).await()
+            safeDb.collection("departments").document(department.id).set(department.toMap()).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

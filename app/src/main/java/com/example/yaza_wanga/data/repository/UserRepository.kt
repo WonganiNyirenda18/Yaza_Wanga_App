@@ -5,10 +5,12 @@ import com.example.yaza_wanga.data.model.UserStatus
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
-class UserRepository(private val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
-    suspend fun getUsers(): Result<List<User>> {
+open class UserRepository(private val db: FirebaseFirestore? = null) {
+    private val safeDb get() = db ?: FirebaseFirestore.getInstance()
+
+    open suspend fun getUsers(): Result<List<User>> {
         return try {
-            val snapshot = db.collection("users").get().await()
+            val snapshot = safeDb.collection("users").get().await()
             val users = snapshot.documents.mapNotNull { doc ->
                 doc.data?.let { User.fromMap(it) }
             }
@@ -18,9 +20,9 @@ class UserRepository(private val db: FirebaseFirestore = FirebaseFirestore.getIn
         }
     }
 
-    suspend fun getUser(uid: String): Result<User?> {
+    open suspend fun getUser(uid: String): Result<User?> {
         return try {
-            val doc = db.collection("users").document(uid).get().await()
+            val doc = safeDb.collection("users").document(uid).get().await()
             val data = doc.data
             val user = if (data != null) User.fromMap(data) else null
             Result.success(user)
@@ -29,18 +31,18 @@ class UserRepository(private val db: FirebaseFirestore = FirebaseFirestore.getIn
         }
     }
 
-    suspend fun updateUser(user: User): Result<Unit> {
+    open suspend fun updateUser(user: User): Result<Unit> {
         return try {
-            db.collection("users").document(user.uid).set(user.toMap()).await()
+            safeDb.collection("users").document(user.uid).set(user.toMap()).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    suspend fun updateUserStatus(uid: String, status: UserStatus): Result<Unit> {
+    open suspend fun updateUserStatus(uid: String, status: UserStatus): Result<Unit> {
         return try {
-            db.collection("users").document(uid).update("status", status.name).await()
+            safeDb.collection("users").document(uid).update("status", status.name).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

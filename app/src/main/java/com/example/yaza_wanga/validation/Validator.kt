@@ -113,4 +113,30 @@ object Validator {
         }
         return null
     }
+
+    fun validateCourseDescription(description: String): String? {
+        if (description.length > 500) {
+            return "Description cannot exceed 500 characters"
+        }
+        return null
+    }
+
+    fun validateSession(
+        format: String,
+        meetingLink: String,
+        venue: String,
+        dateMillis: Long,
+        currentTimeMillis: Long = System.currentTimeMillis()
+    ): String? {
+        if (format == "Online" && meetingLink.isBlank()) {
+            return "Valid meeting link required for online sessions"
+        }
+        if (format == "In-Person" && venue.isBlank()) {
+            return "Venue location required for in-person sessions"
+        }
+        if (dateMillis < currentTimeMillis - 86400000) {
+            return "Session date cannot be in the past"
+        }
+        return null
+    }
 }

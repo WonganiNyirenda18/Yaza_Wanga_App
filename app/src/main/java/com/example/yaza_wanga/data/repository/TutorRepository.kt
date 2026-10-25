@@ -4,10 +4,12 @@ import com.example.yaza_wanga.data.model.TutorProfile
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
-class TutorRepository(private val db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
-    suspend fun getTutorProfile(tutorId: String): Result<TutorProfile?> {
+open class TutorRepository(private val db: FirebaseFirestore? = null) {
+    private val safeDb get() = db ?: FirebaseFirestore.getInstance()
+
+    open suspend fun getTutorProfile(tutorId: String): Result<TutorProfile?> {
         return try {
-            val doc = db.collection("tutors").document(tutorId).get().await()
+            val doc = safeDb.collection("tutors").document(tutorId).get().await()
             val data = doc.data
             val profile = if (data != null) TutorProfile.fromMap(data) else null
             Result.success(profile)
@@ -16,18 +18,18 @@ class TutorRepository(private val db: FirebaseFirestore = FirebaseFirestore.getI
         }
     }
 
-    suspend fun saveTutorProfile(profile: TutorProfile): Result<Unit> {
+    open suspend fun saveTutorProfile(profile: TutorProfile): Result<Unit> {
         return try {
-            db.collection("tutors").document(profile.tutorId).set(profile.toMap()).await()
+            safeDb.collection("tutors").document(profile.tutorId).set(profile.toMap()).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    suspend fun getTutorsForCourse(courseCode: String): Result<List<TutorProfile>> {
+    open suspend fun getTutorsForCourse(courseCode: String): Result<List<TutorProfile>> {
         return try {
-            val snapshot = db.collection("tutors").get().await()
+            val snapshot = safeDb.collection("tutors").get().await()
             val tutors = snapshot.documents.mapNotNull { doc ->
                 doc.data?.let { TutorProfile.fromMap(it) }
             }.filter { it.courses.contains(courseCode) || it.courses.isEmpty() }

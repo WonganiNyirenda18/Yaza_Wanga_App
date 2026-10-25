@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "123456789012",
-    "project_id": "yaza-wanga-app",
-    "storage_bucket": "yaza-wanga-app.appspot.com"
+    "project_number": "341639726923",
+    "project_id": "yaza-wanga",
+    "storage_bucket": "yaza-wanga.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:123456789012:android:abcdef1234567890",
+        "mobilesdk_app_id": "1:341639726923:android:aeb16257315f646c578ace",
         "android_client_info": {
           "package_name": "com.example.yaza_wanga"
         }
@@ -15,15 +15,12 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDummyKeyForYazaWangaBuildAndFirebaseTest12345"
+          "current_key": "AIzaSyCF6qAp4SFW13x-bB4zhRg5aH7uN3qbtO4"
         }
       ],
       "services": {
-        "analytics_service": {
-          "status": 1
-        },
-        "appdestinations_service": {
-          "status": 1
+        "appinvite_service": {
+          "other_platform_oauth_client": []
         }
       }
     }
