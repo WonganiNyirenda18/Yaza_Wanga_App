@@ -11,7 +11,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.yaza_wanga"
+        applicationId = "com.android.yazawanga"
         minSdk = 24
         targetSdk = 37
         versionCode = 1
