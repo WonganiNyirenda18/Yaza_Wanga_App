@@ -48,15 +48,16 @@ fun TutorStudentsScreen(
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
 
+    // Course code omitted, only course title retained for clean single-line fit
     val studentsList = listOf(
-        StudentListItem("Wongani Nyirenda", "INF 212 • Web Development", "bsc-inf-25-23"),
-        StudentListItem("Chisomo Phiri", "COM 311 • Database Systems", "bsc-com-17-23"),
-        StudentListItem("Alinafe Banda", "STA 211 • Probability & Stats", "bed-com-27-23"),
-        StudentListItem("Trinity Kambanje", "INF 212 • Web Development", "bsc-com-ne-25-23"),
-        StudentListItem("Madalitso Kasasi", "COM 311 • Database Systems", "bsc-com-ne-17-23"),
-        StudentListItem("Martha Bulambo", "STA 211 • Probability & Stats", "bsc-com-27-23"),
-        StudentListItem("Pemphero Kalonga", "INF 212 • Web Development", "bsc-com-39-23"),
-        StudentListItem("Prosper Tulambe", "COM 311 • Database Systems", "bed-com-22-23")
+        StudentListItem("Wongani Nyirenda", "Web Development", "bsc-inf-25-23"),
+        StudentListItem("Chisomo Phiri", "Database Systems", "bsc-com-17-23"),
+        StudentListItem("Alinafe Banda", "Probability & Statistics", "bed-com-27-23"),
+        StudentListItem("Trinity Kambanje", "Web Development", "bsc-com-ne-25-23"),
+        StudentListItem("Madalitso Kasasi", "Database Systems", "bsc-com-ne-17-23"),
+        StudentListItem("Martha Bulambo", "Probability & Statistics", "bsc-com-27-23"),
+        StudentListItem("Pemphero Kalonga", "Web Development", "bsc-com-39-23"),
+        StudentListItem("Prosper Tulambe", "Database Systems", "bed-com-22-23")
     )
 
     val filteredStudents = studentsList.filter {
@@ -285,14 +286,16 @@ fun TutorStudentsScreen(
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = textDark,
+                                maxLines = 1,
                                 modifier = Modifier.weight(1f)
                             )
-                            // 2. Course
+                            // 2. Course (Title only, single line)
                             Text(
                                 text = student.course,
                                 fontSize = 12.sp,
                                 color = primaryBlue,
                                 fontWeight = FontWeight.Medium,
+                                maxLines = 1,
                                 modifier = Modifier.weight(1.2f)
                             )
                         }
