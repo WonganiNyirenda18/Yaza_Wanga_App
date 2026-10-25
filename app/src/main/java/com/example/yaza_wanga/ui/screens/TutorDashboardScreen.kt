@@ -157,26 +157,15 @@ fun TutorDashboardScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Welcome Card (Active tutor badge removed, greeting updated to Tutor Wongani, faculty description removed)
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Good morning, Tutor Wongani",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textDark
-                    )
-                }
-            }
+            // Normal text greeting on the screen (Card removed)
+            Text(
+                text = "Good morning, Tutor Wongani",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = textDark
+            )
 
-            // Summary Stats 2x2 Grid (Icons and subnotes removed)
+            // Summary Stats 2x2 Grid
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),

@@ -12,7 +12,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.yaza_wanga.service.AuthManager
 import com.example.yaza_wanga.ui.screens.*
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 enum class AppScreen {
     SPLASH,
@@ -71,19 +73,28 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = AppScreen.SIGN_UP
                                 },
                                 onLoginClick = { email, password ->
-                                    val trimmedEmail = email.trim().lowercase()
-                                    if ((trimmedEmail == "admin" || trimmedEmail == "admin@unima.ac.mw") && password == "admin") {
-                                        currentScreen = AppScreen.ADMIN_OVERVIEW
-                                    } else if ((trimmedEmail == "tutor" || trimmedEmail == "tutor@unima.ac.mw") && password == "tutor") {
-                                        currentScreen = AppScreen.TUTOR_DASHBOARD
-                                    } else {
-                                        coroutineScope.launch {
-                                            val result = AuthManager.signIn(email, password)
-                                            if (result.isSuccess) {
-                                                currentScreen = AppScreen.STUDENT_DASHBOARD
+                                    coroutineScope.launch {
+                                        val result = AuthManager.signIn(email, password)
+                                        if (result.isSuccess) {
+                                            val uid = AuthManager.currentUser?.uid
+                                            if (uid != null) {
+                                                try {
+                                                    val db = FirebaseFirestore.getInstance()
+                                                    val doc = db.collection("users").document(uid).get().await()
+                                                    val role = doc.getString("role")?.uppercase() ?: "STUDENT"
+                                                    currentScreen = when (role) {
+                                                        "ADMIN" -> AppScreen.ADMIN_OVERVIEW
+                                                        "TUTOR" -> AppScreen.TUTOR_DASHBOARD
+                                                        else -> AppScreen.STUDENT_DASHBOARD
+                                                    }
+                                                } catch (_: Exception) {
+                                                    currentScreen = AppScreen.STUDENT_DASHBOARD
+                                                }
                                             } else {
-                                                currentScreen = AppScreen.STUDENT_PROFILE
+                                                currentScreen = AppScreen.STUDENT_DASHBOARD
                                             }
+                                        } else {
+                                            currentScreen = AppScreen.SIGN_IN
                                         }
                                     }
                                 },
