@@ -168,8 +168,8 @@ class MainActivity : ComponentActivity() {
                                 onNavigateStudents = {
                                     currentScreen = AppScreen.TUTOR_STUDENTS
                                 },
-                                onNavigateProfile = {
-                                    currentScreen = AppScreen.STUDENT_PROFILE
+                                onNavigateMenu = {
+                                    currentScreen = AppScreen.TUTOR_PROFILE
                                 },
                                 onUploadNotesClick = {
                                     currentScreen = AppScreen.TUTOR_UPLOAD_MATERIAL
@@ -205,8 +205,8 @@ class MainActivity : ComponentActivity() {
                                 onNavigateStudents = {
                                     currentScreen = AppScreen.TUTOR_STUDENTS
                                 },
-                                onNavigateProfile = {
-                                    currentScreen = AppScreen.STUDENT_PROFILE
+                                onNavigateMenu = {
+                                    currentScreen = AppScreen.TUTOR_PROFILE
                                 },
                                 onCreateSessionSuccess = {
                                     currentScreen = AppScreen.TUTOR_DASHBOARD
@@ -224,8 +224,8 @@ class MainActivity : ComponentActivity() {
                                 onNavigateStudents = {
                                     currentScreen = AppScreen.TUTOR_STUDENTS
                                 },
-                                onNavigateProfile = {
-                                    currentScreen = AppScreen.STUDENT_PROFILE
+                                onNavigateMenu = {
+                                    currentScreen = AppScreen.TUTOR_PROFILE
                                 },
                                 onViewStudentDetails = { _ -> }
                             )
@@ -244,8 +244,8 @@ class MainActivity : ComponentActivity() {
                                 onNavigateStudents = {
                                     currentScreen = AppScreen.TUTOR_STUDENTS
                                 },
-                                onNavigateProfile = {
-                                    currentScreen = AppScreen.STUDENT_PROFILE
+                                onNavigateMenu = {
+                                    currentScreen = AppScreen.TUTOR_PROFILE
                                 },
                                 onPublishSuccess = {
                                     currentScreen = AppScreen.TUTOR_DASHBOARD

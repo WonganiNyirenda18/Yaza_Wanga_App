@@ -33,7 +33,7 @@ fun TutorCreateSessionScreen(
     onNavigateDashboard: () -> Unit = {},
     onNavigateSessions: () -> Unit = {},
     onNavigateStudents: () -> Unit = {},
-    onNavigateProfile: () -> Unit = {},
+    onNavigateMenu: () -> Unit = {},
     onCreateSessionSuccess: () -> Unit = {}
 ) {
     var selectedCourse by remember { mutableStateOf("INF 212: Intro to Web Dev") }
@@ -108,7 +108,7 @@ fun TutorCreateSessionScreen(
                             )
                         }
                         IconButton(
-                            onClick = onNavigateProfile,
+                            onClick = onNavigateMenu,
                             modifier = Modifier
                                 .padding(end = 8.dp)
                                 .size(38.dp)
@@ -116,10 +116,10 @@ fun TutorCreateSessionScreen(
                                 .background(primaryBlue)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "Profile",
+                                imageVector = Icons.Default.Menu,
+                                contentDescription = "Menu",
                                 tint = Color.White,
-                                modifier = Modifier.size(22.dp)
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     },
@@ -137,7 +137,7 @@ fun TutorCreateSessionScreen(
                     Triple(0, "Dashboard", Icons.Default.Home),
                     Triple(1, "Sessions", Icons.Default.CalendarToday),
                     Triple(2, "Students", Icons.Default.School),
-                    Triple(3, "Profile", Icons.Default.Person)
+                    Triple(3, "Menu", Icons.Default.Menu)
                 )
 
                 tabs.forEach { (index, label, icon) ->
@@ -149,7 +149,7 @@ fun TutorCreateSessionScreen(
                                 0 -> onNavigateDashboard()
                                 1 -> onNavigateSessions()
                                 2 -> onNavigateStudents()
-                                3 -> onNavigateProfile()
+                                3 -> onNavigateMenu()
                             }
                         },
                         icon = {

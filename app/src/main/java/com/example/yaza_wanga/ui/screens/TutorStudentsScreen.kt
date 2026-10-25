@@ -36,7 +36,7 @@ fun TutorStudentsScreen(
     onNavigateDashboard: () -> Unit = {},
     onNavigateSessions: () -> Unit = {},
     onNavigateStudents: () -> Unit = {},
-    onNavigateProfile: () -> Unit = {},
+    onNavigateMenu: () -> Unit = {},
     onViewStudentDetails: (String) -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
@@ -48,7 +48,6 @@ fun TutorStudentsScreen(
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
 
-    // Course code omitted, only course title retained for clean single-line fit
     val studentsList = listOf(
         StudentListItem("Wongani Nyirenda", "Web Development", "bsc-inf-25-23"),
         StudentListItem("Chisomo Phiri", "Database Systems", "bsc-com-17-23"),
@@ -85,7 +84,7 @@ fun TutorStudentsScreen(
                     },
                     actions = {
                         IconButton(
-                            onClick = onNavigateProfile,
+                            onClick = onNavigateMenu,
                             modifier = Modifier
                                 .padding(end = 8.dp)
                                 .size(38.dp)
@@ -93,8 +92,8 @@ fun TutorStudentsScreen(
                                 .background(primaryBlue)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "Profile",
+                                imageVector = Icons.Default.Menu,
+                                contentDescription = "Menu",
                                 tint = Color.White,
                                 modifier = Modifier.size(20.dp)
                             )
@@ -114,7 +113,7 @@ fun TutorStudentsScreen(
                     Triple(0, "Dashboard", Icons.Default.Home),
                     Triple(1, "Sessions", Icons.Default.CalendarToday),
                     Triple(2, "Students", Icons.Default.School),
-                    Triple(3, "Profile", Icons.Default.Person)
+                    Triple(3, "Menu", Icons.Default.Menu)
                 )
 
                 tabs.forEach { (index, label, icon) ->
@@ -126,7 +125,7 @@ fun TutorStudentsScreen(
                                 0 -> onNavigateDashboard()
                                 1 -> onNavigateSessions()
                                 2 -> onNavigateStudents()
-                                3 -> onNavigateProfile()
+                                3 -> onNavigateMenu()
                             }
                         },
                         icon = {
@@ -241,13 +240,13 @@ fun TutorStudentsScreen(
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (selected) Color.White else textDark,
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical =.6.dp)
                         )
                     }
                 }
             }
 
-            // Student Tabular List Card (Inspired by reference screenshot)
+            // Student Tabular List Card (Wider spacing between name and course)
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -255,7 +254,7 @@ fun TutorStudentsScreen(
                 modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
             ) {
                 Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                    // Table Header Row: Name & Course (Order: Name then Course)
+                    // Table Header Row: Name & Course (with wider spacing)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -264,13 +263,14 @@ fun TutorStudentsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Name", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = textGray, modifier = Modifier.weight(1f))
-                        Text("Course", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = textGray, modifier = Modifier.weight(1.2f))
+                        Text("Name", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = textGray, modifier = Modifier.width(150.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text("Course", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = textGray, modifier = Modifier.weight(1f))
                     }
 
                     HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
 
-                    // Student Rows
+                    // Student Rows (Wider spacing between name and course)
                     filteredStudents.forEachIndexed { index, student ->
                         Row(
                             modifier = Modifier
@@ -287,16 +287,17 @@ fun TutorStudentsScreen(
                                 fontWeight = FontWeight.Bold,
                                 color = textDark,
                                 maxLines = 1,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.width(150.dp)
                             )
-                            // 2. Course (Title only, single line)
+                            Spacer(modifier = Modifier.width(16.dp))
+                            // 2. Course
                             Text(
                                 text = student.course,
                                 fontSize = 12.sp,
                                 color = primaryBlue,
                                 fontWeight = FontWeight.Medium,
                                 maxLines = 1,
-                                modifier = Modifier.weight(1.2f)
+                                modifier = Modifier.weight(1f)
                             )
                         }
 

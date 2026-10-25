@@ -35,7 +35,7 @@ fun TutorUploadMaterialScreen(
     onNavigateDashboard: () -> Unit = {},
     onNavigateSessions: () -> Unit = {},
     onNavigateStudents: () -> Unit = {},
-    onNavigateProfile: () -> Unit = {},
+    onNavigateMenu: () -> Unit = {},
     onPublishSuccess: () -> Unit = {}
 ) {
     var selectedCourse by remember { mutableStateOf("INF 212 • Web Dev") }
@@ -83,7 +83,7 @@ fun TutorUploadMaterialScreen(
                             )
                         }
                         IconButton(
-                            onClick = onNavigateProfile,
+                            onClick = onNavigateMenu,
                             modifier = Modifier
                                 .padding(end = 8.dp)
                                 .size(38.dp)
@@ -91,8 +91,8 @@ fun TutorUploadMaterialScreen(
                                 .background(primaryBlue)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "Profile",
+                                imageVector = Icons.Default.Menu,
+                                contentDescription = "Menu",
                                 tint = Color.White,
                                 modifier = Modifier.size(20.dp)
                             )

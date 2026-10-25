@@ -33,7 +33,7 @@ fun TutorDashboardScreen(
     onNavigateDashboard: () -> Unit = {},
     onNavigateSessions: () -> Unit = {},
     onNavigateStudents: () -> Unit = {},
-    onNavigateProfile: () -> Unit = {},
+    onNavigateMenu: () -> Unit = {},
     onUploadNotesClick: () -> Unit = {},
     onStartCall: (String) -> Unit = {},
     onViewStudentDetails: (String) -> Unit = {}
@@ -102,7 +102,7 @@ fun TutorDashboardScreen(
                     Triple(0, "Dashboard", Icons.Default.Home),
                     Triple(1, "Sessions", Icons.Default.CalendarToday),
                     Triple(2, "Students", Icons.Default.School),
-                    Triple(3, "Profile", Icons.Default.Person)
+                    Triple(3, "Menu", Icons.Default.Menu)
                 )
 
                 tabs.forEach { (index, label, icon) ->
@@ -114,7 +114,7 @@ fun TutorDashboardScreen(
                                 0 -> onNavigateDashboard()
                                 1 -> onNavigateSessions()
                                 2 -> onNavigateStudents()
-                                3 -> onNavigateProfile()
+                                3 -> onNavigateMenu()
                             }
                         },
                         icon = {
@@ -490,7 +490,7 @@ fun TutorDashboardScreen(
                                 .weight(0.8f)
                                 .height(38.dp)
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.Chat, null, tint = primaryBlue, modifier = Modifier.size(14.dp))
+                            Icon(Icons.AutoMirrored.Filled.Chat, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
                             Text("Chat", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
                         }
@@ -672,7 +672,7 @@ fun QuickActionButton(
                 Icon(icon, null, tint = primaryBlue, modifier = Modifier.size(24.dp))
             }
         }
-    Text(label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+        Text(label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = textDark)
     }
 }
 
