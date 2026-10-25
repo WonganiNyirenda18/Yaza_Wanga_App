@@ -9,7 +9,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -31,7 +30,6 @@ fun TutorStudentsScreen(
     onNavigateSessions: () -> Unit = {},
     onNavigateStudents: () -> Unit = {},
     onNavigateProfile: () -> Unit = {},
-    onMessageStudent: (String) -> Unit = {},
     onViewStudentDetails: (String) -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
@@ -153,19 +151,13 @@ fun TutorStudentsScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Header stats & info
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(primaryBlue))
-                    Text("PEER MENTORSHIP ROSTER", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                }
-                Spacer(modifier = Modifier.height(2.dp))
-                Text("Assigned Mentees & Progress", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textDark)
-                Spacer(modifier = Modifier.height(2.dp))
-                Text("Track your active students, monitor syllabus completion milestones, and log session notes.", fontSize = 12.sp, color = textGray)
+            // Header title & caption
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text("Assigned Students", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textDark)
+                Text("Track Students and Monitor Progress", fontSize = 12.sp, color = textGray)
             }
 
-            // Summary Stats Card
+            // Summary Stats Card (Syllabus Avg removed)
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -174,16 +166,12 @@ fun TutorStudentsScreen(
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
                         Text("Active Mentees", fontSize = 11.sp, color = textGray)
                         Text("18 Students", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textDark)
-                    }
-                    Column {
-                        Text("Syllabus Avg.", fontSize = 11.sp, color = textGray)
-                        Text("78% Completed", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF16A34A))
                     }
                 }
             }
@@ -213,11 +201,9 @@ fun TutorStudentsScreen(
                 course = "INF 212 • Web Development",
                 progress = 0.75f,
                 progressText = "75% (9/12 topics)",
-                quizScore = "Quiz: 88%",
                 primaryBlue = primaryBlue,
                 textDark = textDark,
                 textGray = textGray,
-                onMessage = { onMessageStudent("Wongani Nyirenda") },
                 onViewDetails = { onViewStudentDetails("Wongani Nyirenda") }
             )
 
@@ -227,11 +213,9 @@ fun TutorStudentsScreen(
                 course = "COM 311 • Database Systems",
                 progress = 0.60f,
                 progressText = "60% (6/10 topics)",
-                quizScore = "Quiz: 82%",
                 primaryBlue = primaryBlue,
                 textDark = textDark,
                 textGray = textGray,
-                onMessage = { onMessageStudent("Chisomo Phiri") },
                 onViewDetails = { onViewStudentDetails("Chisomo Phiri") }
             )
 
@@ -241,11 +225,9 @@ fun TutorStudentsScreen(
                 course = "STA 211 • Probability & Statistics",
                 progress = 0.90f,
                 progressText = "90% (9/10 topics)",
-                quizScore = "Quiz: 94%",
                 primaryBlue = primaryBlue,
                 textDark = textDark,
                 textGray = textGray,
-                onMessage = { onMessageStudent("Alinafe Banda") },
                 onViewDetails = { onViewStudentDetails("Alinafe Banda") }
             )
 
@@ -260,15 +242,11 @@ fun StudentRosterCard(
     course: String,
     progress: Float,
     progressText: String,
-    quizScore: String,
     primaryBlue: Color,
     textDark: Color,
     textGray: Color,
-    onMessage: () -> Unit,
     onViewDetails: () -> Unit
 ) {
-    val lightBlueBg = Color(0xFFF0F4FF)
-
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -304,19 +282,6 @@ fun StudentRosterCard(
                         Text(text = course, fontSize = 12.sp, color = textGray)
                     }
                 }
-
-                Surface(
-                    shape = RoundedCornerShape(50.dp),
-                    color = Color(0xFFE6F4EA)
-                ) {
-                    Text(
-                        text = quizScore,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF137333),
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -343,33 +308,16 @@ fun StudentRosterCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            // Full width View Progress button (Message button removed)
+            Button(
+                onClick = onViewDetails,
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(38.dp)
             ) {
-                Button(
-                    onClick = onViewDetails,
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(38.dp)
-                ) {
-                    Text("View Progress", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                }
-
-                Button(
-                    onClick = onMessage,
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = lightBlueBg),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(38.dp)
-                ) {
-                    Icon(Icons.AutoMirrored.Filled.Chat, null, tint = primaryBlue, modifier = Modifier.size(14.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Message", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                }
+                Text("View Progress", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
             }
         }
     }

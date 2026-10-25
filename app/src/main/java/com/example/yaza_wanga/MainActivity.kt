@@ -227,7 +227,6 @@ class MainActivity : ComponentActivity() {
                                 onNavigateProfile = {
                                     currentScreen = AppScreen.STUDENT_PROFILE
                                 },
-                                onMessageStudent = { _ -> },
                                 onViewStudentDetails = { _ -> }
                             )
                         }
