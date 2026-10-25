@@ -48,21 +48,12 @@ fun TutorDashboardScreen(
             Column {
                 TopAppBar(
                     title = {
-                        Column {
-                            Text(
-                                text = "PEER MENTORSHIP",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = primaryBlue,
-                                letterSpacing = 0.5.sp
-                            )
-                            Text(
-                                text = "Yaza Wanga Tutor",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = textDark
-                            )
-                        }
+                        Text(
+                            text = "Tutor Overview",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = textDark
+                        )
                     },
                     navigationIcon = {
                         Box(modifier = Modifier.padding(start = 12.dp)) {
@@ -166,7 +157,7 @@ fun TutorDashboardScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Welcome Card
+            // Welcome Card (Active tutor badge removed, greeting updated to Tutor Wongani, faculty description removed)
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -176,45 +167,16 @@ fun TutorDashboardScreen(
                     .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Surface(
-                        shape = RoundedCornerShape(50.dp),
-                        color = Color(0xFFE6F4EA)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(Color(0xFF137333)))
-                            Text(
-                                text = "Active Tutor • Verified",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF137333)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
                     Text(
-                        text = "Good morning, Tutor John 👋",
+                        text = "Good morning, Tutor Wongani",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = textDark
                     )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = "Faculty of Science & Technology • Department of Math & Stats",
-                        fontSize = 12.sp,
-                        color = textGray
-                    )
                 }
             }
 
-            // Summary Stats 2x2 Grid
+            // Summary Stats 2x2 Grid (Icons and subnotes removed)
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -224,9 +186,6 @@ fun TutorDashboardScreen(
                     TutorStatCard(
                         title = "Active Students",
                         value = "18",
-                        subtext = "↗ +3 this month",
-                        subtextColor = Color(0xFF10B981),
-                        icon = Icons.Default.Groups,
                         modifier = Modifier.weight(1f)
                     )
 
@@ -234,9 +193,6 @@ fun TutorDashboardScreen(
                     TutorStatCard(
                         title = "Courses Teaching",
                         value = "3 Courses",
-                        subtext = "INF 212, STA 211,...",
-                        subtextColor = textGray,
-                        icon = Icons.AutoMirrored.Filled.MenuBook,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -249,9 +205,6 @@ fun TutorDashboardScreen(
                     TutorStatCard(
                         title = "Today's Sessions",
                         value = "2 Active",
-                        subtext = "1 Online, 1 In-person",
-                        subtextColor = textGray,
-                        icon = Icons.Default.CalendarToday,
                         modifier = Modifier.weight(1f)
                     )
 
@@ -259,9 +212,6 @@ fun TutorDashboardScreen(
                     TutorStatCard(
                         title = "Tutor Rating",
                         value = "4.9 ★",
-                        subtext = "42 verified reviews",
-                        subtextColor = textGray,
-                        icon = Icons.Default.Star,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -603,13 +553,9 @@ fun TutorDashboardScreen(
 fun TutorStatCard(
     title: String,
     value: String,
-    subtext: String,
-    subtextColor: Color,
-    icon: ImageVector,
     modifier: Modifier = Modifier
 ) {
     val textDark = Color(0xFF0F172A)
-    val primaryBlue = Color(0xFF1D4ED8)
 
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -617,31 +563,10 @@ fun TutorStatCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         modifier = modifier.border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(title, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Color(0xFF64748B))
-                Box(
-                    modifier = Modifier
-                        .size(28.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFFF0F4FF)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(icon, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
-                }
-            }
-
+        Column(modifier = Modifier.padding(14.dp)) {
+            Text(title, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Color(0xFF64748B))
             Spacer(modifier = Modifier.height(6.dp))
-
-            Text(value, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = textDark)
-
-            Spacer(modifier = Modifier.height(2.dp))
-
-            Text(subtext, fontSize = 11.sp, color = subtextColor, fontWeight = FontWeight.Medium)
+            Text(value, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textDark)
         }
     }
 }
