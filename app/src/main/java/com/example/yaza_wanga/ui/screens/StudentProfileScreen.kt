@@ -26,13 +26,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.yaza_wanga.ui.components.YazaWangaLogo
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
+import com.example.yaza_wanga.validation.Validator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentProfileScreen(
     onBackClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
-    onSaveAndContinue: () -> Unit = {}
+    onSaveAndContinue: (Map<String, String>, (String?) -> Unit) -> Unit = { _, _ -> }
 ) {
     var department by remember { mutableStateOf("") }
     var programme by remember { mutableStateOf("") }
@@ -41,6 +42,12 @@ fun StudentProfileScreen(
 
     var departmentExpanded by remember { mutableStateOf(false) }
     var programmeExpanded by remember { mutableStateOf(false) }
+
+    var departmentError by remember { mutableStateOf<String?>(null) }
+    var programmeError by remember { mutableStateOf<String?>(null) }
+    var phoneError by remember { mutableStateOf<String?>(null) }
+    var generalError by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
 
     val departments = listOf("Computing Department", "Department of Mathematics & Statistics", "Department of Physics", "Department of Business Studies")
     val programmes = listOf("Computer Science", "Information Systems", "Computer Network Engineering", "Business Information Technology")
@@ -108,7 +115,6 @@ fun StudentProfileScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header instructions
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "Complete Your Profile",
@@ -124,9 +130,24 @@ fun StudentProfileScreen(
                 )
             }
 
+            if (generalError != null) {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = generalError ?: "",
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Profile Picture Upload Avatar Section with Plus Badge & Format Note
+            // Profile Picture Upload Avatar Section
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -134,9 +155,8 @@ fun StudentProfileScreen(
                 Box(
                     modifier = Modifier
                         .size(96.dp)
-                        .clickable { /* Upload action */ }
+                        .clickable { }
                 ) {
-                    // Main circular avatar background
                     Box(
                         modifier = Modifier
                             .size(96.dp)
@@ -153,7 +173,6 @@ fun StudentProfileScreen(
                         )
                     }
 
-                    // Plus / Add badge positioned cleanly at bottom-right
                     Box(
                         modifier = Modifier
                             .size(32.dp)
@@ -220,6 +239,8 @@ fun StudentProfileScreen(
                                 readOnly = true,
                                 placeholder = { Text("Select your department...", color = textGray, fontSize = 13.sp) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = departmentExpanded) },
+                                isError = departmentError != null,
+                                supportingText = departmentError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                                 shape = RoundedCornerShape(12.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedContainerColor = containerBg,
@@ -242,6 +263,7 @@ fun StudentProfileScreen(
                                         text = { Text(dept) },
                                         onClick = {
                                             department = dept
+                                            departmentError = null
                                             departmentExpanded = false
                                         }
                                     )
@@ -264,6 +286,8 @@ fun StudentProfileScreen(
                                 readOnly = true,
                                 placeholder = { Text("Select your programme...", color = textGray, fontSize = 13.sp) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = programmeExpanded) },
+                                isError = programmeError != null,
+                                supportingText = programmeError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                                 shape = RoundedCornerShape(12.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedContainerColor = containerBg,
@@ -286,6 +310,7 @@ fun StudentProfileScreen(
                                         text = { Text(prog) },
                                         onClick = {
                                             programme = prog
+                                            programmeError = null
                                             programmeExpanded = false
                                         }
                                     )
@@ -325,14 +350,20 @@ fun StudentProfileScreen(
                         }
                     }
 
-                    // 4. Phone Number (Faded placeholder "+265 995 358 915")
+                    // 4. Phone Number
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text("Phone Number", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
                         OutlinedTextField(
                             value = phone,
-                            onValueChange = { phone = it },
+                            onValueChange = {
+                                phone = it
+                                phoneError = null
+                                generalError = null
+                            },
                             placeholder = { Text("+265 995 358 915", color = textGray.copy(alpha = 0.6f), fontSize = 13.sp) },
                             singleLine = true,
+                            isError = phoneError != null,
+                            supportingText = phoneError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedContainerColor = containerBg,
@@ -352,7 +383,42 @@ fun StudentProfileScreen(
 
             // Continue to Dashboard Button
             Button(
-                onClick = onSaveAndContinue,
+                onClick = {
+                    val validationError = Validator.validateStudentProfile(department, programme, phone)
+                    if (validationError != null) {
+                        if (department.isBlank() || programme.isBlank()) {
+                            val err = "Please select your department and programme"
+                            departmentError = err
+                            programmeError = err
+                        } else {
+                            departmentError = null
+                            programmeError = null
+                        }
+                        phoneError = Validator.validatePhone(phone)
+                        generalError = validationError
+                    } else {
+                        departmentError = null
+                        programmeError = null
+                        phoneError = null
+                        generalError = null
+                        isLoading = true
+
+                        onSaveAndContinue(
+                            mapOf(
+                                "department" to department,
+                                "programme" to programme,
+                                "yearOfStudy" to yearOfStudy,
+                                "phone" to phone
+                            )
+                        ) { err ->
+                            isLoading = false
+                            if (err != null) {
+                                generalError = err
+                            }
+                        }
+                    }
+                },
+                enabled = !isLoading,
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                 modifier = Modifier
@@ -363,20 +429,24 @@ fun StudentProfileScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Text(
-                        text = "Continue to Dashboard",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        letterSpacing = 0.5.sp
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp)
-                    )
+                    if (isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
+                    } else {
+                        Text(
+                            text = "Continue to Dashboard",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            letterSpacing = 0.5.sp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
 

@@ -1,7 +1,5 @@
 package com.example.yaza_wanga.ui.screens
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,11 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -34,70 +28,29 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.yaza_wanga.ui.components.YazaWangaLogo
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
-
-@Composable
-fun GoogleLogo(modifier: Modifier = Modifier) {
-    Canvas(modifier = modifier) {
-        val size = size.minDimension
-        val strokeWidth = size * 0.22f
-
-        // Blue arc (Right/Top)
-        drawArc(
-            color = Color(0xFF4285F4),
-            startAngle = -45f,
-            sweepAngle = 135f,
-            useCenter = false,
-            style = Stroke(width = strokeWidth)
-        )
-        // Green arc (Bottom)
-        drawArc(
-            color = Color(0xFF34A853),
-            startAngle = 90f,
-            sweepAngle = 90f,
-            useCenter = false,
-            style = Stroke(width = strokeWidth)
-        )
-        // Yellow arc (Bottom-Left)
-        drawArc(
-            color = Color(0xFFFBBC05),
-            startAngle = 180f,
-            sweepAngle = 45f,
-            useCenter = false,
-            style = Stroke(width = strokeWidth)
-        )
-        // Red arc (Top-Left)
-        drawArc(
-            color = Color(0xFFEA4335),
-            startAngle = 225f,
-            sweepAngle = 135f,
-            useCenter = false,
-            style = Stroke(width = strokeWidth)
-        )
-        // Horizontal bar of the G (Blue)
-        drawRect(
-            color = Color(0xFF4285F4),
-            topLeft = Offset(center.x, center.y - strokeWidth / 2f),
-            size = Size(size / 2f, strokeWidth)
-        )
-    }
-}
+import com.example.yaza_wanga.validation.Validator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignInScreen(
     onBackClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
-    onLoginClick: (String, String) -> Unit = { _, _ -> },
+    onLoginClick: (String, String, (String?) -> Unit) -> Unit = { _, _, _ -> },
     onGoogleSignInClick: () -> Unit = {},
-    onForgotPasswordClick: () -> Unit = {},
+    onForgotPasswordClick: (String, (String?) -> Unit) -> Unit = { _, _ -> },
     onSignUpClick: () -> Unit = {}
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+    var generalError by remember { mutableStateOf<String?>(null) }
+    var infoMessage by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+
     val primaryBlue = Color(0xFF1D4ED8)
-    val lightBlueBg = Color(0xFFF0F4FF)
     val containerBg = Color(0xFFF8FAFC)
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
@@ -212,7 +165,39 @@ fun SignInScreen(
                 color = textGray
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            if (generalError != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = generalError ?: "",
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+            }
+
+            if (infoMessage != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFFE6F4EA),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = infoMessage ?: "",
+                        color = Color(0xFF137333),
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Main Card Form
             Card(
@@ -241,7 +226,11 @@ fun SignInScreen(
                     // Email / Username TextField
                     OutlinedTextField(
                         value = email,
-                        onValueChange = { email = it },
+                        onValueChange = {
+                            email = it
+                            emailError = null
+                            generalError = null
+                        },
                         placeholder = {
                             Text(
                                 text = "bsc-inf-15-23@unima.ac.mw (or admin)",
@@ -250,6 +239,8 @@ fun SignInScreen(
                             )
                         },
                         singleLine = true,
+                        isError = emailError != null,
+                        supportingText = emailError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = containerBg,
@@ -278,7 +269,11 @@ fun SignInScreen(
                     // Password TextField
                     OutlinedTextField(
                         value = password,
-                        onValueChange = { password = it },
+                        onValueChange = {
+                            password = it
+                            passwordError = null
+                            generalError = null
+                        },
                         placeholder = {
                             Text(
                                 text = "Enter your password",
@@ -305,6 +300,8 @@ fun SignInScreen(
                             }
                         },
                         singleLine = true,
+                        isError = passwordError != null,
+                        supportingText = passwordError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         shape = RoundedCornerShape(12.dp),
@@ -332,7 +329,25 @@ fun SignInScreen(
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
                             color = primaryBlue,
-                            modifier = Modifier.clickable(onClick = onForgotPasswordClick)
+                            modifier = Modifier.clickable {
+                                val emailCheck = Validator.validateEmail(email)
+                                if (emailCheck != null) {
+                                    emailError = emailCheck
+                                    generalError = emailCheck
+                                } else {
+                                    emailError = null
+                                    generalError = null
+                                    isLoading = true
+                                    onForgotPasswordClick(email.trim()) { err ->
+                                        isLoading = false
+                                        if (err != null) {
+                                            generalError = err
+                                        } else {
+                                            infoMessage = "Password reset email sent to ${email.trim()}"
+                                        }
+                                    }
+                                }
+                            }
                         )
                     }
 
@@ -340,7 +355,26 @@ fun SignInScreen(
 
                     // Login Button
                     Button(
-                        onClick = { onLoginClick(email, password) },
+                        onClick = {
+                            val emailCheck = Validator.validateEmail(email)
+                            val passCheck = Validator.validatePassword(password)
+                            emailError = emailCheck
+                            passwordError = passCheck
+
+                            if (emailCheck == null && passCheck == null) {
+                                isLoading = true
+                                generalError = null
+                                infoMessage = null
+                                onLoginClick(email.trim(), password) { err ->
+                                    isLoading = false
+                                    if (err != null) {
+                                        generalError = err
+                                        password = "" // Clear password field on failed login
+                                    }
+                                }
+                            }
+                        },
+                        enabled = !isLoading,
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                         modifier = Modifier
@@ -351,84 +385,28 @@ fun SignInScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            Text(
-                                text = "LOGIN",
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                letterSpacing = 1.sp
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    // Divider with "OR CONTINUE WITH"
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        HorizontalDivider(
-                            modifier = Modifier.weight(1f),
-                            thickness = 1.dp,
-                            color = Color(0xFFE2E8F0)
-                        )
-                        Text(
-                            text = " OR CONTINUE WITH ",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = textGray
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.weight(1f),
-                            thickness = 1.dp,
-                            color = Color(0xFFE2E8F0)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    // Sign in with Google Button
-                    Surface(
-                        shape = RoundedCornerShape(14.dp),
-                        color = lightBlueBg,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(52.dp)
-                            .clickable(onClick = onGoogleSignInClick),
-                        border = BorderStroke(1.dp, Color(0xFFDBEAFE))
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.White)
-                                    .border(1.dp, Color(0xFFDBEAFE), CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                GoogleLogo(modifier = Modifier.size(18.dp))
+                            if (isLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = Color.White,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text(
+                                    text = "LOGIN",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    letterSpacing = 1.sp
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(
-                                text = "Sign in with Google",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = primaryBlue
-                            )
                         }
                     }
                 }

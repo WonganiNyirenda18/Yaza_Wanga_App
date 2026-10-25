@@ -1,14 +1,11 @@
 package com.example.yaza_wanga.ui.screens
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -27,12 +24,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.yaza_wanga.data.model.UserRole
 import com.example.yaza_wanga.ui.components.YazaWangaLogo
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
-
-enum class UserRole {
-    STUDENT, TUTOR
-}
+import com.example.yaza_wanga.validation.Validator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,8 +36,8 @@ fun SignUpScreen(
     onBackClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
     onSignInClick: () -> Unit = {},
-    onCreateStudentAccount: (Map<String, String>) -> Unit = {},
-    onCreateTutorAccount: (Map<String, String>) -> Unit = {}
+    onCreateStudentAccount: (Map<String, String>, (String?) -> Unit) -> Unit = { _, _ -> },
+    onCreateTutorAccount: (Map<String, String>, (String?) -> Unit) -> Unit = { _, _ -> }
 ) {
     var role by remember { mutableStateOf(initialRole) }
 
@@ -55,17 +50,37 @@ fun SignUpScreen(
     var studentPasswordVisible by remember { mutableStateOf(false) }
     var studentConfirmPasswordVisible by remember { mutableStateOf(false) }
 
-    // Tutor form state (tutorId & department removed)
+    var studentFullNameError by remember { mutableStateOf<String?>(null) }
+    var studentEmailError by remember { mutableStateOf<String?>(null) }
+    var studentPasswordError by remember { mutableStateOf<String?>(null) }
+    var studentConfirmPasswordError by remember { mutableStateOf<String?>(null) }
+    var studentTermsError by remember { mutableStateOf<String?>(null) }
+    var studentGeneralError by remember { mutableStateOf<String?>(null) }
+    var studentIsLoading by remember { mutableStateOf(false) }
+
+    // Tutor form state
     var tutorFullName by remember { mutableStateOf("") }
     var tutorEmail by remember { mutableStateOf("") }
     var tutorPassword by remember { mutableStateOf("") }
     var tutorConfirmPassword by remember { mutableStateOf("") }
+    var tutorFaculty by remember { mutableStateOf("") }
     var tutorTermsAccepted by remember { mutableStateOf(false) }
     var tutorPasswordVisible by remember { mutableStateOf(false) }
     var tutorConfirmPasswordVisible by remember { mutableStateOf(false) }
+    var tutorFacultyExpanded by remember { mutableStateOf(false) }
+
+    var tutorFullNameError by remember { mutableStateOf<String?>(null) }
+    var tutorEmailError by remember { mutableStateOf<String?>(null) }
+    var tutorPasswordError by remember { mutableStateOf<String?>(null) }
+    var tutorConfirmPasswordError by remember { mutableStateOf<String?>(null) }
+    var tutorFacultyError by remember { mutableStateOf<String?>(null) }
+    var tutorTermsError by remember { mutableStateOf<String?>(null) }
+    var tutorGeneralError by remember { mutableStateOf<String?>(null) }
+    var tutorIsLoading by remember { mutableStateOf(false) }
+
+    val faculties = listOf("Faculty of Science", "Faculty of Social Sciences", "Faculty of Humanities", "Faculty of Education", "Faculty of Law", "Faculty of Commerce")
 
     val primaryBlue = Color(0xFF1D4ED8)
-    val lightBlueBg = Color(0xFFF0F4FF)
     val containerBg = Color(0xFFF8FAFC)
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
@@ -126,58 +141,29 @@ fun SignUpScreen(
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Badges row (Student badge only, tutor peer network / accredited portal badges removed)
-            if (role == UserRole.STUDENT) {
-                Surface(
-                    shape = RoundedCornerShape(50.dp),
-                    color = Color(0xFFE0ECFF),
-                    modifier = Modifier.padding(bottom = 8.dp)
+            Surface(
+                shape = RoundedCornerShape(50.dp),
+                color = Color(0xFFE0ECFF),
+                modifier = Modifier.padding(bottom = 8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.School,
-                            contentDescription = null,
-                            tint = primaryBlue,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = "STUDENT REGISTRATION",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = primaryBlue,
-                            letterSpacing = 0.5.sp
-                        )
-                    }
-                }
-            } else {
-                Surface(
-                    shape = RoundedCornerShape(50.dp),
-                    color = Color(0xFFE0ECFF),
-                    modifier = Modifier.padding(bottom = 8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.School,
-                            contentDescription = null,
-                            tint = primaryBlue,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = "TUTOR REGISTRATION",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = primaryBlue,
-                            letterSpacing = 0.5.sp
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.School,
+                        contentDescription = null,
+                        tint = primaryBlue,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        text = if (role == UserRole.STUDENT) "STUDENT REGISTRATION" else "TUTOR REGISTRATION",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = primaryBlue,
+                        letterSpacing = 0.5.sp
+                    )
                 }
             }
 
@@ -217,7 +203,6 @@ fun SignUpScreen(
                         .padding(4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Student Button
                     val isStudent = role == UserRole.STUDENT
                     Surface(
                         shape = RoundedCornerShape(12.dp),
@@ -248,7 +233,6 @@ fun SignUpScreen(
                         }
                     }
 
-                    // Tutor Button
                     val isTutor = role == UserRole.TUTOR
                     Surface(
                         shape = RoundedCornerShape(12.dp),
@@ -283,31 +267,97 @@ fun SignUpScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Form Fields based on role
             if (role == UserRole.STUDENT) {
+                if (studentGeneralError != null) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.errorContainer,
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                    ) {
+                        Text(
+                            text = studentGeneralError ?: "",
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            fontSize = 13.sp,
+                            modifier = Modifier.padding(12.dp)
+                        )
+                    }
+                }
+
                 StudentForm(
                     fullName = studentFullName,
-                    onFullNameChange = { studentFullName = it },
+                    onFullNameChange = { studentFullName = it; studentFullNameError = null; studentGeneralError = null },
                     email = studentEmail,
-                    onEmailChange = { studentEmail = it },
+                    onEmailChange = { studentEmail = it; studentEmailError = null; studentGeneralError = null },
                     password = studentPassword,
-                    onPasswordChange = { studentPassword = it },
+                    onPasswordChange = { studentPassword = it; studentPasswordError = null; studentGeneralError = null },
                     confirmPassword = studentConfirmPassword,
-                    onConfirmPasswordChange = { studentConfirmPassword = it },
+                    onConfirmPasswordChange = { studentConfirmPassword = it; studentConfirmPasswordError = null; studentGeneralError = null },
                     termsAccepted = studentTermsAccepted,
-                    onTermsAcceptedChange = { studentTermsAccepted = it },
+                    onTermsAcceptedChange = { studentTermsAccepted = it; studentTermsError = null; studentGeneralError = null },
                     passwordVisible = studentPasswordVisible,
                     onPasswordVisibleChange = { studentPasswordVisible = it },
                     confirmPasswordVisible = studentConfirmPasswordVisible,
                     onConfirmPasswordVisibleChange = { studentConfirmPasswordVisible = it },
+                    fullNameError = studentFullNameError,
+                    emailError = studentEmailError,
+                    passwordError = studentPasswordError,
+                    confirmPasswordError = studentConfirmPasswordError,
+                    termsError = studentTermsError,
+                    isLoading = studentIsLoading,
                     onSubmit = {
-                        onCreateStudentAccount(
-                            mapOf(
-                                "fullName" to studentFullName,
-                                "email" to studentEmail,
-                                "password" to studentPassword
-                            )
+                        val validationError = Validator.validateStudentSignUp(
+                            studentFullName, studentEmail, studentPassword, studentConfirmPassword, studentTermsAccepted
                         )
+                        if (validationError != null) {
+                            when {
+                                studentFullName.isBlank() -> studentFullNameError = "Please fill all fields"
+                                else -> studentFullNameError = null
+                            }
+                            val emailErr = Validator.validateEmail(studentEmail)
+                            studentEmailError = emailErr
+
+                            val passErr = Validator.validatePassword(studentPassword)
+                            studentPasswordError = passErr
+
+                            if (studentConfirmPassword.isBlank()) {
+                                studentConfirmPasswordError = "Please fill all fields"
+                            } else if (studentPassword != studentConfirmPassword) {
+                                studentConfirmPasswordError = "Passwords do not match"
+                            } else {
+                                studentConfirmPasswordError = null
+                            }
+
+                            if (!studentTermsAccepted) {
+                                studentTermsError = "You must agree to the Terms of Service & Privacy Policy"
+                            } else {
+                                studentTermsError = null
+                            }
+
+                            studentGeneralError = validationError
+                        } else {
+                            studentFullNameError = null
+                            studentEmailError = null
+                            studentPasswordError = null
+                            studentConfirmPasswordError = null
+                            studentTermsError = null
+                            studentGeneralError = null
+                            studentIsLoading = true
+
+                            onCreateStudentAccount(
+                                mapOf(
+                                    "fullName" to studentFullName.trim(),
+                                    "email" to studentEmail.trim(),
+                                    "password" to studentPassword
+                                )
+                            ) { err ->
+                                studentIsLoading = false
+                                if (err != null) {
+                                    studentGeneralError = err
+                                    studentPassword = ""
+                                    studentConfirmPassword = ""
+                                }
+                            }
+                        }
                     },
                     onSignInClick = onSignInClick,
                     primaryBlue = primaryBlue,
@@ -316,29 +366,90 @@ fun SignUpScreen(
                     textGray = textGray
                 )
             } else {
+                if (tutorGeneralError != null) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.errorContainer,
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                    ) {
+                        Text(
+                            text = tutorGeneralError ?: "",
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            fontSize = 13.sp,
+                            modifier = Modifier.padding(12.dp)
+                        )
+                    }
+                }
+
                 TutorForm(
                     fullName = tutorFullName,
-                    onFullNameChange = { tutorFullName = it },
+                    onFullNameChange = { tutorFullName = it; tutorFullNameError = null; tutorGeneralError = null },
                     email = tutorEmail,
-                    onEmailChange = { tutorEmail = it },
+                    onEmailChange = { tutorEmail = it; tutorEmailError = null; tutorGeneralError = null },
                     password = tutorPassword,
-                    onPasswordChange = { tutorPassword = it },
+                    onPasswordChange = { tutorPassword = it; tutorPasswordError = null; tutorGeneralError = null },
                     confirmPassword = tutorConfirmPassword,
-                    onConfirmPasswordChange = { tutorConfirmPassword = it },
+                    onConfirmPasswordChange = { tutorConfirmPassword = it; tutorConfirmPasswordError = null; tutorGeneralError = null },
+                    faculty = tutorFaculty,
+                    onFacultyChange = { tutorFaculty = it; tutorFacultyError = null; tutorGeneralError = null },
+                    facultyExpanded = tutorFacultyExpanded,
+                    onFacultyExpandedChange = { tutorFacultyExpanded = it },
+                    faculties = faculties,
                     termsAccepted = tutorTermsAccepted,
-                    onTermsAcceptedChange = { tutorTermsAccepted = it },
+                    onTermsAcceptedChange = { tutorTermsAccepted = it; tutorTermsError = null; tutorGeneralError = null },
                     passwordVisible = tutorPasswordVisible,
                     onPasswordVisibleChange = { tutorPasswordVisible = it },
                     confirmPasswordVisible = tutorConfirmPasswordVisible,
                     onConfirmPasswordVisibleChange = { tutorConfirmPasswordVisible = it },
+                    fullNameError = tutorFullNameError,
+                    emailError = tutorEmailError,
+                    passwordError = tutorPasswordError,
+                    confirmPasswordError = tutorConfirmPasswordError,
+                    facultyError = tutorFacultyError,
+                    termsError = tutorTermsError,
+                    isLoading = tutorIsLoading,
                     onSubmit = {
-                        onCreateTutorAccount(
-                            mapOf(
-                                "fullName" to tutorFullName,
-                                "email" to tutorEmail,
-                                "password" to tutorPassword
-                            )
+                        val validationError = Validator.validateTutorSignUp(
+                            tutorFullName, tutorEmail, tutorPassword, tutorConfirmPassword, tutorFaculty, tutorTermsAccepted
                         )
+                        if (validationError != null) {
+                            if (tutorFullName.isBlank()) tutorFullNameError = "Please fill all fields" else tutorFullNameError = null
+                            tutorEmailError = Validator.validateEmail(tutorEmail)
+                            tutorPasswordError = Validator.validatePassword(tutorPassword)
+                            if (tutorConfirmPassword.isBlank()) tutorConfirmPasswordError = "Please fill all fields"
+                            else if (tutorPassword != tutorConfirmPassword) tutorConfirmPasswordError = "Passwords do not match"
+                            else tutorConfirmPasswordError = null
+
+                            if (tutorFaculty.isBlank()) tutorFacultyError = "Please select your faculty or school" else tutorFacultyError = null
+                            if (!tutorTermsAccepted) tutorTermsError = "You must agree to the Academic Integrity Code and peer tutor guidelines" else tutorTermsError = null
+
+                            tutorGeneralError = validationError
+                        } else {
+                            tutorFullNameError = null
+                            tutorEmailError = null
+                            tutorPasswordError = null
+                            tutorConfirmPasswordError = null
+                            tutorFacultyError = null
+                            tutorTermsError = null
+                            tutorGeneralError = null
+                            tutorIsLoading = true
+
+                            onCreateTutorAccount(
+                                mapOf(
+                                    "fullName" to tutorFullName.trim(),
+                                    "email" to tutorEmail.trim(),
+                                    "password" to tutorPassword,
+                                    "faculty" to tutorFaculty
+                                )
+                            ) { err ->
+                                tutorIsLoading = false
+                                if (err != null) {
+                                    tutorGeneralError = err
+                                    tutorPassword = ""
+                                    tutorConfirmPassword = ""
+                                }
+                            }
+                        }
                     },
                     onSignInClick = onSignInClick,
                     primaryBlue = primaryBlue,
@@ -360,6 +471,8 @@ fun StudentForm(
     termsAccepted: Boolean, onTermsAcceptedChange: (Boolean) -> Unit,
     passwordVisible: Boolean, onPasswordVisibleChange: (Boolean) -> Unit,
     confirmPasswordVisible: Boolean, onConfirmPasswordVisibleChange: (Boolean) -> Unit,
+    fullNameError: String?, emailError: String?, passwordError: String?, confirmPasswordError: String?, termsError: String?,
+    isLoading: Boolean,
     onSubmit: () -> Unit,
     onSignInClick: () -> Unit,
     primaryBlue: Color,
@@ -368,7 +481,6 @@ fun StudentForm(
     textGray: Color
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Full Name Field
         Text("Full Name", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
         Spacer(modifier = Modifier.height(6.dp))
         OutlinedTextField(
@@ -377,6 +489,8 @@ fun StudentForm(
             placeholder = { Text("Wongani Nyirenda", color = textGray, fontSize = 13.sp) },
             leadingIcon = { Icon(Icons.Default.Person, null, tint = textGray, modifier = Modifier.size(20.dp)) },
             singleLine = true,
+            isError = fullNameError != null,
+            supportingText = fullNameError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = containerBg,
@@ -391,7 +505,6 @@ fun StudentForm(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // School Email Label
         Text("Student email", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
         Spacer(modifier = Modifier.height(6.dp))
         OutlinedTextField(
@@ -399,6 +512,8 @@ fun StudentForm(
             onValueChange = onEmailChange,
             placeholder = { Text("bsc-inf-15-23@unima.ac.mw", color = textGray, fontSize = 13.sp) },
             singleLine = true,
+            isError = emailError != null,
+            supportingText = emailError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = containerBg,
@@ -413,7 +528,6 @@ fun StudentForm(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Password
         Text("Password", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
         Spacer(modifier = Modifier.height(6.dp))
         OutlinedTextField(
@@ -432,6 +546,8 @@ fun StudentForm(
                 }
             },
             singleLine = true,
+            isError = passwordError != null,
+            supportingText = passwordError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -447,7 +563,6 @@ fun StudentForm(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Confirm Password
         Text("Confirm Password", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
         Spacer(modifier = Modifier.height(6.dp))
         OutlinedTextField(
@@ -466,6 +581,8 @@ fun StudentForm(
                 }
             },
             singleLine = true,
+            isError = confirmPasswordError != null,
+            supportingText = confirmPasswordError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
             visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -481,7 +598,6 @@ fun StudentForm(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Terms Checkbox
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -494,15 +610,23 @@ fun StudentForm(
             Text(
                 text = "I agree to the Terms of Service & Privacy Policy",
                 fontSize = 13.sp,
-                color = textDark
+                color = if (termsError != null) MaterialTheme.colorScheme.error else textDark
+            )
+        }
+        if (termsError != null) {
+            Text(
+                text = termsError,
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(start = 12.dp, top = 2.dp)
             )
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Create Account Button
         Button(
             onClick = onSubmit,
+            enabled = !isLoading,
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
             modifier = Modifier
@@ -513,21 +637,24 @@ fun StudentForm(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = "CREATE STUDENT ACCOUNT",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    letterSpacing = 0.8.sp
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
+                } else {
+                    Text(
+                        text = "CREATE STUDENT ACCOUNT",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        letterSpacing = 0.8.sp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                }
             }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Footer Sign In
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
@@ -552,9 +679,14 @@ fun TutorForm(
     email: String, onEmailChange: (String) -> Unit,
     password: String, onPasswordChange: (String) -> Unit,
     confirmPassword: String, onConfirmPasswordChange: (String) -> Unit,
+    faculty: String, onFacultyChange: (String) -> Unit,
+    facultyExpanded: Boolean, onFacultyExpandedChange: (Boolean) -> Unit,
+    faculties: List<String>,
     termsAccepted: Boolean, onTermsAcceptedChange: (Boolean) -> Unit,
     passwordVisible: Boolean, onPasswordVisibleChange: (Boolean) -> Unit,
     confirmPasswordVisible: Boolean, onConfirmPasswordVisibleChange: (Boolean) -> Unit,
+    fullNameError: String?, emailError: String?, passwordError: String?, confirmPasswordError: String?, facultyError: String?, termsError: String?,
+    isLoading: Boolean,
     onSubmit: () -> Unit,
     onSignInClick: () -> Unit,
     primaryBlue: Color,
@@ -563,7 +695,6 @@ fun TutorForm(
     textGray: Color
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Full Name Field
         Text("Full Name", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
         Spacer(modifier = Modifier.height(6.dp))
         OutlinedTextField(
@@ -572,6 +703,8 @@ fun TutorForm(
             placeholder = { Text("Amina Banda", color = textGray, fontSize = 13.sp) },
             leadingIcon = { Icon(Icons.Default.Person, null, tint = textGray, modifier = Modifier.size(20.dp)) },
             singleLine = true,
+            isError = fullNameError != null,
+            supportingText = fullNameError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = containerBg,
@@ -586,7 +719,6 @@ fun TutorForm(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // School Email
         Text("Student email", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
         Spacer(modifier = Modifier.height(6.dp))
         OutlinedTextField(
@@ -594,6 +726,8 @@ fun TutorForm(
             onValueChange = onEmailChange,
             placeholder = { Text("bsc-inf-15-23@unima.ac.mw", color = textGray, fontSize = 13.sp) },
             singleLine = true,
+            isError = emailError != null,
+            supportingText = emailError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = containerBg,
@@ -608,7 +742,53 @@ fun TutorForm(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Password
+        // Faculty Dropdown
+        Text("Faculty or School", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+        Spacer(modifier = Modifier.height(6.dp))
+        ExposedDropdownMenuBox(
+            expanded = facultyExpanded,
+            onExpandedChange = onFacultyExpandedChange,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            OutlinedTextField(
+                value = faculty,
+                onValueChange = {},
+                readOnly = true,
+                placeholder = { Text("Select your faculty or school", color = textGray, fontSize = 13.sp) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = facultyExpanded) },
+                isError = facultyError != null,
+                supportingText = facultyError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = containerBg,
+                    unfocusedContainerColor = containerBg,
+                    focusedBorderColor = primaryBlue,
+                    unfocusedBorderColor = Color(0xFFE2E8F0),
+                    focusedTextColor = textDark,
+                    unfocusedTextColor = textDark
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
+            )
+            ExposedDropdownMenu(
+                expanded = facultyExpanded,
+                onDismissRequest = { onFacultyExpandedChange(false) }
+            ) {
+                faculties.forEach { fac ->
+                    DropdownMenuItem(
+                        text = { Text(fac) },
+                        onClick = {
+                            onFacultyChange(fac)
+                            onFacultyExpandedChange(false)
+                        }
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
         Text("Password", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
         Spacer(modifier = Modifier.height(6.dp))
         OutlinedTextField(
@@ -627,6 +807,8 @@ fun TutorForm(
                 }
             },
             singleLine = true,
+            isError = passwordError != null,
+            supportingText = passwordError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -642,7 +824,6 @@ fun TutorForm(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Confirm Password
         Text("Confirm Password", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
         Spacer(modifier = Modifier.height(6.dp))
         OutlinedTextField(
@@ -661,6 +842,8 @@ fun TutorForm(
                 }
             },
             singleLine = true,
+            isError = confirmPasswordError != null,
+            supportingText = confirmPasswordError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
             visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -676,7 +859,6 @@ fun TutorForm(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Terms Checkbox
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -689,15 +871,23 @@ fun TutorForm(
             Text(
                 text = "I agree to the Academic Integrity Code and peer tutor guidelines.",
                 fontSize = 13.sp,
-                color = textDark
+                color = if (termsError != null) MaterialTheme.colorScheme.error else textDark
+            )
+        }
+        if (termsError != null) {
+            Text(
+                text = termsError,
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(start = 12.dp, top = 2.dp)
             )
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Create Tutor Account Button
         Button(
             onClick = onSubmit,
+            enabled = !isLoading,
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
             modifier = Modifier
@@ -708,21 +898,24 @@ fun TutorForm(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = "CREATE TUTOR ACCOUNT",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    letterSpacing = 0.8.sp
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
+                } else {
+                    Text(
+                        text = "CREATE TUTOR ACCOUNT",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        letterSpacing = 0.8.sp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                }
             }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Footer Sign In
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
@@ -737,21 +930,5 @@ fun TutorForm(
                 modifier = Modifier.clickable(onClick = onSignInClick)
             )
         }
-    }
-}
-
-@Preview(showBackground = true, widthDp = 392, heightDp = 950)
-@Composable
-fun SignUpStudentPreview() {
-    Yaza_WangaTheme {
-        SignUpScreen(initialRole = UserRole.STUDENT)
-    }
-}
-
-@Preview(showBackground = true, widthDp = 392, heightDp = 950)
-@Composable
-fun SignUpTutorPreview() {
-    Yaza_WangaTheme {
-        SignUpScreen(initialRole = UserRole.TUTOR)
     }
 }
