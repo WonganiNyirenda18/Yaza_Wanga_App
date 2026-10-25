@@ -1,5 +1,6 @@
 package com.example.yaza_wanga.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,19 +18,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.yaza_wanga.data.model.UserStatus
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
+import com.example.yaza_wanga.ui.viewmodel.AdminUsersViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminUsersScreen(
+    viewModel: AdminUsersViewModel = viewModel(),
     onNavigateTab: (Int) -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val uiState by viewModel.uiState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableIntStateOf(0) }
+    var selectedFilter by remember { mutableIntStateOf(0) } // 0: All, 1: Pending
 
     val primaryBlue = Color(0xFF1D4ED8)
     val lightBlueBg = Color(0xFFF0F4FF)
@@ -37,13 +45,25 @@ fun AdminUsersScreen(
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
 
+    val query = searchQuery.trim()
+    val filteredUsers = uiState.users.filter { user ->
+        val matchesSearch = query.isEmpty() ||
+            user.name.contains(query, ignoreCase = true) ||
+            user.email.contains(query, ignoreCase = true)
+        val matchesFilter = if (selectedFilter == 1) user.status == UserStatus.PENDING else true
+        matchesSearch && matchesFilter
+    }
+
+    val pendingCount = uiState.users.count { it.status == UserStatus.PENDING }
+    val activeTutorsCount = uiState.users.count { it.role.name == "TUTOR" && it.status == UserStatus.ACTIVE }
+
     Scaffold(
         topBar = {
             Column {
                 TopAppBar(
                     title = {
                         Text(
-                            text = "Users",
+                            text = "Users & Vetting",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = textDark
@@ -68,7 +88,7 @@ fun AdminUsersScreen(
                     },
                     actions = {
                         IconButton(
-                            onClick = {},
+                            onClick = { viewModel.loadUsers() },
                             modifier = Modifier
                                 .padding(end = 8.dp)
                                 .size(38.dp)
@@ -76,8 +96,8 @@ fun AdminUsersScreen(
                                 .background(primaryBlue)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "Profile",
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = "Refresh",
                                 tint = Color.White,
                                 modifier = Modifier.size(20.dp)
                             )
@@ -113,12 +133,11 @@ fun AdminUsersScreen(
                 Text("Review credential portfolios, triage verification pipelines, and manage institutional standing.", fontSize = 12.sp, color = textGray)
             }
 
-            // Stats Cards Row (Equal Size: Pending Vetting & Active Tutors)
+            // Stats Cards Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Pending Vetting Card
                 Surface(
                     shape = RoundedCornerShape(16.dp),
                     color = lightBlueBg,
@@ -130,12 +149,11 @@ fun AdminUsersScreen(
                         }
                         Column {
                             Text("Pending Vetting", fontSize = 11.sp, color = textGray)
-                            Text("3 In Queue", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
+                            Text("$pendingCount In Queue", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
                         }
                     }
                 }
 
-                // Active Tutors Card
                 Surface(
                     shape = RoundedCornerShape(16.dp),
                     color = Color(0xFFE6F4EA),
@@ -147,17 +165,17 @@ fun AdminUsersScreen(
                         }
                         Column {
                             Text("Active Tutors", fontSize = 11.sp, color = textGray)
-                            Text("580 Verified", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
+                            Text("$activeTutorsCount Verified", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
                         }
                     }
                 }
             }
 
-            // Search Bar ("Search student or tutor")
+            // Search Bar
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                placeholder = { Text("Search student or tutor", color = textGray, fontSize = 13.sp) },
+                placeholder = { Text("Search student or tutor by name or email", color = textGray, fontSize = 13.sp) },
                 leadingIcon = { Icon(Icons.Default.Search, null, tint = textGray, modifier = Modifier.size(20.dp)) },
                 trailingIcon = { if (searchQuery.isNotEmpty()) IconButton(onClick = { searchQuery = "" }) { Icon(Icons.Default.Close, null, tint = textGray) } },
                 singleLine = true,
@@ -181,7 +199,7 @@ fun AdminUsersScreen(
                     modifier = Modifier.clickable { selectedFilter = 0 },
                     border = BorderStroke(1.dp, if (selectedFilter == 0) primaryBlue else Color(0xFFE2E8F0))
                 ) {
-                    Text("All Users (1,420)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (selectedFilter == 0) Color.White else textDark, modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp))
+                    Text("All Users (${uiState.users.size})", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (selectedFilter == 0) Color.White else textDark, modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp))
                 }
 
                 Surface(
@@ -190,156 +208,99 @@ fun AdminUsersScreen(
                     modifier = Modifier.clickable { selectedFilter = 1 },
                     border = BorderStroke(1.dp, if (selectedFilter == 1) Color(0xFFDC2626) else Color(0xFFE2E8F0))
                 ) {
-                    Text("Pending Verification (3)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (selectedFilter == 1) Color.White else Color(0xFFDC2626), modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp))
+                    Text("Pending Verification ($pendingCount)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (selectedFilter == 1) Color.White else Color(0xFFDC2626), modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp))
                 }
             }
 
-            // Verification Queue Header
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Icon(Icons.Default.HourglassTop, null, tint = primaryBlue, modifier = Modifier.size(18.dp))
-                    Text("Verification Queue", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textDark)
+            if (uiState.isLoading) {
+                Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = primaryBlue)
                 }
-                Text(
-                    text = "View More",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = primaryBlue,
-                    modifier = Modifier.clickable {}
-                )
-            }
-
-            // Verification Queue Item 1
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(Color(0xFFE2E8F0)), contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.Person, null, tint = textGray)
-                            }
-                            Column {
-                                Text("Chimwemwe Chirwa", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
-                                Surface(shape = RoundedCornerShape(4.dp), color = Color(0xFFE0ECFF)) {
-                                    Text("Tutor Applicant", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = primaryBlue, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+            } else if (filteredUsers.isEmpty()) {
+                Box(modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp), contentAlignment = Alignment.Center) {
+                    Text("No users found matching query or filter.", fontSize = 13.sp, color = textGray)
+                }
+            } else {
+                filteredUsers.forEach { user ->
+                    Card(
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(Color(0xFFE2E8F0)), contentAlignment = Alignment.Center) {
+                                        Icon(Icons.Default.Person, null, tint = textGray)
+                                    }
+                                    Column {
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                            Text(user.name.ifBlank { "User" }, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
+                                            if (user.status == UserStatus.ACTIVE) {
+                                                Icon(Icons.Default.Verified, null, tint = primaryBlue, modifier = Modifier.size(14.dp))
+                                            }
+                                        }
+                                        Surface(shape = RoundedCornerShape(4.dp), color = if (user.status == UserStatus.PENDING) Color(0xFFFEF3C7) else Color(0xFFE0ECFF)) {
+                                            Text("${user.role.name} • ${user.status.name}", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = if (user.status == UserStatus.PENDING) Color(0xFFB45309) else primaryBlue, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                        }
+                                        Text(user.email, fontSize = 11.sp, color = textGray)
+                                    }
                                 }
-                                Text("c.chirwa@poly.ac.mw", fontSize = 11.sp, color = textGray)
                             }
-                        }
-                    }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
 
-                    Surface(shape = RoundedCornerShape(10.dp), color = containerBg, modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text("MAT 201: Calculus & Linear Algebra • Semester 3", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = textDark)
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Icon(Icons.Default.PictureAsPdf, null, tint = primaryBlue, modifier = Modifier.size(14.dp))
-                                Text("Official_Transcript_Sem3.pdf", fontSize = 11.sp, color = primaryBlue, fontWeight = FontWeight.Bold, modifier = Modifier.clickable {})
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(
-                            onClick = {},
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
-                            modifier = Modifier.weight(1.2f).height(38.dp)
-                        ) {
-                            Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(14.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Approve", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                        }
-
-                        Button(
-                            onClick = {},
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = lightBlueBg),
-                            modifier = Modifier.weight(0.8f).height(38.dp)
-                        ) {
-                            Text("Review", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                        }
-
-                        Button(
-                            onClick = {},
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEE2E2)),
-                            modifier = Modifier.weight(0.8f).height(38.dp)
-                        ) {
-                            Text("Reject", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
-                        }
-                    }
-                }
-            }
-
-            // Active Directory Header
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Active Directory", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textDark)
-                Text("Sort by Activity ▾", fontSize = 12.sp, color = primaryBlue, modifier = Modifier.clickable {})
-            }
-
-            // Active Directory Item 1
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(Color(0xFFE2E8F0)), contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.Person, null, tint = textGray)
-                            }
-                            Column {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Text("John Banda", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
-                                    Icon(Icons.Default.Verified, null, tint = primaryBlue, modifier = Modifier.size(14.dp))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                if (user.status != UserStatus.ACTIVE) {
+                                    Button(
+                                        onClick = {
+                                            viewModel.updateUserStatus(user.uid, UserStatus.ACTIVE) {
+                                                Toast.makeText(context, "Approved ${user.name}", Toast.LENGTH_SHORT).show()
+                                            }
+                                        },
+                                        shape = RoundedCornerShape(10.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
+                                        modifier = Modifier.weight(1f).height(38.dp)
+                                    ) {
+                                        Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(14.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("Approve", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                    }
                                 }
-                                Text("INF 212 & STA 211 Certified Tutor", fontSize = 11.sp, color = textGray)
+
+                                if (user.status != UserStatus.REJECTED) {
+                                    Button(
+                                        onClick = {
+                                            viewModel.updateUserStatus(user.uid, UserStatus.REJECTED) {
+                                                Toast.makeText(context, "Rejected ${user.name}", Toast.LENGTH_SHORT).show()
+                                            }
+                                        },
+                                        shape = RoundedCornerShape(10.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEE2E2)),
+                                        modifier = Modifier.weight(1f).height(38.dp)
+                                    ) {
+                                        Text("Reject", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
+                                    }
+                                }
+
+                                if (user.status != UserStatus.SUSPENDED) {
+                                    Button(
+                                        onClick = {
+                                            viewModel.updateUserStatus(user.uid, UserStatus.SUSPENDED) {
+                                                Toast.makeText(context, "Suspended ${user.name}", Toast.LENGTH_SHORT).show()
+                                            }
+                                        },
+                                        shape = RoundedCornerShape(10.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEF2F2)),
+                                        modifier = Modifier.weight(1f).height(38.dp)
+                                    ) {
+                                        Text("Suspend", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
+                                    }
+                                }
                             }
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Button(onClick = {}, shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(containerColor = lightBlueBg), modifier = Modifier.weight(1f).height(36.dp)) {
-                            Text("Profile", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                        }
-                        Button(onClick = {}, shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(containerColor = lightBlueBg), modifier = Modifier.weight(1f).height(36.dp)) {
-                            Text("Roles", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                        }
-                        Button(onClick = {}, shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEE2E2)), modifier = Modifier.weight(1f).height(36.dp)) {
-                            Text("Suspend", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
-                        }
-                    }
-                }
-            }
-
-            // Bottom Actions Row
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(onClick = {}, shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = primaryBlue), modifier = Modifier.weight(1f).height(46.dp)) {
-                    Icon(Icons.Default.PersonAdd, null, tint = Color.White, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Invite Faculty", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                }
-
-                Button(onClick = {}, shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(lightBlueBg), modifier = Modifier.weight(1f).height(46.dp)) {
-                    Icon(Icons.Default.Download, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Export Registry", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
                 }
             }
 

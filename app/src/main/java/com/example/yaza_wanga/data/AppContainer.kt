@@ -9,4 +9,9 @@ object AppContainer {
     val sessionRepository = SessionRepository()
     val materialRepository = MaterialRepository()
     val userRepository = UserRepository()
+    val enrollmentRepository = EnrollmentRepository()
+    val departmentRepository = DepartmentRepository()
+    val storageRepository = StorageRepository()
+    val notificationRepository = NotificationRepository()
+    val progressRepository = ProgressRepository()
 }

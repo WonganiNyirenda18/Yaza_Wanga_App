@@ -23,13 +23,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.yaza_wanga.ui.components.YazaBottomBar
 import com.example.yaza_wanga.ui.components.YazaWangaLogo
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
+import com.example.yaza_wanga.ui.viewmodel.StudentDashboardViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentDashboardScreen(
+    viewModel: StudentDashboardViewModel = viewModel(),
     onNavigateHome: () -> Unit = {},
     onNavigateCourses: () -> Unit = {},
     onNavigateTutors: () -> Unit = {},
@@ -37,10 +40,20 @@ fun StudentDashboardScreen(
     onNavigateProfile: () -> Unit = {},
     onViewCourseClick: (String) -> Unit = {}
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+    val user = uiState.user
+
+    LaunchedEffect(Unit) {
+        viewModel.loadData()
+    }
+
     val primaryBlue = Color(0xFF1D4ED8)
     val lightBlueBg = Color(0xFFF0F4FF)
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
+
+    val studentName = user?.name?.uppercase() ?: "STUDENT"
+    val studentIdDisplay = user?.studentId?.ifBlank { user.uid.take(8) } ?: "995358915"
 
     Scaffold(
         bottomBar = {
@@ -73,7 +86,7 @@ fun StudentDashboardScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Blue Header Section (Scrolls naturally along with content, with generous top/bottom spacing)
+            // Blue Header Section
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -116,7 +129,7 @@ fun StudentDashboardScreen(
                 )
             }
 
-            // Scrollable Content Column connected/overlapping the blue header
+            // Scrollable Content Column overlapping the blue header
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -124,7 +137,7 @@ fun StudentDashboardScreen(
                     .offset(y = (-48).dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Airtel-Inspired Account & Stats Card (Wongani Nyirenda) overlapping the blue background
+                // Account & Stats Card using real data from ViewModel
                 Card(
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -134,7 +147,6 @@ fun StudentDashboardScreen(
                         .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        // Top Row: Name & Manage Account (Manage Account not bold)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -142,7 +154,7 @@ fun StudentDashboardScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "WONGANI NYIRENDA",
+                                    text = studentName,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = textDark,
@@ -150,7 +162,7 @@ fun StudentDashboardScreen(
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = "Student - 995358915",
+                                    text = "Student - $studentIdDisplay",
                                     fontSize = 12.sp,
                                     color = textGray,
                                     maxLines = 1
@@ -172,22 +184,21 @@ fun StudentDashboardScreen(
                         HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
                         Spacer(modifier = Modifier.height(14.dp))
 
-                        // Middle Stats Row (3 Columns separated by Vertical Dividers)
+                        // Middle Stats Row (Real Enrolled Count)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Column 1: Enrolled Course
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "3",
+                                    text = "${uiState.enrolledCoursesCount}",
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = textDark
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = "Enrolled Course",
+                                    text = "Enrolled Courses",
                                     fontSize = 11.sp,
                                     color = textGray,
                                     maxLines = 1
@@ -199,7 +210,6 @@ fun StudentDashboardScreen(
                                 modifier = Modifier.height(36.dp).padding(horizontal = 8.dp)
                             )
 
-                            // Column 2: Active Tutors
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = "4",
@@ -221,7 +231,6 @@ fun StudentDashboardScreen(
                                 modifier = Modifier.height(36.dp).padding(horizontal = 8.dp)
                             )
 
-                            // Column 3: Upcoming
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = "2",
@@ -243,65 +252,70 @@ fun StudentDashboardScreen(
                         HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
                         Spacer(modifier = Modifier.height(14.dp))
 
-                        // Bottom Buttons Row (Both say "View Course" on one single line)
+                        // Real Enrolled Courses buttons / list or default buttons
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Button(
-                                onClick = { onViewCourseClick("INF 212") },
-                                shape = RoundedCornerShape(10.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEF2F2)),
-                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(40.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.MenuBook,
-                                    contentDescription = null,
-                                    tint = Color(0xFFDC2626),
-                                    modifier = Modifier.size(14.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = "View Course",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFDC2626),
-                                    maxLines = 1
-                                )
-                            }
-
-                            Button(
-                                onClick = { onViewCourseClick("STA 211") },
-                                shape = RoundedCornerShape(10.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEF2F2)),
-                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(40.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.MenuBook,
-                                    contentDescription = null,
-                                    tint = Color(0xFFDC2626),
-                                    modifier = Modifier.size(14.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = "View Course",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFDC2626),
-                                    maxLines = 1
-                                )
+                            val enrolledList = uiState.enrolledCourses
+                            if (enrolledList.isNotEmpty()) {
+                                enrolledList.take(2).forEach { enrollment ->
+                                    Button(
+                                        onClick = { onViewCourseClick(enrollment.courseCode) },
+                                        shape = RoundedCornerShape(10.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEF2F2)),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(40.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                                            contentDescription = null,
+                                            tint = Color(0xFFDC2626),
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(
+                                            text = enrollment.courseCode,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFFDC2626),
+                                            maxLines = 1
+                                        )
+                                    }
+                                }
+                            } else {
+                                Button(
+                                    onClick = { onViewCourseClick("INF 212") },
+                                    shape = RoundedCornerShape(10.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEF2F2)),
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(40.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                                        contentDescription = null,
+                                        tint = Color(0xFFDC2626),
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "Browse Courses",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFFDC2626),
+                                        maxLines = 1
+                                    )
+                                }
                             }
                         }
                     }
                 }
 
-                // Quick Actions Section (Airtel-Inspired Grid)
+                // Quick Actions Section
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,

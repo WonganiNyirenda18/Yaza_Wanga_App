@@ -1,5 +1,6 @@
 package com.example.yaza_wanga.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,29 +20,32 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
+import com.example.yaza_wanga.ui.viewmodel.AdminCreateCourseViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminCreateCourseScreen(
+    viewModel: AdminCreateCourseViewModel = viewModel(),
     onBackClick: () -> Unit = {},
     onNavigateTab: (Int) -> Unit = {},
     onPublishSuccess: () -> Unit = {}
 ) {
-    var courseName by remember { mutableStateOf("Introduction to Web Development") }
-    var courseCode by remember { mutableStateOf("INF 212") }
+    val context = LocalContext.current
+    var courseName by remember { mutableStateOf("") }
+    var courseCode by remember { mutableStateOf("") }
     var courseCredits by remember { mutableStateOf("3") }
     var selectedFaculty by remember { mutableStateOf("Computer Science & IT") }
     var facultyDropdownExpanded by remember { mutableStateOf(false) }
-    var courseDescription by remember { mutableStateOf("Foundational principles of frontend architecture, semantic web development, responsive CSS layouts, and modern JavaScript programming paradigms for interactive web apps.") }
-    var targetYear by remember { mutableStateOf("Year 2") }
+    var courseDescription by remember { mutableStateOf("") }
     var scheduledSemester by remember { mutableStateOf("Semester 1") }
-    var allowPeerTutoring by remember { mutableStateOf(true) }
 
     val primaryBlue = Color(0xFF1D4ED8)
     val lightBlueBg = Color(0xFFF0F4FF)
@@ -86,21 +90,6 @@ fun AdminCreateCourseScreen(
                                 tint = textDark
                             )
                         }
-                        IconButton(
-                            onClick = {},
-                            modifier = Modifier
-                                .padding(end = 8.dp)
-                                .size(38.dp)
-                                .clip(CircleShape)
-                                .background(primaryBlue)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "Profile",
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
                 )
@@ -120,7 +109,6 @@ fun AdminCreateCourseScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Header Title & Subtitle (Governance & institution cards removed)
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     text = "Create New Course",
@@ -148,6 +136,7 @@ fun AdminCreateCourseScreen(
                 OutlinedTextField(
                     value = courseName,
                     onValueChange = { courseName = it },
+                    placeholder = { Text("e.g., Introduction to Web Development") },
                     leadingIcon = { Icon(Icons.AutoMirrored.Filled.MenuBook, null, tint = primaryBlue, modifier = Modifier.size(18.dp)) },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
@@ -161,14 +150,13 @@ fun AdminCreateCourseScreen(
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
-                Text("Full academic course title as reflected in the university syllabus.", fontSize = 11.sp, color = textGray)
             }
 
-            // Course Code Section * (Prefix + Level badge removed)
+            // Course Code Section *
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text("Course Code", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
+                        Text("Course Code & Credits", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
                         Text("*", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
                     }
                 }
@@ -177,10 +165,10 @@ fun AdminCreateCourseScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // Code Field
                     OutlinedTextField(
                         value = courseCode,
                         onValueChange = { courseCode = it },
+                        placeholder = { Text("e.g., INF 212") },
                         leadingIcon = { Icon(Icons.Default.Numbers, null, tint = primaryBlue, modifier = Modifier.size(18.dp)) },
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
@@ -195,10 +183,10 @@ fun AdminCreateCourseScreen(
                         modifier = Modifier.weight(2.4f)
                     )
 
-                    // Credits Field
                     OutlinedTextField(
                         value = courseCredits,
                         onValueChange = { courseCredits = it },
+                        placeholder = { Text("3") },
                         trailingIcon = { Text("CR", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = textGray, modifier = Modifier.padding(end = 12.dp)) },
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
@@ -213,7 +201,6 @@ fun AdminCreateCourseScreen(
                         modifier = Modifier.weight(1.2f)
                     )
                 }
-                Text("Standard format includes departmental letters followed by numerical tier.", fontSize = 11.sp, color = textGray)
             }
 
             // Academic Department / Faculty *
@@ -223,7 +210,6 @@ fun AdminCreateCourseScreen(
                     Text("*", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
                 }
 
-                // Selector Card
                 Card(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -252,7 +238,6 @@ fun AdminCreateCourseScreen(
                     }
                 }
 
-                // Expanded Faculty List
                 if (facultyDropdownExpanded) {
                     Card(
                         shape = RoundedCornerShape(16.dp),
@@ -294,19 +279,20 @@ fun AdminCreateCourseScreen(
                 }
             }
 
-            // Course Description & Scope * (Include tags removed)
+            // Course Description & Scope * (Max 500 validation)
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text("Course Description & Scope", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
                         Text("*", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
                     }
-                    Text("${courseDescription.length} / 500", fontSize = 11.sp, color = textGray)
+                    Text("${courseDescription.length} / 500", fontSize = 11.sp, color = if (courseDescription.length > 500) Color(0xFFDC2626) else textGray)
                 }
 
                 OutlinedTextField(
                     value = courseDescription,
                     onValueChange = { if (it.length <= 500) courseDescription = it },
+                    placeholder = { Text("Enter detailed syllabus overview (max 500 characters)...") },
                     minLines = 4,
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -321,38 +307,7 @@ fun AdminCreateCourseScreen(
                 )
             }
 
-            // Target Academic Year (Postgrad removed, Year 4 added)
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Target Academic Year", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    listOf("Year 1", "Year 2", "Year 3", "Year 4").forEach { yr ->
-                        val selected = targetYear == yr
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = if (selected) primaryBlue else Color.White,
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(38.dp)
-                                .clickable { targetYear = yr },
-                            border = BorderStroke(1.dp, if (selected) primaryBlue else Color(0xFFE2E8F0))
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(
-                                    text = yr,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (selected) Color.White else textDark
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Scheduled Semester (Autumn & Spring removed, Semester 1 & Semester 2)
+            // Scheduled Semester
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Scheduled Semester", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
                 Row(
@@ -387,48 +342,29 @@ fun AdminCreateCourseScreen(
                 }
             }
 
-            // Allow Peer Tutoring Switch Card
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Box(
-                            modifier = Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)).background(lightBlueBg),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.Groups, null, tint = primaryBlue, modifier = Modifier.size(18.dp))
-                        }
-                        Column {
-                            Text("Allow Peer Tutoring", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
-                            Text("Eligible senior students can list paid & volunteer tutoring pods", fontSize = 11.sp, color = textGray)
-                        }
-                    }
-
-                    Switch(
-                        checked = allowPeerTutoring,
-                        onCheckedChange = { allowPeerTutoring = it },
-                        colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = primaryBlue)
-                    )
-                }
-            }
-
             Spacer(modifier = Modifier.height(8.dp))
 
             // Create Course & Publish Button
             Button(
-                onClick = onPublishSuccess,
+                onClick = {
+                    val creditsInt = courseCredits.toIntOrNull() ?: 3
+                    viewModel.createCourse(
+                        code = courseCode,
+                        title = courseName,
+                        department = selectedFaculty,
+                        credits = creditsInt,
+                        description = courseDescription,
+                        semester = scheduledSemester,
+                        isDraft = false,
+                        onSuccess = {
+                            Toast.makeText(context, "Course published successfully", Toast.LENGTH_SHORT).show()
+                            onPublishSuccess()
+                        },
+                        onError = { err ->
+                            Toast.makeText(context, err, Toast.LENGTH_LONG).show()
+                        }
+                    )
+                },
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                 modifier = Modifier.fillMaxWidth().height(52.dp)
@@ -440,9 +376,27 @@ fun AdminCreateCourseScreen(
                 }
             }
 
-            // Save as Draft
+            // Save as Draft (keeps hidden from students)
             Button(
-                onClick = onPublishSuccess,
+                onClick = {
+                    val creditsInt = courseCredits.toIntOrNull() ?: 3
+                    viewModel.createCourse(
+                        code = courseCode,
+                        title = courseName,
+                        department = selectedFaculty,
+                        credits = creditsInt,
+                        description = courseDescription,
+                        semester = scheduledSemester,
+                        isDraft = true,
+                        onSuccess = {
+                            Toast.makeText(context, "Course saved as draft (hidden from students)", Toast.LENGTH_SHORT).show()
+                            onPublishSuccess()
+                        },
+                        onError = { err ->
+                            Toast.makeText(context, err, Toast.LENGTH_LONG).show()
+                        }
+                    )
+                },
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE2E8F0)),
                 modifier = Modifier.fillMaxWidth().height(48.dp)
@@ -453,15 +407,6 @@ fun AdminCreateCourseScreen(
                     Text("Save as Draft", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textDark)
                 }
             }
-
-            // Footer note
-            Text(
-                text = "Changes will immediately propagate across the student course roster.",
-                fontSize = 11.sp,
-                color = textGray,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
 
             Spacer(modifier = Modifier.height(16.dp))
         }

@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 data class SplashUiState(val isLoading: Boolean = true)
 class SplashViewModel : ViewModel() {
@@ -126,6 +127,8 @@ class StudentProfileViewModel : ViewModel() {
 
 data class StudentDashboardUiState(
     val user: User? = null,
+    val enrolledCoursesCount: Int = 0,
+    val enrolledCourses: List<Enrollment> = emptyList(),
     val isLoading: Boolean = false
 )
 class StudentDashboardViewModel : ViewModel() {
@@ -139,14 +142,28 @@ class StudentDashboardViewModel : ViewModel() {
     fun loadData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val result = AppContainer.authRepository.fetchCurrentUser()
-            _uiState.update { it.copy(user = result.getOrNull(), isLoading = false) }
+            val userResult = AppContainer.authRepository.fetchCurrentUser()
+            val user = userResult.getOrNull()
+            var enrollments = emptyList<Enrollment>()
+            if (user != null) {
+                enrollments = AppContainer.enrollmentRepository.getEnrollmentsForStudent(user.uid).getOrElse { emptyList() }
+            }
+            _uiState.update {
+                it.copy(
+                    user = user,
+                    enrolledCourses = enrollments,
+                    enrolledCoursesCount = enrollments.size,
+                    isLoading = false
+                )
+            }
         }
     }
 }
 
 data class CourseDirectoryUiState(
     val courses: List<Course> = emptyList(),
+    val searchQuery: String = "",
+    val selectedDepartment: String = "All Departments",
     val isLoading: Boolean = false
 )
 class CourseDirectoryViewModel : ViewModel() {
@@ -161,16 +178,27 @@ class CourseDirectoryViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val result = AppContainer.courseRepository.getCourses()
-            _uiState.update { it.copy(courses = result.getOrElse { emptyList() }, isLoading = false) }
+            val list = result.getOrElse { emptyList() }.filter { it.status != "DRAFT" }
+            _uiState.update { it.copy(courses = list, isLoading = false) }
         }
+    }
+
+    fun setSearchQuery(query: String) {
+        _uiState.update { it.copy(searchQuery = query) }
+    }
+
+    fun setDepartment(dept: String) {
+        _uiState.update { it.copy(selectedDepartment = dept) }
     }
 }
 
 data class CourseDetailsUiState(
     val course: Course? = null,
     val materials: List<Material> = emptyList(),
+    val tutors: List<TutorProfile> = emptyList(),
     val isEnrolled: Boolean = false,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null
 )
 class CourseDetailsViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(CourseDetailsUiState())
@@ -181,12 +209,48 @@ class CourseDetailsViewModel : ViewModel() {
             _uiState.update { it.copy(isLoading = true) }
             val courseResult = AppContainer.courseRepository.getCourse(code)
             val materialsResult = AppContainer.materialRepository.getMaterials(code)
+            val tutorsResult = AppContainer.tutorRepository.getTutorsForCourse(code)
+
+            val currentUser = AppContainer.authRepository.fetchCurrentUser().getOrNull()
+            var enrolled = false
+            if (currentUser != null) {
+                enrolled = AppContainer.enrollmentRepository.isEnrolled(currentUser.uid, code).getOrDefault(false)
+            }
+
             _uiState.update {
                 it.copy(
                     course = courseResult.getOrNull(),
                     materials = materialsResult.getOrElse { emptyList() },
+                    tutors = tutorsResult.getOrElse { emptyList() },
+                    isEnrolled = enrolled,
                     isLoading = false
                 )
+            }
+        }
+    }
+
+    fun enrollCourse(courseCode: String, onResult: (Boolean, String?) -> Unit) {
+        viewModelScope.launch {
+            val user = AppContainer.authRepository.fetchCurrentUser().getOrNull()
+            if (user == null) {
+                onResult(false, "Please sign in to enroll")
+                return@launch
+            }
+            val enrollmentId = "${user.uid}_$courseCode"
+            val enrollment = Enrollment(
+                id = enrollmentId,
+                studentId = user.uid,
+                courseCode = courseCode,
+                enrolledAt = System.currentTimeMillis(),
+                status = "ACTIVE"
+            )
+            val result = AppContainer.enrollmentRepository.enroll(enrollment)
+            if (result.isSuccess) {
+                _uiState.update { it.copy(isEnrolled = true) }
+                onResult(true, null)
+            } else {
+                val msg = result.exceptionOrNull()?.localizedMessage ?: "Enrollment failed"
+                onResult(false, msg)
             }
         }
     }
@@ -233,15 +297,50 @@ class TutorCreateSessionViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(TutorCreateSessionUiState())
     val uiState: StateFlow<TutorCreateSessionUiState> = _uiState.asStateFlow()
 
-    fun createSession(session: Session, onSuccess: () -> Unit) {
+    fun createSession(
+        courseCode: String,
+        title: String,
+        format: String,
+        meetingLink: String,
+        venue: String,
+        dateMillis: Long,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
         viewModelScope.launch {
+            if (format == "Online" && meetingLink.isBlank()) {
+                onError("Valid meeting link required for online sessions")
+                return@launch
+            }
+            if (format == "In-Person" && venue.isBlank()) {
+                onError("Venue location required for in-person sessions")
+                return@launch
+            }
+            if (dateMillis < System.currentTimeMillis() - 86400000) {
+                onError("Session date cannot be in the past")
+                return@launch
+            }
+
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            val tutorId = AppContainer.authRepository.currentUser?.uid ?: "tutor_default"
+            val session = Session(
+                id = UUID.randomUUID().toString(),
+                tutorId = tutorId,
+                courseCode = courseCode,
+                title = title.ifBlank { "Tutoring Session" },
+                description = if (format == "Online") "Online Link: $meetingLink" else "Venue: $venue",
+                startTime = dateMillis,
+                endTime = dateMillis + 3600000,
+                status = "SCHEDULED"
+            )
             val result = AppContainer.sessionRepository.createSession(session)
             _uiState.update { it.copy(isLoading = false) }
             if (result.isSuccess) {
                 onSuccess()
             } else {
-                _uiState.update { it.copy(errorMessage = result.exceptionOrNull()?.localizedMessage ?: "Failed to create session") }
+                val msg = result.exceptionOrNull()?.localizedMessage ?: "Failed to create session"
+                _uiState.update { it.copy(errorMessage = msg) }
+                onError(msg)
             }
         }
     }
@@ -252,15 +351,55 @@ class TutorUploadMaterialViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(TutorUploadMaterialUiState())
     val uiState: StateFlow<TutorUploadMaterialUiState> = _uiState.asStateFlow()
 
-    fun uploadMaterial(material: Material, onSuccess: () -> Unit) {
+    fun uploadMaterial(
+        courseCode: String,
+        title: String,
+        description: String,
+        category: String,
+        fileUrl: String,
+        fileSizeMb: Double,
+        certified: Boolean,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
         viewModelScope.launch {
+            if (title.isBlank()) {
+                onError("Resource title is required")
+                return@launch
+            }
+            if (!certified) {
+                onError("You must certify compliance with academic guidelines")
+                return@launch
+            }
+            if (fileSizeMb > 50.0) {
+                onError("File size cannot exceed 50MB")
+                return@launch
+            }
+            if (description.length > 250) {
+                onError("Description cannot exceed 250 characters")
+                return@launch
+            }
+
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            val uploaderId = AppContainer.authRepository.currentUser?.uid ?: "tutor_default"
+            val material = Material(
+                id = UUID.randomUUID().toString(),
+                courseCode = courseCode,
+                title = title.trim(),
+                description = description.trim(),
+                fileUrl = fileUrl.ifBlank { "https://firebasestorage.googleapis.com/v0/b/yaza-wanga.appspot.com/o/sample.pdf" },
+                fileType = category,
+                uploadedBy = uploaderId,
+                uploadedAt = System.currentTimeMillis()
+            )
             val result = AppContainer.materialRepository.uploadMaterial(material)
             _uiState.update { it.copy(isLoading = false) }
             if (result.isSuccess) {
                 onSuccess()
             } else {
-                _uiState.update { it.copy(errorMessage = result.exceptionOrNull()?.localizedMessage ?: "Upload failed") }
+                val msg = result.exceptionOrNull()?.localizedMessage ?: "Upload failed"
+                _uiState.update { it.copy(errorMessage = msg) }
+                onError(msg)
             }
         }
     }
@@ -283,10 +422,24 @@ data class AdminUsersUiState(val users: List<User> = emptyList(), val isLoading:
 class AdminUsersViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AdminUsersUiState())
     val uiState: StateFlow<AdminUsersUiState> = _uiState.asStateFlow()
+
     init {
+        loadUsers()
+    }
+
+    fun loadUsers() {
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             val users = AppContainer.userRepository.getUsers().getOrElse { emptyList() }
-            _uiState.update { it.copy(users = users) }
+            _uiState.update { it.copy(users = users, isLoading = false) }
+        }
+    }
+
+    fun updateUserStatus(uid: String, status: UserStatus, onComplete: () -> Unit) {
+        viewModelScope.launch {
+            AppContainer.userRepository.updateUserStatus(uid, status)
+            loadUsers()
+            onComplete()
         }
     }
 }
@@ -308,15 +461,58 @@ class AdminCreateCourseViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AdminCreateCourseUiState())
     val uiState: StateFlow<AdminCreateCourseUiState> = _uiState.asStateFlow()
 
-    fun createCourse(course: Course, onSuccess: () -> Unit) {
+    fun createCourse(
+        code: String,
+        title: String,
+        department: String,
+        credits: Int,
+        description: String,
+        semester: String,
+        isDraft: Boolean,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
         viewModelScope.launch {
+            if (title.isBlank()) {
+                onError("Course name is required")
+                return@launch
+            }
+            if (code.isBlank()) {
+                onError("Course code is required")
+                return@launch
+            }
+            if (description.length > 500) {
+                onError("Description cannot exceed 500 characters")
+                return@launch
+            }
+
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
+            val existing = AppContainer.courseRepository.getCourse(code.trim()).getOrNull()
+            if (existing != null && !isDraft) {
+                _uiState.update { it.copy(isLoading = false) }
+                onError("Course code already exists. Please use a unique code.")
+                return@launch
+            }
+
+            val course = Course(
+                code = code.trim(),
+                title = title.trim(),
+                department = department,
+                credits = credits,
+                description = description.trim(),
+                semester = semester,
+                status = if (isDraft) "DRAFT" else "ACTIVE"
+            )
+
             val result = AppContainer.courseRepository.saveCourse(course)
             _uiState.update { it.copy(isLoading = false) }
             if (result.isSuccess) {
                 onSuccess()
             } else {
-                _uiState.update { it.copy(errorMessage = result.exceptionOrNull()?.localizedMessage ?: "Failed") }
+                val msg = result.exceptionOrNull()?.localizedMessage ?: "Failed to save course"
+                _uiState.update { it.copy(errorMessage = msg) }
+                onError(msg)
             }
         }
     }

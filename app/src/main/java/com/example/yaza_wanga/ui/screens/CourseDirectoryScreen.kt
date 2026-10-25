@@ -20,20 +20,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
-
-data class CourseModel(
-    val code: String,
-    val title: String,
-    val department: String
-)
+import com.example.yaza_wanga.ui.viewmodel.CourseDirectoryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseDirectoryScreen(
+    viewModel: CourseDirectoryViewModel = viewModel(),
     onNavigateHome: () -> Unit = {},
     onNavigateCourses: () -> Unit = {},
     onNavigateTutors: () -> Unit = {},
@@ -41,25 +39,35 @@ fun CourseDirectoryScreen(
     onNavigateProfile: () -> Unit = {},
     onViewDetailsClick: (String) -> Unit = {}
 ) {
+    val uiState by viewModel.uiState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var selectedDepartment by remember { mutableStateOf("All Departments") }
 
     val departments = listOf("All Departments", "Computer Science & IT", "Mathematics", "Engineering", "Business")
     val quickChips = listOf("INF 212", "Database Systems", "STA 211", "Software Eng", "Calculus")
 
-    val courses = listOf(
-        CourseModel("INF 212", "Introduction to Web Development", "Computer Science & IT"),
-        CourseModel("COM 311", "Database Systems & Architecture", "Computer Science & IT"),
-        CourseModel("STA 211", "Probability Theory & Applied Statistics", "Mathematics"),
-        CourseModel("COM 312", "Software Architecture & Agile Methods", "Computer Science & IT"),
-        CourseModel("MAT 201", "Multivariable Calculus & Linear Algebra", "Mathematics"),
-        CourseModel("INF 111", "Algorithms & Data Structures", "Computer Science & IT")
-    )
-
     val primaryBlue = Color(0xFF1D4ED8)
     val containerBg = Color(0xFFF8FAFC)
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
+
+    val query = searchQuery.trim()
+    val filteredCourses = uiState.courses.filter { course ->
+        val matchesSearch = query.isEmpty() ||
+            course.code.contains(query, ignoreCase = true) ||
+            course.title.contains(query, ignoreCase = true)
+        val matchesDept = selectedDepartment == "All Departments" || course.department.equals(selectedDepartment, ignoreCase = true)
+        matchesSearch && matchesDept
+    }
+
+    val deptHasCourses = selectedDepartment == "All Departments" || uiState.courses.any { it.department.equals(selectedDepartment, ignoreCase = true) }
+    val emptyMessage = if (selectedDepartment != "All Departments" && !deptHasCourses) {
+        "No courses found in this department"
+    } else if (selectedDepartment != "All Departments" && filteredCourses.isEmpty()) {
+        "No courses found in this department"
+    } else {
+        "No courses found"
+    }
 
     Scaffold(
         topBar = {
@@ -144,13 +152,13 @@ fun CourseDirectoryScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Search Bar right after Header
+            // Search Bar
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 placeholder = {
                     Text(
-                        text = "Search Courses",
+                        text = "Search Courses by code or name",
                         color = textGray,
                         fontSize = 14.sp
                     )
@@ -191,7 +199,7 @@ fun CourseDirectoryScreen(
                         modifier = Modifier
                             .height(34.dp)
                             .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(50.dp))
-                            .clickable {}
+                            .clickable { searchQuery = chip }
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 12.dp),
@@ -247,65 +255,118 @@ fun CourseDirectoryScreen(
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = "${courses.size} curriculum modules available",
+                    text = "${filteredCourses.size} curriculum modules available",
                     fontSize = 12.sp,
                     color = textGray
                 )
             }
 
-            // Course Cards List (Ratings removed)
-            courses.forEach { course ->
-                Card(
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            if (uiState.isLoading) {
+                Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = primaryBlue)
+                }
+            } else if (filteredCourses.isEmpty()) {
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
+                        .padding(vertical = 48.dp),
+                    contentAlignment = Alignment.Center
                 ) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = Color(0xFFE0ECFF)
-                        ) {
-                            Text(
-                                text = course.code,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = primaryBlue,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
+                        Icon(Icons.Default.SearchOff, null, tint = textGray, modifier = Modifier.size(48.dp))
                         Text(
-                            text = course.title,
+                            text = emptyMessage,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = textDark
+                            color = textDark,
+                            textAlign = TextAlign.Center
                         )
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        Button(
-                            onClick = { onViewDetailsClick(course.code) },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
+                        Text(
+                            text = "Try adjusting your search terms or department filter.",
+                            fontSize = 12.sp,
+                            color = textGray,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            } else {
+                filteredCourses.forEach { course ->
+                    Card(
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
+                    ) {
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(44.dp)
+                                .padding(16.dp)
                         ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = Color(0xFFE0ECFF)
+                                ) {
+                                    Text(
+                                        text = course.code,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = primaryBlue,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    )
+                                }
+                                Text(
+                                    text = course.department,
+                                    fontSize = 11.sp,
+                                    color = textGray
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
                             Text(
-                                text = "View Details",
-                                fontSize = 14.sp,
+                                text = course.title,
+                                fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                color = textDark
                             )
+
+                            if (course.description.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = course.description,
+                                    fontSize = 12.sp,
+                                    color = textGray,
+                                    maxLines = 2
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            Button(
+                                onClick = { onViewDetailsClick(course.code) },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(44.dp)
+                            ) {
+                                Text(
+                                    text = "View Details",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
                         }
                     }
                 }

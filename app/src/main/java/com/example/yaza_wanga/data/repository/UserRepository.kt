@@ -1,6 +1,7 @@
 package com.example.yaza_wanga.data.repository
 
 import com.example.yaza_wanga.data.model.User
+import com.example.yaza_wanga.data.model.UserStatus
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -31,6 +32,15 @@ class UserRepository(private val db: FirebaseFirestore = FirebaseFirestore.getIn
     suspend fun updateUser(user: User): Result<Unit> {
         return try {
             db.collection("users").document(user.uid).set(user.toMap()).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateUserStatus(uid: String, status: UserStatus): Result<Unit> {
+        return try {
+            db.collection("users").document(uid).update("status", status.name).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

@@ -1,11 +1,11 @@
 package com.example.yaza_wanga.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -18,17 +18,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
+import com.example.yaza_wanga.ui.viewmodel.TutorCreateSessionViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TutorCreateSessionScreen(
+    viewModel: TutorCreateSessionViewModel = viewModel(),
     onBackClick: () -> Unit = {},
     onNavigateDashboard: () -> Unit = {},
     onNavigateSessions: () -> Unit = {},
@@ -36,15 +40,17 @@ fun TutorCreateSessionScreen(
     onNavigateMenu: () -> Unit = {},
     onCreateSessionSuccess: () -> Unit = {}
 ) {
-    var selectedCourse by remember { mutableStateOf("INF 212: Intro to Web Dev") }
+    val context = LocalContext.current
+    var selectedCourse by remember { mutableStateOf("INF 212") }
+    var sessionTitle by remember { mutableStateOf("Web Development Mentorship") }
     var courseDropdownExpanded by remember { mutableStateOf(false) }
     var sessionFormat by remember { mutableStateOf("Online") } // "Online" or "In-Person"
     var meetingLink by remember { mutableStateOf("https://meet.google.com/xyz-qwer-at") }
     var venueLocation by remember { mutableStateOf("") }
-    var sessionDate by remember { mutableStateOf("10/24/2024") }
+    var sessionDate by remember { mutableStateOf("10/24/2026") }
     var sessionTime by remember { mutableStateOf("04:00 PM") }
 
-    // DatePicker state
+    var selectedDateMillis by remember { mutableStateOf(System.currentTimeMillis() + 86400000) }
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState()
 
@@ -60,6 +66,7 @@ fun TutorCreateSessionScreen(
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
+                        selectedDateMillis = millis
                         val formatter = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
                         sessionDate = formatter.format(Date(millis))
                     }
@@ -107,88 +114,10 @@ fun TutorCreateSessionScreen(
                                 tint = textDark
                             )
                         }
-                        IconButton(
-                            onClick = onNavigateMenu,
-                            modifier = Modifier
-                                .padding(end = 8.dp)
-                                .size(38.dp)
-                                .clip(CircleShape)
-                                .background(primaryBlue)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = "Menu",
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
                 )
                 HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
-            }
-        },
-        bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 8.dp
-            ) {
-                val tabs = listOf(
-                    Triple(0, "Dashboard", Icons.Default.Home),
-                    Triple(1, "Sessions", Icons.Default.CalendarToday),
-                    Triple(2, "Students", Icons.Default.School),
-                    Triple(3, "Menu", Icons.Default.Menu)
-                )
-
-                tabs.forEach { (index, label, icon) ->
-                    val selected = index == 1 // Sessions selected
-                    NavigationBarItem(
-                        selected = selected,
-                        onClick = {
-                            when (index) {
-                                0 -> onNavigateDashboard()
-                                1 -> onNavigateSessions()
-                                2 -> onNavigateStudents()
-                                3 -> onNavigateMenu()
-                            }
-                        },
-                        icon = {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Icon(
-                                    imageVector = icon,
-                                    contentDescription = label,
-                                    tint = if (selected) primaryBlue else textGray
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .width(24.dp)
-                                        .height(3.dp)
-                                        .clip(RoundedCornerShape(1.5.dp))
-                                        .background(if (selected) primaryBlue else Color.Transparent)
-                                )
-                            }
-                        },
-                        label = {
-                            Text(
-                                text = label,
-                                fontSize = 11.sp,
-                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                                color = if (selected) primaryBlue else textGray
-                            )
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = Color.Transparent,
-                            selectedIconColor = primaryBlue,
-                            selectedTextColor = primaryBlue,
-                            unselectedIconColor = textGray,
-                            unselectedTextColor = textGray
-                        )
-                    )
-                }
             }
         },
         containerColor = Color(0xFFF8FAFC)
@@ -201,7 +130,6 @@ fun TutorCreateSessionScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Workspace Badge & Header
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Surface(
                     shape = RoundedCornerShape(50.dp),
@@ -230,7 +158,7 @@ fun TutorCreateSessionScreen(
                 )
             }
 
-            // Section 1: Select Course * (Reduced size bar, "18 enrolled" removed)
+            // Section 1: Select Course *
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -241,10 +169,8 @@ fun TutorCreateSessionScreen(
                         Text("1. Select Course", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
                         Text("*", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
                     }
-                    Text("3 Courses Active", fontSize = 12.sp, color = textGray)
                 }
 
-                // Active Course Selector Card (Compact size)
                 Card(
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -279,7 +205,6 @@ fun TutorCreateSessionScreen(
                     }
                 }
 
-                // Expanded Course Options list when clicked
                 if (courseDropdownExpanded) {
                     Card(
                         shape = RoundedCornerShape(16.dp),
@@ -288,30 +213,43 @@ fun TutorCreateSessionScreen(
                         modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
                     ) {
                         Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            CourseOptionItem(
-                                code = "INF 212: Intro to Web Dev",
-                                details = "18 Students Enrolled • BSc Computing",
-                                active = true,
-                                selected = selectedCourse.contains("INF 212"),
-                                onClick = { selectedCourse = "INF 212: Intro to Web Dev"; courseDropdownExpanded = false }
-                            )
-                            CourseOptionItem(
-                                code = "STA 211: Probability & Distribution",
-                                details = "12 Students Enrolled • Year 2 Stats",
-                                active = false,
-                                selected = selectedCourse.contains("STA 211"),
-                                onClick = { selectedCourse = "STA 211: Probability & Distribution"; courseDropdownExpanded = false }
-                            )
-                            CourseOptionItem(
-                                code = "COM 311: Database Mgmt System...",
-                                details = "14 Students Enrolled • Year 3 CS",
-                                active = false,
-                                selected = selectedCourse.contains("COM 311"),
-                                onClick = { selectedCourse = "COM 311: Database Mgmt System"; courseDropdownExpanded = false }
-                            )
+                            listOf("INF 212", "STA 211", "COM 311").forEach { code ->
+                                Surface(
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = if (selectedCourse == code) lightBlueBg else Color.Transparent,
+                                    modifier = Modifier.fillMaxWidth().clickable {
+                                        selectedCourse = code
+                                        courseDropdownExpanded = false
+                                    }
+                                ) {
+                                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Text(code, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
+            }
+
+            // Session Title
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("Session Title", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textDark)
+                OutlinedTextField(
+                    value = sessionTitle,
+                    onValueChange = { sessionTitle = it },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = containerBg,
+                        unfocusedContainerColor = containerBg,
+                        focusedBorderColor = primaryBlue,
+                        unfocusedBorderColor = Color(0xFFE2E8F0),
+                        focusedTextColor = textDark,
+                        unfocusedTextColor = textDark
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
 
             // Section 2: Session Format *
@@ -325,7 +263,6 @@ fun TutorCreateSessionScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // Online Format Card
                     val isOnline = sessionFormat == "Online"
                     Card(
                         shape = RoundedCornerShape(16.dp),
@@ -349,7 +286,6 @@ fun TutorCreateSessionScreen(
                         }
                     }
 
-                    // In-Person Format Card
                     val isInPerson = sessionFormat == "In-Person"
                     Card(
                         shape = RoundedCornerShape(16.dp),
@@ -375,7 +311,7 @@ fun TutorCreateSessionScreen(
                 }
             }
 
-            // Conditional Format Inputs (Online vs In-Person)
+            // Conditional Format Inputs
             if (sessionFormat == "Online") {
                 Card(
                     shape = RoundedCornerShape(20.dp),
@@ -383,35 +319,13 @@ fun TutorCreateSessionScreen(
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
                 ) {
-                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("Online Meeting Link", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textDark)
-                            Surface(shape = RoundedCornerShape(50.dp), color = Color(0xFFE6F4EA)) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(Icons.Default.Verified, null, tint = Color(0xFF137333), modifier = Modifier.size(12.dp))
-                                    Text("Verified Link", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF137333))
-                                }
-                            }
-                        }
-
-                        // Link TextField with Copy Icon
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Online Meeting Link *", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textDark)
                         OutlinedTextField(
                             value = meetingLink,
                             onValueChange = { meetingLink = it },
+                            placeholder = { Text("https://meet.google.com/...") },
                             leadingIcon = { Icon(Icons.Default.Link, null, tint = primaryBlue, modifier = Modifier.size(18.dp)) },
-                            trailingIcon = {
-                                IconButton(onClick = {}) {
-                                    Icon(Icons.Default.ContentCopy, null, tint = textGray, modifier = Modifier.size(18.dp))
-                                }
-                            },
                             singleLine = true,
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
@@ -424,69 +338,9 @@ fun TutorCreateSessionScreen(
                             ),
                             modifier = Modifier.fillMaxWidth()
                         )
-
-                        // Action Buttons Row
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Button(
-                                onClick = {},
-                                shape = RoundedCornerShape(10.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = lightBlueBg),
-                                modifier = Modifier.weight(1.2f).height(38.dp)
-                            ) {
-                                Icon(Icons.Default.VideoCall, null, tint = primaryBlue, modifier = Modifier.size(14.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Generate Meet", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                            }
-
-                            Button(
-                                onClick = {},
-                                shape = RoundedCornerShape(10.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = lightBlueBg),
-                                modifier = Modifier.weight(0.9f).height(38.dp)
-                            ) {
-                                Icon(Icons.Default.Videocam, null, tint = primaryBlue, modifier = Modifier.size(14.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Zoom", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                            }
-
-                            Button(
-                                onClick = {},
-                                shape = RoundedCornerShape(10.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = lightBlueBg),
-                                modifier = Modifier.weight(0.9f).height(38.dp)
-                            ) {
-                                Icon(Icons.Default.Bookmark, null, tint = primaryBlue, modifier = Modifier.size(14.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Saved", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                            }
-                        }
-
-                        // Info Box
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = lightBlueBg,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(10.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Icon(Icons.Default.Info, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
-                                Text(
-                                    text = "Meeting link will be automatically attached to student Google / Outlook calendar invites and push notifications.",
-                                    fontSize = 11.sp,
-                                    color = textDark
-                                )
-                            }
-                        }
                     }
                 }
             } else {
-                // In-Person Venue Card
                 Card(
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -494,11 +348,11 @@ fun TutorCreateSessionScreen(
                     modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
                 ) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Meeting Location / Venue", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textDark)
+                        Text("Meeting Location / Venue *", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textDark)
                         OutlinedTextField(
                             value = venueLocation,
                             onValueChange = { venueLocation = it },
-                            placeholder = { Text("e.g., Campus Library Study Pod 3B, Room...", color = textGray, fontSize = 13.sp) },
+                            placeholder = { Text("e.g., Campus Library Study Pod 3B") },
                             leadingIcon = { Icon(Icons.Default.LocationOn, null, tint = primaryBlue, modifier = Modifier.size(18.dp)) },
                             singleLine = true,
                             shape = RoundedCornerShape(12.dp),
@@ -516,7 +370,7 @@ fun TutorCreateSessionScreen(
                 }
             }
 
-            // Section 3: Date, Time & Duration * (Popup calendar on date click)
+            // Section 3: Date, Time & Duration *
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text("3. Date, Time & Duration", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
@@ -533,15 +387,14 @@ fun TutorCreateSessionScreen(
                         modifier = Modifier.padding(16.dp).fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        // Date Input (Clickable popup calendar)
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text("Date", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = textGray)
+                            Text("Date (Tap to pick)", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = textGray)
                             Box(modifier = Modifier.fillMaxWidth().clickable { showDatePicker = true }) {
                                 OutlinedTextField(
                                     value = sessionDate,
                                     onValueChange = {},
                                     readOnly = true,
-                                    enabled = false, // Disable direct manual typing, tap opens calendar picker
+                                    enabled = false,
                                     leadingIcon = { Icon(Icons.Default.CalendarToday, null, tint = primaryBlue, modifier = Modifier.size(16.dp)) },
                                     singleLine = true,
                                     shape = RoundedCornerShape(10.dp),
@@ -556,7 +409,6 @@ fun TutorCreateSessionScreen(
                             }
                         }
 
-                        // Time Input
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text("Time", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = textGray)
                             OutlinedTextField(
@@ -584,7 +436,23 @@ fun TutorCreateSessionScreen(
 
             // Create Session Button
             Button(
-                onClick = onCreateSessionSuccess,
+                onClick = {
+                    viewModel.createSession(
+                        courseCode = selectedCourse,
+                        title = sessionTitle,
+                        format = sessionFormat,
+                        meetingLink = meetingLink,
+                        venue = venueLocation,
+                        dateMillis = selectedDateMillis,
+                        onSuccess = {
+                            Toast.makeText(context, "Tutoring session created successfully", Toast.LENGTH_SHORT).show()
+                            onCreateSessionSuccess()
+                        },
+                        onError = { err ->
+                            Toast.makeText(context, err, Toast.LENGTH_LONG).show()
+                        }
+                    )
+                },
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                 modifier = Modifier.fillMaxWidth().height(52.dp)
@@ -596,65 +464,7 @@ fun TutorCreateSessionScreen(
                 }
             }
 
-            // Save as Draft
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                TextButton(onClick = {}) {
-                    Icon(Icons.Default.MailOutline, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Save as Draft", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                }
-            }
-
             Spacer(modifier = Modifier.height(16.dp))
-        }
-    }
-}
-
-@Composable
-fun CourseOptionItem(
-    code: String,
-    details: String,
-    active: Boolean,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    val primaryBlue = Color(0xFF1D4ED8)
-    val textDark = Color(0xFF0F172A)
-    val textGray = Color(0xFF64748B)
-
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = if (selected) Color(0xFFF0F4FF) else Color.Transparent,
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp).fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Icon(Icons.AutoMirrored.Filled.MenuBook, null, tint = primaryBlue, modifier = Modifier.size(20.dp))
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(code, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
-                        if (active) {
-                            Surface(shape = RoundedCornerShape(4.dp), color = primaryBlue) {
-                                Text("Active", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp))
-                            }
-                        }
-                    }
-                    Text(details, fontSize = 11.sp, color = textGray)
-                }
-            }
-
-            RadioButton(
-                selected = selected,
-                onClick = onClick,
-                colors = RadioButtonDefaults.colors(selectedColor = primaryBlue)
-            )
         }
     }
 }

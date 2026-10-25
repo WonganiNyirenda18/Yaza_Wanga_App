@@ -7,7 +7,8 @@ data class Course(
     val credits: Int = 0,
     val description: String = "",
     val semester: String = "",
-    val prerequisites: List<String> = emptyList()
+    val prerequisites: List<String> = emptyList(),
+    val status: String = "ACTIVE" // "ACTIVE" or "DRAFT"
 ) {
     fun toMap(): Map<String, Any?> = mapOf(
         "code" to code,
@@ -16,7 +17,8 @@ data class Course(
         "credits" to credits,
         "description" to description,
         "semester" to semester,
-        "prerequisites" to prerequisites
+        "prerequisites" to prerequisites,
+        "status" to status
     )
 
     companion object {
@@ -27,7 +29,8 @@ data class Course(
             credits = (map["credits"] as? Number)?.toInt() ?: 0,
             description = map["description"] as? String ?: "",
             semester = map["semester"] as? String ?: "",
-            prerequisites = (map["prerequisites"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList()
+            prerequisites = (map["prerequisites"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList(),
+            status = map["status"] as? String ?: "ACTIVE"
         )
     }
 }

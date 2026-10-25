@@ -15,7 +15,7 @@ enum class UserRole {
 }
 
 enum class UserStatus {
-    ACTIVE, PENDING, SUSPENDED;
+    ACTIVE, PENDING, SUSPENDED, REJECTED;
 
     companion object {
         fun fromString(value: String?): UserStatus {
