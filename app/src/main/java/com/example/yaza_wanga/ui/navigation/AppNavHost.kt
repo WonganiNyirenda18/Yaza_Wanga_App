@@ -10,7 +10,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.yaza_wanga.data.AppContainer
 import com.example.yaza_wanga.data.model.*
 import com.example.yaza_wanga.ui.screens.*
 import com.example.yaza_wanga.ui.viewmodel.*
@@ -56,47 +55,17 @@ fun AppNavHost(
     navController: NavHostController = rememberNavController()
 ) {
     var userRole by remember { mutableStateOf<UserRole?>(null) }
-    var startDestination by remember { mutableStateOf(Screen.Splash.route) }
-
-    LaunchedEffect(Unit) {
-        val firebaseUser = AppContainer.authRepository.currentUser
-        if (firebaseUser != null) {
-            val result = AppContainer.authRepository.fetchCurrentUser()
-            val user = result.getOrNull()
-            if (user != null) {
-                userRole = user.role
-                startDestination = when (user.role) {
-                    UserRole.ADMIN -> Screen.AdminGraph.Overview.route
-                    UserRole.TUTOR -> Screen.TutorGraph.Dashboard.route
-                    UserRole.STUDENT -> Screen.StudentGraph.Dashboard.route
-                }
-            } else {
-                startDestination = Screen.AuthGraph.SignIn.route
-            }
-        } else {
-            startDestination = Screen.AuthGraph.SignIn.route
-        }
-    }
 
     NavHost(
         navController = navController,
-        startDestination = startDestination,
+        startDestination = Screen.Splash.route,
         modifier = modifier
     ) {
         // Splash
         composable(Screen.Splash.route) {
             SplashScreen(
                 onSplashFinished = {
-                    val dest = if (AppContainer.authRepository.currentUser != null) {
-                        when (userRole) {
-                            UserRole.ADMIN -> Screen.AdminGraph.Overview.route
-                            UserRole.TUTOR -> Screen.TutorGraph.Dashboard.route
-                            else -> Screen.StudentGraph.Dashboard.route
-                        }
-                    } else {
-                        Screen.AuthGraph.SignIn.route
-                    }
-                    navController.navigate(dest) {
+                    navController.navigate(Screen.AuthGraph.SignIn.route) {
                         popUpTo(Screen.Splash.route) { inclusive = true }
                     }
                 }
@@ -235,18 +204,17 @@ fun AppNavHost(
                 TutorProfileScreen(
                     onBackClick = { navController.popBackStack() },
                     onProfileClick = {},
-                    onCompleteSetup = {}
+                    onCompleteSetup = { navController.navigate(Screen.TutorGraph.Dashboard.route) }
                 )
             }
             composable(Screen.TutorGraph.Session.route) {
-                TutorSessionScreen(
-                    onNavigateRequests = {},
-                    onNavigateAnalytics = {},
-                    onNavigateUpload = { navController.navigate(Screen.TutorGraph.UploadMaterial.route) },
-                    onNavigateVerify = {},
-                    onAcceptRequest = {},
-                    onDeclineRequest = {},
-                    onAttachLink = {}
+                TutorCreateSessionScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onNavigateDashboard = { navController.navigate(Screen.TutorGraph.Dashboard.route) },
+                    onNavigateSessions = {},
+                    onNavigateStudents = { navController.navigate(Screen.TutorGraph.Students.route) },
+                    onNavigateMenu = { navController.navigate(Screen.TutorGraph.Profile.route) },
+                    onCreateSessionSuccess = { navController.navigate(Screen.TutorGraph.Dashboard.route) }
                 )
             }
             composable(Screen.TutorGraph.Students.route) {
@@ -261,20 +229,20 @@ fun AppNavHost(
             composable(Screen.TutorGraph.CreateSession.route) {
                 TutorCreateSessionScreen(
                     onBackClick = { navController.popBackStack() },
-                    onNavigateDashboard = {},
+                    onNavigateDashboard = { navController.navigate(Screen.TutorGraph.Dashboard.route) },
                     onNavigateSessions = {},
-                    onNavigateStudents = {},
-                    onNavigateMenu = {},
+                    onNavigateStudents = { navController.navigate(Screen.TutorGraph.Students.route) },
+                    onNavigateMenu = { navController.navigate(Screen.TutorGraph.Profile.route) },
                     onCreateSessionSuccess = { navController.popBackStack() }
                 )
             }
             composable(Screen.TutorGraph.UploadMaterial.route) {
                 TutorUploadMaterialScreen(
                     onBackClick = { navController.popBackStack() },
-                    onNavigateDashboard = {},
-                    onNavigateSessions = {},
-                    onNavigateStudents = {},
-                    onNavigateMenu = {},
+                    onNavigateDashboard = { navController.navigate(Screen.TutorGraph.Dashboard.route) },
+                    onNavigateSessions = { navController.navigate(Screen.TutorGraph.Session.route) },
+                    onNavigateStudents = { navController.navigate(Screen.TutorGraph.Students.route) },
+                    onNavigateMenu = { navController.navigate(Screen.TutorGraph.Profile.route) },
                     onPublishSuccess = { navController.popBackStack() }
                 )
             }
