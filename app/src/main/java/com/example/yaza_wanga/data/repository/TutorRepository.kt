@@ -2,10 +2,30 @@ package com.example.yaza_wanga.data.repository
 
 import com.example.yaza_wanga.data.model.TutorProfile
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 open class TutorRepository(private val db: FirebaseFirestore? = null) {
     private val safeDb get() = db ?: FirebaseFirestore.getInstance()
+
+    open fun observeTutorsForCourse(courseCode: String): Flow<Result<List<TutorProfile>>> = callbackFlow {
+        val registration = safeDb.collection("tutors")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(Result.failure(error))
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    val tutors = snapshot.documents.mapNotNull { doc ->
+                        doc.data?.let { TutorProfile.fromMap(it) }
+                    }.filter { (it.status == "ACTIVE") && (it.courses.contains(courseCode) || it.courses.isEmpty()) }
+                    trySend(Result.success(tutors))
+                }
+            }
+        awaitClose { registration.remove() }
+    }
 
     open suspend fun getTutorProfile(tutorId: String): Result<TutorProfile?> {
         return try {
@@ -32,7 +52,7 @@ open class TutorRepository(private val db: FirebaseFirestore? = null) {
             val snapshot = safeDb.collection("tutors").get().await()
             val tutors = snapshot.documents.mapNotNull { doc ->
                 doc.data?.let { TutorProfile.fromMap(it) }
-            }.filter { it.courses.contains(courseCode) || it.courses.isEmpty() }
+            }.filter { (it.status == "ACTIVE") && (it.courses.contains(courseCode) || it.courses.isEmpty()) }
 
             if (tutors.isEmpty()) {
                 val defaults = listOf(

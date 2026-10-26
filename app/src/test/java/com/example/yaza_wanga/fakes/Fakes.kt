@@ -14,7 +14,10 @@ import com.example.yaza_wanga.data.repository.EnrollmentRepository
 import com.example.yaza_wanga.data.repository.MaterialRepository
 import com.example.yaza_wanga.data.repository.SessionRepository
 import com.example.yaza_wanga.data.repository.TutorRepository
+import com.example.yaza_wanga.data.repository.UserRepository
 import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 class FakeAuthRepository : AuthRepository(auth = null, db = null) {
     val users = mutableMapOf<String, User>()
@@ -99,6 +102,9 @@ class FakeAuthRepository : AuthRepository(auth = null, db = null) {
 class FakeCourseRepository : CourseRepository(db = null) {
     val courses = mutableMapOf<String, Course>()
 
+    override fun observeCourses(): Flow<Result<List<Course>>> =
+        flowOf(Result.success(courses.values.toList()))
+
     override suspend fun getCourses(): Result<List<Course>> {
         return Result.success(courses.values.toList())
     }
@@ -115,6 +121,9 @@ class FakeCourseRepository : CourseRepository(db = null) {
 
 class FakeEnrollmentRepository : EnrollmentRepository(db = null) {
     val enrollments = mutableListOf<Enrollment>()
+
+    override fun observeEnrollmentsForStudent(studentId: String): Flow<Result<List<Enrollment>>> =
+        flowOf(Result.success(enrollments.filter { it.studentId == studentId && it.status == "ACTIVE" }))
 
     override suspend fun getEnrollmentsForStudent(studentId: String): Result<List<Enrollment>> {
         val list = enrollments.filter { it.studentId == studentId && it.status == "ACTIVE" }
@@ -143,6 +152,9 @@ class FakeEnrollmentRepository : EnrollmentRepository(db = null) {
 class FakeSessionRepository : SessionRepository(db = null) {
     val sessions = mutableListOf<Session>()
 
+    override fun observeSessions(): Flow<Result<List<Session>>> =
+        flowOf(Result.success(sessions.toList()))
+
     override suspend fun getSessions(): Result<List<Session>> {
         return Result.success(sessions.toList())
     }
@@ -156,8 +168,18 @@ class FakeSessionRepository : SessionRepository(db = null) {
 class FakeMaterialRepository : MaterialRepository(db = null) {
     val materials = mutableListOf<Material>()
 
+    override fun observeMaterials(courseCode: String): Flow<Result<List<Material>>> =
+        flowOf(Result.success(materials.filter { it.courseCode == courseCode }))
+
+    override fun observeAllMaterials(): Flow<Result<List<Material>>> =
+        flowOf(Result.success(materials.toList()))
+
     override suspend fun getMaterials(courseCode: String): Result<List<Material>> {
         return Result.success(materials.filter { it.courseCode == courseCode })
+    }
+
+    override suspend fun getAllMaterials(): Result<List<Material>> {
+        return Result.success(materials.toList())
     }
 
     override suspend fun uploadMaterial(material: Material): Result<Unit> {
@@ -169,7 +191,37 @@ class FakeMaterialRepository : MaterialRepository(db = null) {
 class FakeTutorRepository : TutorRepository(db = null) {
     val tutors = mutableListOf<TutorProfile>()
 
+    override fun observeTutorsForCourse(courseCode: String): Flow<Result<List<TutorProfile>>> =
+        flowOf(Result.success(tutors.filter { it.courses.contains(courseCode) || it.courses.isEmpty() }))
+
     override suspend fun getTutorsForCourse(courseCode: String): Result<List<TutorProfile>> {
-        return Result.success(tutors.filter { it.courses.contains(courseCode) })
+        return Result.success(tutors.filter { it.courses.contains(courseCode) || it.courses.isEmpty() })
+    }
+}
+
+class FakeUserRepository : UserRepository(db = null) {
+    val users = mutableMapOf<String, User>()
+
+    override fun observeUsers(): Flow<Result<List<User>>> =
+        flowOf(Result.success(users.values.toList()))
+
+    override suspend fun getUsers(): Result<List<User>> {
+        return Result.success(users.values.toList())
+    }
+
+    override suspend fun getUser(uid: String): Result<User?> {
+        return Result.success(users[uid])
+    }
+
+    override suspend fun updateUser(user: User): Result<Unit> {
+        users[user.uid] = user
+        return Result.success(Unit)
+    }
+
+    override suspend fun updateUserStatus(uid: String, status: UserStatus): Result<Unit> {
+        users[uid]?.let {
+            users[uid] = it.copy(status = status)
+        }
+        return Result.success(Unit)
     }
 }

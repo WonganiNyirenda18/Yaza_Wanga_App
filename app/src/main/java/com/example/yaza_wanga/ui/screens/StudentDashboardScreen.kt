@@ -3,7 +3,6 @@ package com.example.yaza_wanga.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -23,37 +22,29 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.yaza_wanga.ui.components.YazaBottomBar
 import com.example.yaza_wanga.ui.components.YazaWangaLogo
-import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
+import com.example.yaza_wanga.ui.theme.*
 import com.example.yaza_wanga.ui.viewmodel.StudentDashboardViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentDashboardScreen(
-    viewModel: StudentDashboardViewModel = viewModel(),
     onNavigateHome: () -> Unit = {},
     onNavigateCourses: () -> Unit = {},
     onNavigateTutors: () -> Unit = {},
     onNavigateAlerts: () -> Unit = {},
     onNavigateProfile: () -> Unit = {},
-    onViewCourseClick: (String) -> Unit = {}
+    onViewCourseClick: (String) -> Unit = {},
+    viewModel: StudentDashboardViewModel = viewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val user = uiState.user
 
-    LaunchedEffect(Unit) {
-        viewModel.loadData()
-    }
-
-    val primaryBlue = Color(0xFF1D4ED8)
-    val lightBlueBg = Color(0xFFF0F4FF)
-    val textDark = Color(0xFF0F172A)
-    val textGray = Color(0xFF64748B)
-
-    val studentName = user?.name?.uppercase() ?: "STUDENT"
-    val studentIdDisplay = user?.studentId?.ifBlank { user.uid.take(8) } ?: "995358915"
+    val displayName = (user?.name?.ifBlank { user.email.substringBefore("@") } ?: user?.email?.substringBefore("@") ?: "").uppercase()
+    val studentIdDisplay = user?.studentId?.ifBlank { user.email.substringBefore("@") } ?: user?.email?.substringBefore("@") ?: ""
 
     Scaffold(
         bottomBar = {
@@ -63,7 +54,7 @@ fun StudentDashboardScreen(
                     Triple(1, "Courses", Icons.AutoMirrored.Filled.MenuBook),
                     Triple(2, "Tutors", Icons.Default.School),
                     Triple(3, "Alerts", Icons.Default.Notifications),
-                    Triple(4, "Profile", Icons.Default.Person)
+                    Triple(4, "Menu", Icons.Default.Menu)
                 ),
                 currentTab = 0,
                 onSelectTab = { index ->
@@ -129,7 +120,7 @@ fun StudentDashboardScreen(
                 )
             }
 
-            // Scrollable Content Column overlapping the blue header
+            // Scrollable Content Column connected/overlapping the blue header
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -137,7 +128,7 @@ fun StudentDashboardScreen(
                     .offset(y = (-48).dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Account & Stats Card using real data from ViewModel
+                // User Account & Stats Card
                 Card(
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -154,7 +145,7 @@ fun StudentDashboardScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = studentName,
+                                    text = displayName,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = textDark,
@@ -184,14 +175,14 @@ fun StudentDashboardScreen(
                         HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
                         Spacer(modifier = Modifier.height(14.dp))
 
-                        // Middle Stats Row (Real Enrolled Count)
+                        // Middle Stats Row
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "${uiState.enrolledCoursesCount}",
+                                    text = uiState.enrolledCourses.size.toString(),
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = textDark
@@ -212,7 +203,7 @@ fun StudentDashboardScreen(
 
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "4",
+                                    text = "0",
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = textDark
@@ -233,7 +224,7 @@ fun StudentDashboardScreen(
 
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "2",
+                                    text = "0",
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = textDark
@@ -248,18 +239,16 @@ fun StudentDashboardScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(14.dp))
-                        HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
-                        Spacer(modifier = Modifier.height(14.dp))
+                        if (uiState.enrolledCourses.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(14.dp))
+                            HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
+                            Spacer(modifier = Modifier.height(14.dp))
 
-                        // Real Enrolled Courses buttons / list or default buttons
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            val enrolledList = uiState.enrolledCourses
-                            if (enrolledList.isNotEmpty()) {
-                                enrolledList.take(2).forEach { enrollment ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                uiState.enrolledCourses.take(2).forEach { enrollment ->
                                     Button(
                                         onClick = { onViewCourseClick(enrollment.courseCode) },
                                         shape = RoundedCornerShape(10.dp),
@@ -285,31 +274,6 @@ fun StudentDashboardScreen(
                                         )
                                     }
                                 }
-                            } else {
-                                Button(
-                                    onClick = { onViewCourseClick("INF 212") },
-                                    shape = RoundedCornerShape(10.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEF2F2)),
-                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(40.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.MenuBook,
-                                        contentDescription = null,
-                                        tint = Color(0xFFDC2626),
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(
-                                        text = "Browse Courses",
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFFDC2626),
-                                        maxLines = 1
-                                    )
-                                }
                             }
                         }
                     }
@@ -326,13 +290,6 @@ fun StudentDashboardScreen(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = textDark
-                    )
-                    Text(
-                        text = "View All",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = primaryBlue,
-                        modifier = Modifier.clickable {}
                     )
                 }
 
@@ -392,84 +349,6 @@ fun StudentDashboardScreen(
                                         color = textDark,
                                         maxLines = 1,
                                         textAlign = TextAlign.Center
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Promotional / Feature Moving Banner Cards Carousel
-                Text(
-                    text = "Discover Yaza Wanga",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textDark
-                )
-
-                val banners = listOf(
-                    Triple(
-                        "Peer Mentorship Drive",
-                        "Connect with top-tier student tutors across Computing & Science faculties with verified grades.",
-                        primaryBlue
-                    ),
-                    Triple(
-                        "Mid-Semester Study Drive",
-                        "Peer-to-peer engagement is up 32% across Science & Engineering faculties ahead of week 8 milestone exams.",
-                        Color(0xFF0F766E)
-                    ),
-                    Triple(
-                        "Yaza Assist AI",
-                        "Instant 24/7 academic Q&A and syllabus guidance powered by your department's curriculum.",
-                        Color(0xFF7C3AED)
-                    )
-                )
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    banners.forEach { (title, subtitle, bannerColor) ->
-                        Card(
-                            shape = RoundedCornerShape(20.dp),
-                            colors = CardDefaults.cardColors(containerColor = bannerColor),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                            modifier = Modifier
-                                .width(280.dp)
-                                .height(140.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(16.dp),
-                                verticalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Surface(
-                                        shape = RoundedCornerShape(50.dp),
-                                        color = Color.White.copy(alpha = 0.2f)
-                                    ) {
-                                        Text(
-                                            text = "Featured",
-                                            fontSize = 10.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White,
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                                        )
-                                    }
-                                    Text(
-                                        text = title,
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White
-                                    )
-                                    Text(
-                                        text = subtitle,
-                                        fontSize = 11.sp,
-                                        color = Color.White.copy(alpha = 0.9f),
-                                        maxLines = 2
                                     )
                                 }
                             }

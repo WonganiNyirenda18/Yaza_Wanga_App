@@ -2,10 +2,30 @@ package com.example.yaza_wanga.data.repository
 
 import com.example.yaza_wanga.data.model.Course
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 open class CourseRepository(private val db: FirebaseFirestore? = null) {
     private val safeDb get() = db ?: FirebaseFirestore.getInstance()
+
+    open fun observeCourses(): Flow<Result<List<Course>>> = callbackFlow {
+        val registration = safeDb.collection("courses")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(Result.failure(error))
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    val courses = snapshot.documents.mapNotNull { doc ->
+                        doc.data?.let { Course.fromMap(it) }
+                    }
+                    trySend(Result.success(courses))
+                }
+            }
+        awaitClose { registration.remove() }
+    }
 
     open suspend fun getCourses(): Result<List<Course>> {
         return try {

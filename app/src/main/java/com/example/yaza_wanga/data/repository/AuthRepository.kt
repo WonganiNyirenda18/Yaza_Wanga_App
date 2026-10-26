@@ -10,6 +10,9 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.tasks.await
 import java.net.UnknownHostException
 
@@ -17,19 +20,67 @@ open class AuthRepository(
     private val auth: FirebaseAuth? = null,
     private val db: FirebaseFirestore? = null
 ) {
-    private val safeAuth get() = auth ?: FirebaseAuth.getInstance()
-    private val safeDb get() = db ?: FirebaseFirestore.getInstance()
+    private val safeAuth: FirebaseAuth?
+        get() = auth ?: try {
+            FirebaseAuth.getInstance()
+        } catch (_: Throwable) {
+            null
+        }
 
-    open val currentUser: FirebaseUser? get() = auth?.currentUser
+    private val safeDb: FirebaseFirestore?
+        get() = db ?: try {
+            FirebaseFirestore.getInstance()
+        } catch (_: Throwable) {
+            null
+        }
+
+    private val _currentUserFlow = MutableStateFlow<User?>(null)
+    open val currentUserFlow: StateFlow<User?> = _currentUserFlow.asStateFlow()
+
+    init {
+        val a = safeAuth
+        val d = safeDb
+        if (a != null && d != null) {
+            try {
+                a.addAuthStateListener { firebaseAuth ->
+                    val firebaseUser = firebaseAuth.currentUser
+                    if (firebaseUser != null) {
+                        d.collection("users").document(firebaseUser.uid)
+                            .addSnapshotListener { snapshot, _ ->
+                                val userMap = snapshot?.data
+                                val user = if (userMap != null) {
+                                    User.fromMap(userMap)
+                                } else {
+                                    User(
+                                        uid = firebaseUser.uid,
+                                        email = firebaseUser.email ?: "",
+                                        name = firebaseUser.displayName ?: firebaseUser.email?.substringBefore("@") ?: ""
+                                    )
+                                }
+                                _currentUserFlow.value = user
+                            }
+                    } else {
+                        _currentUserFlow.value = null
+                    }
+                }
+            } catch (_: Throwable) {
+                // Ignore in unit tests
+            }
+        }
+    }
+
+    open val currentUser: FirebaseUser? get() = safeAuth?.currentUser
 
     open suspend fun signIn(email: String, pass: String): Result<User> {
+        val a = safeAuth ?: return Result.failure(Exception("Invalid email or password"))
+        val d = safeDb ?: return Result.failure(Exception("Invalid email or password"))
         return try {
             val trimmedEmail = email.trim()
-            val authResult = safeAuth.signInWithEmailAndPassword(trimmedEmail, pass).await()
+            val authResult = a.signInWithEmailAndPassword(trimmedEmail, pass).await()
             val firebaseUser = authResult.user ?: return Result.failure(Exception("Invalid email or password"))
             val uid = firebaseUser.uid
 
-            val doc = safeDb.collection("users").document(uid).get().await()
+            val doc = d.collection("users").document(uid).get().await()
             val userMap = doc.data
             val user = if (userMap != null) {
                 User.fromMap(userMap)
@@ -38,10 +89,11 @@ open class AuthRepository(
             }
 
             if (user.status == UserStatus.SUSPENDED) {
-                safeAuth.signOut()
+                a.signOut()
                 return Result.failure(Exception("Your account has been suspended. Contact the administrator"))
             }
 
+            _currentUserFlow.value = user
             Result.success(user)
         } catch (e: Exception) {
             val message = when (e) {
@@ -72,9 +124,11 @@ open class AuthRepository(
         faculty: String? = null,
         studentId: String? = null
     ): Result<User> {
+        val a = safeAuth ?: return Result.failure(Exception("Sign up failed"))
+        val d = safeDb ?: return Result.failure(Exception("Sign up failed"))
         return try {
             val trimmedEmail = email.trim()
-            val authResult = safeAuth.createUserWithEmailAndPassword(trimmedEmail, pass).await()
+            val authResult = a.createUserWithEmailAndPassword(trimmedEmail, pass).await()
             val firebaseUser = authResult.user ?: return Result.failure(Exception("User UID is null"))
             val uid = firebaseUser.uid
 
@@ -91,7 +145,7 @@ open class AuthRepository(
                 createdAt = System.currentTimeMillis()
             )
 
-            safeDb.collection("users").document(uid).set(user.toMap()).await()
+            d.collection("users").document(uid).set(user.toMap()).await()
 
             try {
                 firebaseUser.sendEmailVerification().await()
@@ -99,6 +153,7 @@ open class AuthRepository(
                 // Ignore if offline
             }
 
+            _currentUserFlow.value = user
             Result.success(user)
         } catch (e: Exception) {
             val message = when (e) {
@@ -121,9 +176,10 @@ open class AuthRepository(
     }
 
     open suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
+        val a = safeAuth ?: return Result.failure(Exception("Failed to send password reset email"))
         return try {
             val trimmedEmail = email.trim()
-            safeAuth.sendPasswordResetEmail(trimmedEmail).await()
+            a.sendPasswordResetEmail(trimmedEmail).await()
             Result.success(Unit)
         } catch (e: Exception) {
             val message = when (e) {
@@ -143,19 +199,29 @@ open class AuthRepository(
     }
 
     open suspend fun fetchCurrentUser(): Result<User?> {
-        val firebaseUser = auth?.currentUser ?: safeAuth.currentUser ?: return Result.success(null)
+        val a = safeAuth ?: return Result.success(null)
+        val d = safeDb ?: return Result.success(null)
+        val firebaseUser = a.currentUser ?: return Result.success(null)
         return try {
-            val doc = safeDb.collection("users").document(firebaseUser.uid).get().await()
+            val doc = d.collection("users").document(firebaseUser.uid).get().await()
             val userMap = doc.data
             if (userMap != null) {
                 val user = User.fromMap(userMap)
                 if (user.status == UserStatus.SUSPENDED) {
-                    safeAuth.signOut()
+                    a.signOut()
+                    _currentUserFlow.value = null
                     return Result.failure(Exception("Your account has been suspended. Contact the administrator"))
                 }
+                _currentUserFlow.value = user
                 Result.success(user)
             } else {
-                Result.success(User(uid = firebaseUser.uid, email = firebaseUser.email ?: "", name = firebaseUser.displayName ?: ""))
+                val fallbackUser = User(
+                    uid = firebaseUser.uid,
+                    email = firebaseUser.email ?: "",
+                    name = firebaseUser.displayName ?: firebaseUser.email?.substringBefore("@") ?: ""
+                )
+                _currentUserFlow.value = fallbackUser
+                Result.success(fallbackUser)
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -163,6 +229,7 @@ open class AuthRepository(
     }
 
     open fun signOut() {
-        auth?.signOut() ?: safeAuth.signOut()
+        safeAuth?.signOut()
+        _currentUserFlow.value = null
     }
 }

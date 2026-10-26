@@ -1,3 +1,33 @@
 <resources>
-    <string name="app_name">Yaza_Wanga</string>
+    <string name="app_name">Yaza Wanga</string>
+    <string name="student_home">Student Home</string>
+    <string name="tutor_overview">Tutor Overview</string>
+    <string name="good_morning_tutor">Good morning, Tutor %1$s</string>
+    <string name="manage_account">Manage Account</string>
+    <string name="enrolled_courses">Enrolled Courses</string>
+    <string name="active_tutors">Active Tutors</string>
+    <string name="upcoming">Upcoming</string>
+    <string name="browse_courses">Browse Courses</string>
+    <string name="quick_actions">Quick Actions</string>
+    <string name="view_all">View All</string>
+    <string name="discover_yaza_wanga">Discover Yaza Wanga</string>
+    <string name="courses">Courses</string>
+    <string name="search_courses_placeholder">Search Courses by code or name</string>
+    <string name="browse_course_directory">Browse Course Directory</string>
+    <string name="no_courses_found">No courses found</string>
+    <string name="no_courses_found_dept">No courses found in this department</string>
+    <string name="view_details">View Details</string>
+    <string name="enroll_course">Enroll Course</string>
+    <string name="enrolled_in_course">Enrolled in Course</string>
+    <string name="contact_tutor">Contact Tutor</string>
+    <string name="enroll_to_contact">Enroll to Contact</string>
+    <string name="registered_tutors">Registered Tutors</string>
+    <string name="create_tutoring_session">Create Tutoring Session</string>
+    <string name="upload_course_material">Upload Course Material</string>
+    <string name="publish_material">PUBLISH MATERIAL</string>
+    <string name="my_students">My Students</string>
+    <string name="admin_overview">Overview</string>
+    <string name="users_and_vetting">Users &amp; Vetting</string>
+    <string name="create_course">Create Course</string>
+    <string name="save_as_draft">Save as Draft</string>
 </resources>

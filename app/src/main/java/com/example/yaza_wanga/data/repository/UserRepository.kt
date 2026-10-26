@@ -3,10 +3,30 @@ package com.example.yaza_wanga.data.repository
 import com.example.yaza_wanga.data.model.User
 import com.example.yaza_wanga.data.model.UserStatus
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 open class UserRepository(private val db: FirebaseFirestore? = null) {
     private val safeDb get() = db ?: FirebaseFirestore.getInstance()
+
+    open fun observeUsers(): Flow<Result<List<User>>> = callbackFlow {
+        val registration = safeDb.collection("users")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(Result.failure(error))
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    val users = snapshot.documents.mapNotNull { doc ->
+                        doc.data?.let { User.fromMap(it) }
+                    }
+                    trySend(Result.success(users))
+                }
+            }
+        awaitClose { registration.remove() }
+    }
 
     open suspend fun getUsers(): Result<List<User>> {
         return try {

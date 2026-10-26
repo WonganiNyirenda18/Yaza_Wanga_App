@@ -2,10 +2,32 @@ package com.example.yaza_wanga.data.repository
 
 import com.example.yaza_wanga.data.model.Enrollment
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 open class EnrollmentRepository(private val db: FirebaseFirestore? = null) {
     private val safeDb get() = db ?: FirebaseFirestore.getInstance()
+
+    open fun observeEnrollmentsForStudent(studentId: String): Flow<Result<List<Enrollment>>> = callbackFlow {
+        val registration = safeDb.collection("enrollments")
+            .whereEqualTo("studentId", studentId)
+            .whereEqualTo("status", "ACTIVE")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(Result.failure(error))
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    val enrollments = snapshot.documents.mapNotNull { doc ->
+                        doc.data?.let { Enrollment.fromMap(it) }
+                    }
+                    trySend(Result.success(enrollments))
+                }
+            }
+        awaitClose { registration.remove() }
+    }
 
     open suspend fun getEnrollmentsForStudent(studentId: String): Result<List<Enrollment>> {
         return try {
@@ -28,6 +50,7 @@ open class EnrollmentRepository(private val db: FirebaseFirestore? = null) {
             val existing = safeDb.collection("enrollments")
                 .whereEqualTo("studentId", enrollment.studentId)
                 .whereEqualTo("courseCode", enrollment.courseCode)
+                .whereEqualTo("status", "ACTIVE")
                 .get()
                 .await()
 

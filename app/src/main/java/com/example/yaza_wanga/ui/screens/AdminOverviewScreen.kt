@@ -22,8 +22,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.yaza_wanga.ui.components.YazaWangaLogo
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
+import com.example.yaza_wanga.ui.viewmodel.AdminOverviewViewModel
 
 @Composable
 fun AdminBottomBar(
@@ -93,8 +95,15 @@ fun AdminBottomBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminOverviewScreen(
+    viewModel: AdminOverviewViewModel = viewModel(),
     onNavigateTab: (Int) -> Unit = {}
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadData()
+    }
+
     val primaryBlue = Color(0xFF1D4ED8)
     val lightBlueBg = Color(0xFFF0F4FF)
     val textDark = Color(0xFF0F172A)
@@ -155,13 +164,13 @@ fun AdminOverviewScreen(
             // Good morning & "Admin"
             Column {
                 Text(
-                    text = "Good morning, ...",
+                    text = "Good morning, Admin",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = textDark
                 )
                 Text(
-                    text = "Admin",
+                    text = "Institutional Governance Dashboard",
                     fontSize = 12.sp,
                     color = textGray
                 )
@@ -183,7 +192,7 @@ fun AdminOverviewScreen(
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Icon(Icons.Default.PersonAdd, null, tint = primaryBlue, modifier = Modifier.size(14.dp))
-                        Text("3 Tutor Approvals", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
+                        Text("Tutor Approvals", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
                         Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(primaryBlue))
                     }
                 }
@@ -199,20 +208,20 @@ fun AdminOverviewScreen(
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Icon(Icons.Default.Flag, null, tint = Color(0xFFDC2626), modifier = Modifier.size(14.dp))
-                        Text("2 Flagged Notes", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
+                        Text("${uiState.materialsCount} Materials", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
                         Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(Color(0xFFDC2626)))
                     }
                 }
             }
 
-            // Stats 2x2 Grid (Total Users, Active Courses, No. Students, No. of Tutors)
+            // Stats 2x2 Grid using real numbers from ViewModel
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     // Total Users
                     AdminStatCard(
                         title = "Total Users",
-                        value = "1,420",
-                        subtext = "",
+                        value = "${uiState.usersCount}",
+                        subtext = "Registered platform accounts",
                         icon = Icons.Default.Group,
                         modifier = Modifier.weight(1f)
                     )
@@ -220,8 +229,8 @@ fun AdminOverviewScreen(
                     // Active Courses
                     AdminStatCard(
                         title = "Active Courses",
-                        value = "48",
-                        subtext = "",
+                        value = "${uiState.coursesCount}",
+                        subtext = "Syllabus modules",
                         icon = Icons.Default.School,
                         modifier = Modifier.weight(1f)
                     )
@@ -231,7 +240,7 @@ fun AdminOverviewScreen(
                     // No. Students
                     AdminStatCard(
                         title = "No. Students",
-                        value = "840",
+                        value = "${if (uiState.studentsCount > 0) uiState.studentsCount else uiState.usersCount}",
                         badge = "Active",
                         badgeColor = primaryBlue,
                         subtext = "Enrolled learners",
@@ -242,7 +251,7 @@ fun AdminOverviewScreen(
                     // No. of Tutors
                     AdminStatCard(
                         title = "No. of Tutors",
-                        value = "580",
+                        value = "${uiState.tutorsCount}",
                         badge = "Verified",
                         badgeColor = Color(0xFF16A34A),
                         subtext = "Peer mentors",

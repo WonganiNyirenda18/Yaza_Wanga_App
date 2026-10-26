@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.yaza_wanga.ui.AppOptions
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
 import com.example.yaza_wanga.ui.viewmodel.CourseDirectoryViewModel
 
@@ -40,11 +41,10 @@ fun CourseDirectoryScreen(
     onViewDetailsClick: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var searchQuery by remember { mutableStateOf("") }
-    var selectedDepartment by remember { mutableStateOf("All Departments") }
+    val searchQuery = uiState.searchQuery
+    val selectedDepartment = uiState.selectedDepartment
 
-    val departments = listOf("All Departments", "Computer Science & IT", "Mathematics", "Engineering", "Business")
-    val quickChips = listOf("INF 212", "Database Systems", "STA 211", "Software Eng", "Calculus")
+    val departments = AppOptions.DEPARTMENTS
 
     val primaryBlue = Color(0xFF1D4ED8)
     val containerBg = Color(0xFFF8FAFC)
@@ -155,7 +155,7 @@ fun CourseDirectoryScreen(
             // Search Bar
             OutlinedTextField(
                 value = searchQuery,
-                onValueChange = { searchQuery = it },
+                onValueChange = { viewModel.setSearchQuery(it) },
                 placeholder = {
                     Text(
                         text = "Search Courses by code or name",
@@ -171,6 +171,13 @@ fun CourseDirectoryScreen(
                         modifier = Modifier.size(20.dp)
                     )
                 },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { viewModel.setSearchQuery("") }) {
+                            Icon(Icons.Default.Close, null, tint = textGray)
+                        }
+                    }
+                },
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -184,34 +191,6 @@ fun CourseDirectoryScreen(
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
-
-            // Quick horizontal filter chips
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                quickChips.forEach { chip ->
-                    Surface(
-                        shape = RoundedCornerShape(50.dp),
-                        color = Color.White,
-                        modifier = Modifier
-                            .height(34.dp)
-                            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(50.dp))
-                            .clickable { searchQuery = chip }
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(Icons.Default.Schedule, null, tint = textGray, modifier = Modifier.size(12.dp))
-                            Text(chip, fontSize = 12.sp, color = textDark, fontWeight = FontWeight.Medium)
-                        }
-                    }
-                }
-            }
 
             // Department filter chips
             Row(
@@ -227,7 +206,7 @@ fun CourseDirectoryScreen(
                         color = if (selected) primaryBlue else Color.White,
                         modifier = Modifier
                             .height(38.dp)
-                            .clickable { selectedDepartment = dept },
+                            .clickable { viewModel.setDepartment(dept) },
                         border = BorderStroke(1.dp, if (selected) primaryBlue else Color(0xFFE2E8F0))
                     ) {
                         Box(

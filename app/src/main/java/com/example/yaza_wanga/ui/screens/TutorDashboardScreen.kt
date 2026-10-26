@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.filled.NoteAdd
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -24,12 +23,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.yaza_wanga.ui.components.YazaWangaLogo
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
+import com.example.yaza_wanga.ui.viewmodel.TutorDashboardViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TutorDashboardScreen(
+    viewModel: TutorDashboardViewModel = viewModel(),
     onNavigateDashboard: () -> Unit = {},
     onNavigateSessions: () -> Unit = {},
     onNavigateStudents: () -> Unit = {},
@@ -38,6 +40,12 @@ fun TutorDashboardScreen(
     onStartCall: (String) -> Unit = {},
     onViewStudentDetails: (String) -> Unit = {}
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+    val user = uiState.user
+
+    val tutorName = user?.name?.ifBlank { user.email.substringBefore("@") } ?: user?.email?.substringBefore("@") ?: "Tutor"
+    val greeting = "Good morning, Tutor $tutorName"
+
     val primaryBlue = Color(0xFF1D4ED8)
     val lightBlueBg = Color(0xFFF0F4FF)
     val textDark = Color(0xFF0F172A)
@@ -157,15 +165,15 @@ fun TutorDashboardScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Normal text greeting on the screen (Card removed)
+            // Real text greeting on the screen
             Text(
-                text = "Good morning, Tutor Wongani",
+                text = greeting,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = textDark
             )
 
-            // Summary Stats 2x2 Grid
+            // Summary Stats 2x2 Grid (Real Stats from ViewModel)
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -174,14 +182,14 @@ fun TutorDashboardScreen(
                     // Active Students
                     TutorStatCard(
                         title = "Active Students",
-                        value = "18",
+                        value = "${uiState.activeStudentsCount}",
                         modifier = Modifier.weight(1f)
                     )
 
                     // Courses Teaching
                     TutorStatCard(
                         title = "Courses Teaching",
-                        value = "3 Courses",
+                        value = "${uiState.coursesTeachingCount} Courses",
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -193,14 +201,14 @@ fun TutorDashboardScreen(
                     // Today's Sessions
                     TutorStatCard(
                         title = "Today's Sessions",
-                        value = "2 Active",
+                        value = "${uiState.todaysSessionsCount} Active",
                         modifier = Modifier.weight(1f)
                     )
 
                     // Tutor Rating
                     TutorStatCard(
                         title = "Tutor Rating",
-                        value = "4.9 ★",
+                        value = "${uiState.tutorRating} ★",
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -292,7 +300,7 @@ fun TutorDashboardScreen(
                                 color = Color.White.copy(alpha = 0.9f)
                             )
                             Text(
-                                text = "Wongani Nyirenda",
+                                text = tutorName,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
@@ -312,7 +320,7 @@ fun TutorDashboardScreen(
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Button(
-                            onClick = { onStartCall("Wongani Nyirenda") },
+                            onClick = { onStartCall(tutorName) },
                             shape = RoundedCornerShape(10.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                             modifier = Modifier
@@ -354,7 +362,7 @@ fun TutorDashboardScreen(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    modifier = Modifier.clickable {}
+                    modifier = Modifier.clickable { onNavigateSessions() }
                 ) {
                     Text("View All", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
                     Icon(Icons.Default.ChevronRight, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
@@ -433,102 +441,6 @@ fun TutorDashboardScreen(
                             Spacer(modifier = Modifier.width(4.dp))
                             Text("Chat", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
                         }
-                    }
-                }
-            }
-
-            // Student Progress & Tracking Section Header
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text("Student Progress & Tracking", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textDark)
-                    Text("Mentorship syllabus completion & milestones", fontSize = 12.sp, color = textGray)
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    modifier = Modifier.clickable {}
-                ) {
-                    Text("View All", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                    Icon(Icons.Default.ChevronRight, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
-                }
-            }
-
-            // Tracking Card 1
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = "Wongani Nyirenda",
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = textDark,
-                                modifier = Modifier.clickable { onViewStudentDetails("Wongani Nyirenda") }
-                            )
-                            Text("INF 212 • Web Development", fontSize = 12.sp, color = textGray)
-                        }
-
-                        Surface(
-                            shape = RoundedCornerShape(50.dp),
-                            color = Color(0xFFE6F4EA)
-                        ) {
-                            Text(
-                                text = "Quiz: 88%",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF137333),
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Syllabus Covered", fontSize = 11.sp, color = textGray)
-                        Text("75% (9/12 topics)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = textDark)
-                    }
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    LinearProgressIndicator(
-                        progress = { 0.75f },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp)),
-                        color = primaryBlue,
-                        trackColor = Color(0xFFE2E8F0)
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Next: DOM Manipulation & APIs", fontSize = 11.sp, color = textGray)
-                        Text("Log Notes", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = primaryBlue, modifier = Modifier.clickable {})
                     }
                 }
             }

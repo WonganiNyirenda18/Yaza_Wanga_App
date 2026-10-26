@@ -23,16 +23,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.yaza_wanga.ui.AppOptions
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
+import com.example.yaza_wanga.ui.viewmodel.AdminCoursesViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminCoursesScreen(
+    viewModel: AdminCoursesViewModel = viewModel(),
     onNavigateTab: (Int) -> Unit = {},
     onNewCourseClick: () -> Unit = {}
 ) {
+    val uiState by viewModel.uiState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
-    var selectedFaculty by remember { mutableStateOf("All Faculties") }
+    var selectedFaculty by remember { mutableStateOf("All Departments") }
 
     val primaryBlue = Color(0xFF1D4ED8)
     val lightBlueBg = Color(0xFFF0F4FF)
@@ -40,7 +45,16 @@ fun AdminCoursesScreen(
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
 
-    val faculties = listOf("All Faculties", "Computing & IT", "Mathematics & Stats", "Engineering")
+    val faculties = AppOptions.DEPARTMENTS
+
+    val query = searchQuery.trim()
+    val filteredCourses = uiState.courses.filter { course ->
+        val matchesSearch = query.isEmpty() ||
+            course.code.contains(query, ignoreCase = true) ||
+            course.title.contains(query, ignoreCase = true)
+        val matchesFaculty = selectedFaculty == "All Departments" || course.department.equals(selectedFaculty, ignoreCase = true)
+        matchesSearch && matchesFaculty
+    }
 
     Scaffold(
         topBar = {
@@ -73,7 +87,7 @@ fun AdminCoursesScreen(
                     },
                     actions = {
                         IconButton(
-                            onClick = {},
+                            onClick = { viewModel.loadCourses() },
                             modifier = Modifier
                                 .padding(end = 8.dp)
                                 .size(38.dp)
@@ -81,8 +95,8 @@ fun AdminCoursesScreen(
                                 .background(primaryBlue)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "Profile",
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = "Refresh",
                                 tint = Color.White,
                                 modifier = Modifier.size(20.dp)
                             )
@@ -106,7 +120,7 @@ fun AdminCoursesScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Title & New Course Action (Stacked Vertically)
+            // Title & New Course Action
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -143,7 +157,7 @@ fun AdminCoursesScreen(
                     Column(modifier = Modifier.padding(10.dp)) {
                         Icon(Icons.AutoMirrored.Filled.MenuBook, null, tint = primaryBlue, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text("48", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = textDark)
+                        Text("${uiState.courses.size}", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = textDark)
                         Text("Active Courses", fontSize = 10.sp, color = textGray)
                     }
                 }
@@ -156,7 +170,7 @@ fun AdminCoursesScreen(
                     Column(modifier = Modifier.padding(10.dp)) {
                         Icon(Icons.Default.Business, null, tint = primaryBlue, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text("6", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = textDark)
+                        Text("${AppOptions.DEPARTMENTS.size - 1}", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = textDark)
                         Text("Faculties", fontSize = 10.sp, color = textGray)
                     }
                 }
@@ -181,6 +195,7 @@ fun AdminCoursesScreen(
                 onValueChange = { searchQuery = it },
                 placeholder = { Text("Search course code or name...", color = textGray, fontSize = 13.sp) },
                 leadingIcon = { Icon(Icons.Default.Search, null, tint = textGray, modifier = Modifier.size(20.dp)) },
+                trailingIcon = { if (searchQuery.isNotEmpty()) IconButton(onClick = { searchQuery = "" }) { Icon(Icons.Default.Close, null, tint = textGray) } },
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -227,140 +242,53 @@ fun AdminCoursesScreen(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("Curriculum Catalog", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textDark)
                     Surface(shape = RoundedCornerShape(50.dp), color = lightBlueBg) {
-                        Text("4 Courses", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = primaryBlue, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
-                    }
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Icon(Icons.Default.Tune, null, tint = textGray, modifier = Modifier.size(14.dp))
-                    Text("Semesters", fontSize = 12.sp, color = textGray)
-                }
-            }
-
-            // Course Card 1 (INF 212)
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Surface(shape = RoundedCornerShape(6.dp), color = Color(0xFFE0ECFF)) {
-                                Text("INF 212", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
-                            }
-                            Surface(shape = RoundedCornerShape(6.dp), color = containerBg) {
-                                Text("Sem 1", fontSize = 11.sp, color = textGray, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
-                            }
-                            Surface(shape = RoundedCornerShape(6.dp), color = Color(0xFFE6F4EA)) {
-                                Text("• Active", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF137333), modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text("Introduction to Web Development", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textDark)
-                    Text("Computer Science & IT", fontSize = 12.sp, color = textGray)
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text("👥 5 Tutors • 📖 12 Modules • ⭐ 4.9 (48)", fontSize = 11.sp, color = textGray)
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = {}, shape = RoundedCornerShape(10.dp), colors = ButtonDefaults.buttonColors(containerColor = lightBlueBg), modifier = Modifier.weight(1f).height(38.dp)) {
-                            Text("Manage Tutors (5)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                        }
-
-                        Button(onClick = {}, shape = RoundedCornerShape(10.dp), colors = ButtonDefaults.buttonColors(containerColor = lightBlueBg), modifier = Modifier.weight(1f).height(38.dp)) {
-                            Text("Edit Syllabus", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                        }
+                        Text("${filteredCourses.size} Courses", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = primaryBlue, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                     }
                 }
             }
 
-            // Course Card 2 (MAT 201 - Tutor Shortage)
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Surface(shape = RoundedCornerShape(6.dp), color = Color(0xFFE0ECFF)) {
-                                Text("MAT 201", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
-                            }
-                            Surface(shape = RoundedCornerShape(6.dp), color = containerBg) {
-                                Text("Sem 1", fontSize = 11.sp, color = textGray, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
-                            }
-                            Surface(shape = RoundedCornerShape(6.dp), color = Color(0xFFFEF2F2)) {
-                                Text("⚠ Tutor Shortage", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626), modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text("Multivariable Calculus", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textDark)
-                    Text("Department of Mathematics", fontSize = 12.sp, color = textGray)
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Surface(shape = RoundedCornerShape(10.dp), color = Color(0xFFFEF2F2), modifier = Modifier.fillMaxWidth()) {
-                        Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Icon(Icons.Default.PersonOff, null, tint = Color(0xFFDC2626), modifier = Modifier.size(16.dp))
-                                Column {
-                                    Text("Needs 1 more tutor", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = textDark)
-                                    Text("2 pending student requests", fontSize = 11.sp, color = textGray)
+            if (uiState.isLoading) {
+                Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = primaryBlue)
+                }
+            } else if (filteredCourses.isEmpty()) {
+                Box(modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp), contentAlignment = Alignment.Center) {
+                    Text("No courses found.", fontSize = 13.sp, color = textGray)
+                }
+            } else {
+                filteredCourses.forEach { course ->
+                    Card(
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Surface(shape = RoundedCornerShape(6.dp), color = Color(0xFFE0ECFF)) {
+                                        Text(course.code, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                    }
+                                    Surface(shape = RoundedCornerShape(6.dp), color = containerBg) {
+                                        Text(course.semester.ifBlank { "Sem 1" }, fontSize = 11.sp, color = textGray, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                    }
+                                    Surface(shape = RoundedCornerShape(6.dp), color = if (course.status == "DRAFT") Color(0xFFFEF2F2) else Color(0xFFE6F4EA)) {
+                                        Text("• ${course.status}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = if (course.status == "DRAFT") Color(0xFFDC2626) else Color(0xFF137333), modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                    }
                                 }
                             }
-                            Text("High Priority", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(course.title, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textDark)
+                            Text(course.department, fontSize = 12.sp, color = textGray)
+
+                            if (course.description.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(course.description, fontSize = 12.sp, color = textGray, maxLines = 2)
+                            }
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = {}, shape = RoundedCornerShape(10.dp), colors = ButtonDefaults.buttonColors(containerColor = primaryBlue), modifier = Modifier.weight(1.3f).height(38.dp)) {
-                            Icon(Icons.Default.PersonAdd, null, tint = Color.White, modifier = Modifier.size(14.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Assign Tutor", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                        }
-
-                        Button(onClick = {}, shape = RoundedCornerShape(10.dp), colors = ButtonDefaults.buttonColors(containerColor = lightBlueBg), modifier = Modifier.weight(0.7f).height(38.dp)) {
-                            Text("Details", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                        }
-                    }
-                }
-            }
-
-            // Department Hierarchy Banner
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = lightBlueBg,
-                modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFDBEAFE), RoundedCornerShape(16.dp))
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Box(modifier = Modifier.size(36.dp).clip(CircleShape).background(primaryBlue), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.AccountTree, null, tint = Color.White, modifier = Modifier.size(18.dp))
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Department Hierarchy", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textDark)
-                        Text("Faculty Coordinator Directory & Structure", fontSize = 11.sp, color = textGray)
-                    }
-                    Icon(Icons.Default.ChevronRight, null, tint = primaryBlue, modifier = Modifier.size(20.dp))
                 }
             }
 

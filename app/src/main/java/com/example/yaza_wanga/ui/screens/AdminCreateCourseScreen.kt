@@ -1,13 +1,11 @@
 package com.example.yaza_wanga.ui.screens
 
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -22,11 +20,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.yaza_wanga.ui.AppOptions
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
 import com.example.yaza_wanga.ui.viewmodel.AdminCreateCourseViewModel
 
@@ -53,13 +51,7 @@ fun AdminCreateCourseScreen(
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
 
-    val faculties = listOf(
-        Triple("Computer Science & IT", "Faculty of Information Sciences", Icons.Default.Computer),
-        Triple("Mathematics & Statistics", "Faculty of Physical Sciences", Icons.Default.Calculate),
-        Triple("Electrical & Electronics Engineering", "School of Engineering", Icons.Default.Bolt),
-        Triple("Business Information Systems", "Faculty of Commerce", Icons.Default.Business),
-        Triple("Physics & Applied Sciences", "Faculty of Physical Sciences", Icons.Default.Science)
-    )
+    val faculties = AppOptions.DEPARTMENTS.filter { it != "All Departments" }
 
     Scaffold(
         topBar = {
@@ -246,7 +238,7 @@ fun AdminCreateCourseScreen(
                         modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
                     ) {
                         Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            faculties.forEach { (title, subtitle, icon) ->
+                            faculties.forEach { title ->
                                 val selected = selectedFaculty == title
                                 Surface(
                                     shape = RoundedCornerShape(12.dp),
@@ -262,11 +254,8 @@ fun AdminCreateCourseScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                            Icon(icon, null, tint = primaryBlue, modifier = Modifier.size(20.dp))
-                                            Column {
-                                                Text(title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
-                                                Text(subtitle, fontSize = 11.sp, color = textGray)
-                                            }
+                                            Icon(Icons.Default.School, null, tint = primaryBlue, modifier = Modifier.size(20.dp))
+                                            Text(title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
                                         }
                                         if (selected) {
                                             Icon(Icons.Default.CheckCircle, null, tint = primaryBlue, modifier = Modifier.size(18.dp))

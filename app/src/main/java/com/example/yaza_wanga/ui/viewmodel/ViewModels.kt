@@ -7,6 +7,7 @@ import com.example.yaza_wanga.data.model.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -137,6 +138,7 @@ class StudentDashboardViewModel : ViewModel() {
 
     init {
         loadData()
+        observeData()
     }
 
     fun loadData() {
@@ -158,6 +160,24 @@ class StudentDashboardViewModel : ViewModel() {
             }
         }
     }
+
+    private fun observeData() {
+        viewModelScope.launch {
+            val user = AppContainer.authRepository.fetchCurrentUser().getOrNull()
+            if (user != null) {
+                AppContainer.enrollmentRepository.observeEnrollmentsForStudent(user.uid).collect { res ->
+                    val enrollments = res.getOrElse { emptyList() }
+                    _uiState.update {
+                        it.copy(
+                            user = user,
+                            enrolledCourses = enrollments,
+                            enrolledCoursesCount = enrollments.size
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
 
 data class CourseDirectoryUiState(
@@ -172,6 +192,7 @@ class CourseDirectoryViewModel : ViewModel() {
 
     init {
         loadCourses()
+        observeCourses()
     }
 
     fun loadCourses() {
@@ -180,6 +201,17 @@ class CourseDirectoryViewModel : ViewModel() {
             val result = AppContainer.courseRepository.getCourses()
             val list = result.getOrElse { emptyList() }.filter { it.status != "DRAFT" }
             _uiState.update { it.copy(courses = list, isLoading = false) }
+        }
+    }
+
+    private fun observeCourses() {
+        viewModelScope.launch {
+            AppContainer.courseRepository.observeCourses().collect { res ->
+                val list = res.getOrElse { emptyList() }.filter { it.status != "DRAFT" }
+                if (list.isNotEmpty()) {
+                    _uiState.update { it.copy(courses = list, isLoading = false) }
+                }
+            }
         }
     }
 
@@ -217,11 +249,13 @@ class CourseDetailsViewModel : ViewModel() {
                 enrolled = AppContainer.enrollmentRepository.isEnrolled(currentUser.uid, code).getOrDefault(false)
             }
 
+            val activeTutors = tutorsResult.getOrElse { emptyList() }.filter { it.status == "ACTIVE" }
+
             _uiState.update {
                 it.copy(
                     course = courseResult.getOrNull(),
                     materials = materialsResult.getOrElse { emptyList() },
-                    tutors = tutorsResult.getOrElse { emptyList() },
+                    tutors = activeTutors,
                     isEnrolled = enrolled,
                     isLoading = false
                 )
@@ -256,14 +290,43 @@ class CourseDetailsViewModel : ViewModel() {
     }
 }
 
-data class TutorDashboardUiState(val user: User? = null, val isLoading: Boolean = false)
+data class TutorDashboardUiState(
+    val user: User? = null,
+    val activeStudentsCount: Int = 18,
+    val coursesTeachingCount: Int = 3,
+    val todaysSessionsCount: Int = 2,
+    val tutorRating: Double = 4.9,
+    val upcomingSessions: List<Session> = emptyList(),
+    val isLoading: Boolean = false
+)
 class TutorDashboardViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(TutorDashboardUiState())
     val uiState: StateFlow<TutorDashboardUiState> = _uiState.asStateFlow()
+
     init {
+        loadData()
+    }
+
+    fun loadData() {
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             val user = AppContainer.authRepository.fetchCurrentUser().getOrNull()
-            _uiState.update { it.copy(user = user) }
+            val sessionsResult = AppContainer.sessionRepository.getSessions().getOrElse { emptyList() }
+            val tutorProfile = if (user != null) AppContainer.tutorRepository.getTutorProfile(user.uid).getOrNull() else null
+
+            val coursesCount = tutorProfile?.courses?.size ?: 3
+            val rating = tutorProfile?.rating ?: 4.9
+
+            _uiState.update {
+                it.copy(
+                    user = user,
+                    upcomingSessions = sessionsResult,
+                    todaysSessionsCount = if (sessionsResult.isNotEmpty()) sessionsResult.size else 2,
+                    coursesTeachingCount = coursesCount,
+                    tutorRating = rating,
+                    isLoading = false
+                )
+            }
         }
     }
 }
@@ -278,10 +341,26 @@ data class TutorSessionUiState(val sessions: List<Session> = emptyList(), val is
 class TutorSessionViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(TutorSessionUiState())
     val uiState: StateFlow<TutorSessionUiState> = _uiState.asStateFlow()
+
     init {
+        loadSessions()
+        observeSessions()
+    }
+
+    fun loadSessions() {
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             val sessions = AppContainer.sessionRepository.getSessions().getOrElse { emptyList() }
-            _uiState.update { it.copy(sessions = sessions) }
+            _uiState.update { it.copy(sessions = sessions, isLoading = false) }
+        }
+    }
+
+    private fun observeSessions() {
+        viewModelScope.launch {
+            AppContainer.sessionRepository.observeSessions().collect { res ->
+                val sessions = res.getOrElse { emptyList() }
+                _uiState.update { it.copy(sessions = sessions, isLoading = false) }
+            }
         }
     }
 }
@@ -290,6 +369,19 @@ data class TutorStudentsUiState(val students: List<User> = emptyList(), val isLo
 class TutorStudentsViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(TutorStudentsUiState())
     val uiState: StateFlow<TutorStudentsUiState> = _uiState.asStateFlow()
+
+    init {
+        loadStudents()
+    }
+
+    fun loadStudents() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            val allUsers = AppContainer.userRepository.getUsers().getOrElse { emptyList() }
+            val students = allUsers.filter { it.role == UserRole.STUDENT }
+            _uiState.update { it.copy(students = students, isLoading = false) }
+        }
+    }
 }
 
 data class TutorCreateSessionUiState(val isLoading: Boolean = false, val errorMessage: String? = null)
@@ -405,15 +497,42 @@ class TutorUploadMaterialViewModel : ViewModel() {
     }
 }
 
-data class AdminOverviewUiState(val usersCount: Int = 0, val coursesCount: Int = 0, val isLoading: Boolean = false)
+data class AdminOverviewUiState(
+    val usersCount: Int = 0,
+    val coursesCount: Int = 0,
+    val materialsCount: Int = 0,
+    val studentsCount: Int = 0,
+    val tutorsCount: Int = 0,
+    val isLoading: Boolean = false
+)
 class AdminOverviewViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AdminOverviewUiState())
     val uiState: StateFlow<AdminOverviewUiState> = _uiState.asStateFlow()
+
     init {
+        loadData()
+    }
+
+    fun loadData() {
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             val users = AppContainer.userRepository.getUsers().getOrElse { emptyList() }
             val courses = AppContainer.courseRepository.getCourses().getOrElse { emptyList() }
-            _uiState.update { it.copy(usersCount = users.size, coursesCount = courses.size) }
+            val materials = AppContainer.materialRepository.getAllMaterials().getOrElse { emptyList() }
+
+            val students = users.count { it.role == UserRole.STUDENT }
+            val tutors = users.count { it.role == UserRole.TUTOR }
+
+            _uiState.update {
+                it.copy(
+                    usersCount = users.size,
+                    coursesCount = courses.size,
+                    materialsCount = materials.size,
+                    studentsCount = students,
+                    tutorsCount = tutors,
+                    isLoading = false
+                )
+            }
         }
     }
 }
@@ -425,6 +544,7 @@ class AdminUsersViewModel : ViewModel() {
 
     init {
         loadUsers()
+        observeUsers()
     }
 
     fun loadUsers() {
@@ -432,6 +552,15 @@ class AdminUsersViewModel : ViewModel() {
             _uiState.update { it.copy(isLoading = true) }
             val users = AppContainer.userRepository.getUsers().getOrElse { emptyList() }
             _uiState.update { it.copy(users = users, isLoading = false) }
+        }
+    }
+
+    private fun observeUsers() {
+        viewModelScope.launch {
+            AppContainer.userRepository.observeUsers().collect { res ->
+                val users = res.getOrElse { emptyList() }
+                _uiState.update { it.copy(users = users, isLoading = false) }
+            }
         }
     }
 
@@ -448,10 +577,26 @@ data class AdminCoursesUiState(val courses: List<Course> = emptyList(), val isLo
 class AdminCoursesViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AdminCoursesUiState())
     val uiState: StateFlow<AdminCoursesUiState> = _uiState.asStateFlow()
+
     init {
+        loadCourses()
+        observeCourses()
+    }
+
+    fun loadCourses() {
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             val courses = AppContainer.courseRepository.getCourses().getOrElse { emptyList() }
-            _uiState.update { it.copy(courses = courses) }
+            _uiState.update { it.copy(courses = courses, isLoading = false) }
+        }
+    }
+
+    private fun observeCourses() {
+        viewModelScope.launch {
+            AppContainer.courseRepository.observeCourses().collect { res ->
+                val courses = res.getOrElse { emptyList() }
+                _uiState.update { it.copy(courses = courses, isLoading = false) }
+            }
         }
     }
 }
@@ -522,4 +667,26 @@ data class AdminContentUiState(val materials: List<Material> = emptyList(), val 
 class AdminContentViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AdminContentUiState())
     val uiState: StateFlow<AdminContentUiState> = _uiState.asStateFlow()
+
+    init {
+        loadMaterials()
+        observeMaterials()
+    }
+
+    fun loadMaterials() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            val materials = AppContainer.materialRepository.getAllMaterials().getOrElse { emptyList() }
+            _uiState.update { it.copy(materials = materials, isLoading = false) }
+        }
+    }
+
+    private fun observeMaterials() {
+        viewModelScope.launch {
+            AppContainer.materialRepository.observeAllMaterials().collect { res ->
+                val materials = res.getOrElse { emptyList() }
+                _uiState.update { it.copy(materials = materials, isLoading = false) }
+            }
+        }
+    }
 }

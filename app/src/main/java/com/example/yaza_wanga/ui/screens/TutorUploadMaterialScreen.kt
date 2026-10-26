@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.yaza_wanga.ui.AppOptions
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
 import com.example.yaza_wanga.ui.viewmodel.TutorUploadMaterialViewModel
 
@@ -45,7 +46,7 @@ fun TutorUploadMaterialScreen(
 ) {
     val context = LocalContext.current
     var selectedCourse by remember { mutableStateOf("INF 212") }
-    var selectedCategory by remember { mutableStateOf("PDF") }
+    var selectedCategory by remember { mutableStateOf(AppOptions.MATERIAL_CATEGORIES.first()) }
     var resourceTitle by remember { mutableStateOf("") }
     var topicTag by remember { mutableStateOf("Module 4: JavaScript DOM") }
     var description by remember { mutableStateOf("") }
