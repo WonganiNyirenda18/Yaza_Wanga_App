@@ -10,6 +10,46 @@ import kotlinx.coroutines.tasks.await
 open class SessionRepository(private val db: FirebaseFirestore? = null) {
     private val safeDb get() = db ?: FirebaseFirestore.getInstance()
 
+    open fun observeSessionsForTutor(tutorId: String): Flow<Result<List<Session>>> = callbackFlow {
+        val registration = safeDb.collection("sessions")
+            .whereEqualTo("tutorId", tutorId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(Result.failure(error))
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    val sessions = snapshot.documents.mapNotNull { doc ->
+                        doc.data?.let { Session.fromMap(it) }
+                    }
+                    trySend(Result.success(sessions))
+                }
+            }
+        awaitClose { registration.remove() }
+    }
+
+    open fun observeSessionsForCourses(courseCodes: List<String>): Flow<Result<List<Session>>> = callbackFlow {
+        if (courseCodes.isEmpty()) {
+            trySend(Result.success(emptyList()))
+            awaitClose {}
+            return@callbackFlow
+        }
+        val registration = safeDb.collection("sessions")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(Result.failure(error))
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    val sessions = snapshot.documents.mapNotNull { doc ->
+                        doc.data?.let { Session.fromMap(it) }
+                    }.filter { courseCodes.contains(it.courseCode) }
+                    trySend(Result.success(sessions))
+                }
+            }
+        awaitClose { registration.remove() }
+    }
+
     open fun observeSessions(): Flow<Result<List<Session>>> = callbackFlow {
         val registration = safeDb.collection("sessions")
             .addSnapshotListener { snapshot, error ->

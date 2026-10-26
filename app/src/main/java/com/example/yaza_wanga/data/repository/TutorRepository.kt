@@ -10,7 +10,7 @@ import kotlinx.coroutines.tasks.await
 open class TutorRepository(private val db: FirebaseFirestore? = null) {
     private val safeDb get() = db ?: FirebaseFirestore.getInstance()
 
-    open fun observeTutorsForCourse(courseCode: String): Flow<Result<List<TutorProfile>>> = callbackFlow {
+    open fun observeVerifiedTutorsForCourse(courseCode: String): Flow<Result<List<TutorProfile>>> = callbackFlow {
         val registration = safeDb.collection("tutors")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
@@ -20,9 +20,25 @@ open class TutorRepository(private val db: FirebaseFirestore? = null) {
                 if (snapshot != null) {
                     val tutors = snapshot.documents.mapNotNull { doc ->
                         doc.data?.let { TutorProfile.fromMap(it) }
-                    }.filter { (it.status == "ACTIVE") && (it.courses.contains(courseCode) || it.courses.isEmpty()) }
+                    }.filter {
+                        (it.status == "VERIFIED" || it.status == "ACTIVE") &&
+                                (it.courses.contains(courseCode) || it.courses.isEmpty())
+                    }
                     trySend(Result.success(tutors))
                 }
+            }
+        awaitClose { registration.remove() }
+    }
+
+    open fun observeTutor(tutorId: String): Flow<Result<TutorProfile?>> = callbackFlow {
+        val registration = safeDb.collection("tutors").document(tutorId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(Result.failure(error))
+                    return@addSnapshotListener
+                }
+                val profile = snapshot?.data?.let { TutorProfile.fromMap(it) }
+                trySend(Result.success(profile))
             }
         awaitClose { registration.remove() }
     }
@@ -52,18 +68,11 @@ open class TutorRepository(private val db: FirebaseFirestore? = null) {
             val snapshot = safeDb.collection("tutors").get().await()
             val tutors = snapshot.documents.mapNotNull { doc ->
                 doc.data?.let { TutorProfile.fromMap(it) }
-            }.filter { (it.status == "ACTIVE") && (it.courses.contains(courseCode) || it.courses.isEmpty()) }
-
-            if (tutors.isEmpty()) {
-                val defaults = listOf(
-                    TutorProfile("t1", "Chimwemwe Phiri", "Specializes in Frontend, DOM & JavaScript", 0.0, listOf(courseCode), 4.9, 48, "ACTIVE", "+265995358915", "+265995358915", "Both Online & Offline"),
-                    TutorProfile("t2", "Thokozani Mwale", "HTML/CSS semantic architecture & APIs", 2500.0, listOf(courseCode), 4.8, 36, "ACTIVE", "+265999123456", "+265999123456", "Online Only (Google Meet)"),
-                    TutorProfile("t3", "John Banda", "Hands-on coding, CSS Grid & responsive layout", 2000.0, listOf(courseCode), 4.7, 29, "ACTIVE", "+265888765432", "+265888765432", "Both Online & Offline")
-                )
-                Result.success(defaults)
-            } else {
-                Result.success(tutors)
+            }.filter {
+                (it.status == "VERIFIED" || it.status == "ACTIVE") &&
+                        (it.courses.contains(courseCode) || it.courses.isEmpty())
             }
+            Result.success(tutors)
         } catch (e: Exception) {
             Result.failure(e)
         }

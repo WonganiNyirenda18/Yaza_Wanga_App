@@ -23,28 +23,22 @@ class FakeAuthRepository : AuthRepository(auth = null, db = null) {
     val users = mutableMapOf<String, User>()
     val passwords = mutableMapOf<String, String>()
     var loggedInUser: User? = null
-    var shouldFailSignUpWithCollision: Boolean = false
 
     override val currentUser: FirebaseUser?
         get() = null
 
     override suspend fun signIn(email: String, pass: String): Result<User> {
-        val trimmed = email.trim()
-        if (trimmed.isEmpty() || pass.isEmpty()) {
+        if (email.isBlank() || pass.isBlank()) {
             return Result.failure(Exception("Please fill all fields"))
         }
-        val user = users.values.find { it.email.equals(trimmed, ignoreCase = true) }
-            ?: return Result.failure(Exception("Invalid email or password"))
-
-        if (passwords[user.uid] != pass) {
+        val user = users.values.find { it.email.equals(email, ignoreCase = true) }
+        val expectedPass = user?.let { passwords[email.lowercase()] ?: passwords[it.uid] } ?: "password123"
+        if (user == null || pass != expectedPass) {
             return Result.failure(Exception("Invalid email or password"))
         }
-
         if (user.status == UserStatus.SUSPENDED) {
-            loggedInUser = null
             return Result.failure(Exception("Your account has been suspended. Contact the administrator"))
         }
-
         loggedInUser = user
         return Result.success(user)
     }
@@ -57,41 +51,35 @@ class FakeAuthRepository : AuthRepository(auth = null, db = null) {
         faculty: String?,
         studentId: String?
     ): Result<User> {
-        val trimmed = email.trim()
-        if (shouldFailSignUpWithCollision || users.values.any { it.email.equals(trimmed, ignoreCase = true) }) {
+        val exists = users.values.any { it.email.equals(email, ignoreCase = true) }
+        if (exists) {
             return Result.failure(Exception("An account with this email already exists"))
         }
 
-        val uid = "user_${users.size + 1}"
+        val status = if (role == UserRole.TUTOR) UserStatus.PENDING else UserStatus.ACTIVE
         val user = User(
-            uid = uid,
-            email = trimmed,
+            uid = "uid_${email.substringBefore("@")}",
+            email = email,
             name = name,
             role = role,
-            status = if (role == UserRole.TUTOR) UserStatus.PENDING else UserStatus.ACTIVE,
+            status = status,
             faculty = faculty,
             studentId = studentId,
             createdAt = System.currentTimeMillis()
         )
-        users[uid] = user
-        passwords[uid] = pass
+        users[user.uid] = user
+        passwords[email.lowercase()] = pass
+        passwords[user.uid] = pass
         loggedInUser = user
         return Result.success(user)
     }
 
     override suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
-        val trimmed = email.trim()
-        if (trimmed.isEmpty()) return Result.failure(Exception("Please fill all fields"))
         return Result.success(Unit)
     }
 
     override suspend fun fetchCurrentUser(): Result<User?> {
-        val user = loggedInUser
-        if (user?.status == UserStatus.SUSPENDED) {
-            loggedInUser = null
-            return Result.failure(Exception("Your account has been suspended. Contact the administrator"))
-        }
-        return Result.success(user)
+        return Result.success(loggedInUser)
     }
 
     override fun signOut() {
@@ -102,11 +90,11 @@ class FakeAuthRepository : AuthRepository(auth = null, db = null) {
 class FakeCourseRepository : CourseRepository(db = null) {
     val courses = mutableMapOf<String, Course>()
 
-    override fun observeCourses(): Flow<Result<List<Course>>> =
-        flowOf(Result.success(courses.values.toList()))
+    override fun observeCourses(includeDrafts: Boolean): Flow<Result<List<Course>>> =
+        flowOf(Result.success(courses.values.toList().filter { if (includeDrafts) true else it.status == "ACTIVE" }))
 
-    override suspend fun getCourses(): Result<List<Course>> {
-        return Result.success(courses.values.toList())
+    override suspend fun getCourses(includeDrafts: Boolean): Result<List<Course>> {
+        return Result.success(courses.values.toList().filter { if (includeDrafts) true else it.status == "ACTIVE" })
     }
 
     override suspend fun getCourse(code: String): Result<Course?> {
@@ -191,11 +179,11 @@ class FakeMaterialRepository : MaterialRepository(db = null) {
 class FakeTutorRepository : TutorRepository(db = null) {
     val tutors = mutableListOf<TutorProfile>()
 
-    override fun observeTutorsForCourse(courseCode: String): Flow<Result<List<TutorProfile>>> =
-        flowOf(Result.success(tutors.filter { it.courses.contains(courseCode) || it.courses.isEmpty() }))
+    override fun observeVerifiedTutorsForCourse(courseCode: String): Flow<Result<List<TutorProfile>>> =
+        flowOf(Result.success(tutors.filter { (it.status == "VERIFIED" || it.status == "ACTIVE") && (it.courses.contains(courseCode) || it.courses.isEmpty()) }))
 
     override suspend fun getTutorsForCourse(courseCode: String): Result<List<TutorProfile>> {
-        return Result.success(tutors.filter { it.courses.contains(courseCode) || it.courses.isEmpty() })
+        return Result.success(tutors.filter { (it.status == "VERIFIED" || it.status == "ACTIVE") && (it.courses.contains(courseCode) || it.courses.isEmpty()) })
     }
 }
 
@@ -213,14 +201,10 @@ class FakeUserRepository : UserRepository(db = null) {
         return Result.success(users[uid])
     }
 
-    override suspend fun updateUser(user: User): Result<Unit> {
-        users[user.uid] = user
-        return Result.success(Unit)
-    }
-
     override suspend fun updateUserStatus(uid: String, status: UserStatus): Result<Unit> {
-        users[uid]?.let {
-            users[uid] = it.copy(status = status)
+        val u = users[uid]
+        if (u != null) {
+            users[uid] = u.copy(status = status)
         }
         return Result.success(Unit)
     }
