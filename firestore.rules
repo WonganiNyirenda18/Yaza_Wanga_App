@@ -1,72 +1,94 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper function to check if user is authenticated
+
+    // Helper: Check if user is authenticated
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // Helper function to get user doc
+    // Helper: Get user document data for current authenticated user
     function getUserData() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    // Helper function to check if user is admin
+    // Helper: Check if current user has ADMIN role
     function isAdmin() {
       return isAuthenticated() && getUserData().role == 'ADMIN';
     }
 
-    // Helper function to check if user is tutor
+    // Helper: Check if current user has TUTOR role (or ADMIN)
     function isTutor() {
       return isAuthenticated() && (getUserData().role == 'TUTOR' || getUserData().role == 'ADMIN');
     }
 
-    // Users collection: Any authenticated user can read/create; users can update their own profile, admins can manage all.
+    // Users Collection:
+    // - Authenticated users can read user profiles.
+    // - Users can create their own profile on sign up.
+    // - Users can update their own profile, BUT only an ADMIN can change user roles or statuses (ACTIVE/PENDING/SUSPENDED).
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-      allow update: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isAuthenticated() && (
+        (request.auth.uid == userId && request.resource.data.role == resource.data.role && request.resource.data.status == resource.data.status) ||
+        isAdmin()
+      );
       allow delete: if isAdmin();
     }
 
-    // Departments collection: Public read, admin write.
+    // Departments Collection: Public read, admin write.
     match /departments/{deptId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Courses collection: Public read, admin write/create.
+    // Courses Collection: Public read, admin write/create.
     match /courses/{courseCode} {
       allow read: if true;
       allow create, update, delete: if isAdmin();
     }
 
-    // Enrollments collection: Authenticated students can enroll and read their own enrollments.
+    // Enrollments Collection:
+    // - Authenticated users can read.
+    // - Students can only create/update their own enrollments where studentId matches their auth uid.
     match /enrollments/{enrollmentId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.studentId == request.auth.uid;
       allow update, delete: if isAuthenticated() && (resource.data.studentId == request.auth.uid || isAdmin());
     }
 
-    // TutorProfiles collection: Public read, tutors/admins can write their profiles.
+    // Tutors & TutorProfiles Collections:
+    // - Public read for course catalog and directory browsing.
+    // - Tutors can write only their own profile (tutorId / uid == request.auth.uid).
+    // - Only ADMIN can verify tutors (change status to VERIFIED).
+    match /tutors/{tutorId} {
+      allow read: if true;
+      allow create, update: if isAuthenticated() && (request.auth.uid == tutorId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
     match /tutorProfiles/{tutorId} {
       allow read: if true;
       allow create, update: if isAuthenticated() && (request.auth.uid == tutorId || isAdmin());
       allow delete: if isAdmin();
     }
 
-    // Sessions collection: Authenticated users can read, tutors/admins can create and manage sessions.
+    // Sessions Collection:
+    // - Authenticated users can read.
+    // - Tutors can create and manage their own sessions (tutorId == request.auth.uid), and admins can manage all.
     match /sessions/{sessionId} {
       allow read: if isAuthenticated();
-      allow create, update: if isTutor();
-      allow delete: if isTutor();
+      allow create: if isTutor() && request.resource.data.tutorId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && (resource.data.tutorId == request.auth.uid || isAdmin());
     }
 
-    // Materials collection: Authenticated users can read, tutors/admins can upload and manage materials.
+    // Materials Collection:
+    // - Authenticated users can read.
+    // - Tutors can upload and manage their own materials (tutorId == request.auth.uid), and admins can manage all.
     match /materials/{materialId} {
       allow read: if isAuthenticated();
-      allow create, update: if isTutor();
-      allow delete: if isTutor();
+      allow create: if isTutor() && request.resource.data.tutorId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && (resource.data.tutorId == request.auth.uid || isAdmin());
     }
   }
 }
