@@ -1,6 +1,9 @@
 package com.example.yaza_wanga
 
 import com.example.yaza_wanga.data.AppContainer
+import com.example.yaza_wanga.data.model.User
+import com.example.yaza_wanga.data.model.UserRole
+import com.example.yaza_wanga.data.model.UserStatus
 import com.example.yaza_wanga.fakes.FakeAuthRepository
 import com.example.yaza_wanga.fakes.FakeSessionRepository
 import com.example.yaza_wanga.ui.viewmodel.TutorCreateSessionViewModel
@@ -30,6 +33,14 @@ class SessionViewModelTest {
         Dispatchers.setMain(testDispatcher)
         fakeSessionRepository = FakeSessionRepository()
         fakeAuthRepository = FakeAuthRepository()
+
+        fakeAuthRepository.loggedInUser = User(
+            uid = "t1",
+            email = "tutor@unima.ac.mw",
+            name = "Tutor John",
+            role = UserRole.TUTOR,
+            status = UserStatus.ACTIVE
+        )
 
         AppContainer.sessionRepository = fakeSessionRepository
         AppContainer.authRepository = fakeAuthRepository

@@ -1,6 +1,5 @@
 package com.example.yaza_wanga.ui.screens
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,8 +21,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
+import com.example.yaza_wanga.ui.components.YazaBottomBar
+import com.example.yaza_wanga.ui.components.YazaWangaLogo
+import com.example.yaza_wanga.ui.theme.*
 import com.example.yaza_wanga.ui.viewmodel.AdminContentViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,17 +34,18 @@ fun AdminContentScreen(
     viewModel: AdminContentViewModel = viewModel(),
     onNavigateTab: (Int) -> Unit = {}
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    var selectedTab by remember { mutableIntStateOf(0) } // 0: Flagged/Pending, 1: Recently Approved
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var searchQuery by remember { mutableStateOf("") }
 
     val primaryBlue = Color(0xFF1D4ED8)
-    val lightBlueBg = Color(0xFFF0F4FF)
     val containerBg = Color(0xFFF8FAFC)
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
 
-    LaunchedEffect(Unit) {
-        viewModel.loadMaterials()
+    val filteredMaterials = uiState.materials.filter {
+        it.title.contains(searchQuery, ignoreCase = true) ||
+                it.courseCode.contains(searchQuery, ignoreCase = true) ||
+                it.category.contains(searchQuery, ignoreCase = true)
     }
 
     Scaffold(
@@ -57,25 +61,13 @@ fun AdminContentScreen(
                         )
                     },
                     navigationIcon = {
-                        Box(
-                            modifier = Modifier
-                                .padding(start = 12.dp)
-                                .size(36.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(primaryBlue),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.School,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
-                            )
+                        Box(modifier = Modifier.padding(start = 12.dp)) {
+                            YazaWangaLogo(size = 36.dp)
                         }
                     },
                     actions = {
                         IconButton(
-                            onClick = { viewModel.loadMaterials() },
+                            onClick = {},
                             modifier = Modifier
                                 .padding(end = 8.dp)
                                 .size(38.dp)
@@ -83,8 +75,8 @@ fun AdminContentScreen(
                                 .background(primaryBlue)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Refresh,
-                                contentDescription = "Refresh",
+                                imageVector = Icons.Default.Person,
+                                contentDescription = "Profile",
                                 tint = Color.White,
                                 modifier = Modifier.size(20.dp)
                             )
@@ -108,76 +100,51 @@ fun AdminContentScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Header & Review Required Pill
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("CURRICULUM GOVERNANCE", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                    }
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text("Academic Content Moderation", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textDark)
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text("Audit, certify, or quarantine peer-contributed study artifacts and examination archives.", fontSize = 12.sp, color = textGray)
-                }
+            // Title & Search
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = "Content Moderation & Repository",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textDark
+                )
+                Text(
+                    text = "Audit, certify, or quarantine peer-contributed study artifacts and examination archives.",
+                    fontSize = 12.sp,
+                    color = textGray
+                )
             }
 
-            // Policy Enforced Pill Bar
-            Surface(
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = { Text("Search materials by title or course...", color = textGray, fontSize = 13.sp) },
+                leadingIcon = { Icon(Icons.Default.Search, null, tint = textGray, modifier = Modifier.size(20.dp)) },
+                singleLine = true,
                 shape = RoundedCornerShape(12.dp),
-                color = lightBlueBg,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = containerBg,
+                    unfocusedContainerColor = containerBg,
+                    focusedBorderColor = primaryBlue,
+                    unfocusedBorderColor = Color(0xFFE2E8F0),
+                    focusedTextColor = textDark,
+                    unfocusedTextColor = textDark
+                ),
                 modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Icon(Icons.Default.VerifiedUser, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
-                        Text("Academic integrity policy v2.4 enforced", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = textDark)
-                    }
-                    Text("Guidelines", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue, modifier = Modifier.clickable {})
-                }
-            }
+            )
 
-            // Filter Tabs
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
-                    onClick = { selectedTab = 0 },
-                    shape = RoundedCornerShape(50.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = if (selectedTab == 0) primaryBlue else Color.White),
-                    border = BorderStroke(1.dp, if (selectedTab == 0) primaryBlue else Color(0xFFE2E8F0)),
-                    modifier = Modifier.height(38.dp)
+            // Materials list
+            if (filteredMaterials.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text("🚩 Flagged / Pending", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (selectedTab == 0) Color.White else primaryBlue)
-                }
-
-                Button(
-                    onClick = { selectedTab = 1 },
-                    shape = RoundedCornerShape(50.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = if (selectedTab == 1) primaryBlue else Color.White),
-                    border = BorderStroke(1.dp, if (selectedTab == 1) primaryBlue else Color(0xFFE2E8F0)),
-                    modifier = Modifier.height(38.dp)
-                ) {
-                    Text("Live Materials (${uiState.materials.size})", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (selectedTab == 1) Color.White else textDark)
-                }
-            }
-
-            // Live Materials List
-            if (uiState.isLoading) {
-                Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = primaryBlue)
-                }
-            } else if (uiState.materials.isEmpty()) {
-                Box(modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp), contentAlignment = Alignment.Center) {
-                    Text("No materials uploaded yet.", fontSize = 13.sp, color = textGray)
+                    Text("No published content found.", fontSize = 13.sp, color = textGray)
                 }
             } else {
-                uiState.materials.forEach { material ->
+                filteredMaterials.forEach { material ->
                     Card(
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -190,7 +157,7 @@ fun AdminContentScreen(
                                     Text(material.courseCode, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = primaryBlue, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                                 }
                                 Surface(shape = RoundedCornerShape(6.dp), color = containerBg) {
-                                    Text(material.fileType, fontSize = 10.sp, color = textGray, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                    Text(material.category, fontSize = 10.sp, color = textGray, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                                 }
                             }
 
