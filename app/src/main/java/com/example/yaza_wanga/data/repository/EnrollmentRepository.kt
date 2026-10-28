@@ -68,6 +68,21 @@ open class EnrollmentRepository(private val db: FirebaseFirestore? = null) {
         }
     }
 
+    open suspend fun getEnrollments(): Result<List<Enrollment>> {
+        return try {
+            val snapshot = safeDb.collection("enrollments")
+                .whereEqualTo("status", "ACTIVE")
+                .get()
+                .await()
+            val enrollments = snapshot.documents.mapNotNull { doc ->
+                doc.data?.let { Enrollment.fromMap(it) }
+            }
+            Result.success(enrollments)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     open suspend fun enroll(enrollment: Enrollment): Result<Unit> {
         return try {
             val docId = "${enrollment.studentId}_${enrollment.courseCode}"

@@ -21,24 +21,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.yaza_wanga.ui.components.YazaWangaLogo
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
-
-data class StudentListItem(
-    val name: String,
-    val course: String,
-    val regNumber: String
-)
+import com.example.yaza_wanga.ui.viewmodel.TutorStudentsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TutorStudentsScreen(
+    viewModel: TutorStudentsViewModel = viewModel(),
     onNavigateDashboard: () -> Unit = {},
     onNavigateSessions: () -> Unit = {},
     onNavigateStudents: () -> Unit = {},
     onNavigateMenu: () -> Unit = {},
     onViewStudentDetails: (String) -> Unit = {}
 ) {
+    val uiState by viewModel.uiState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableIntStateOf(0) } // 0: All, 1: Online, 2: Offline
     var currentPage by remember { mutableIntStateOf(1) }
@@ -48,16 +46,7 @@ fun TutorStudentsScreen(
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
 
-    val studentsList = listOf(
-        StudentListItem("Wongani Nyirenda", "Web Development", "bsc-inf-25-23"),
-        StudentListItem("Chisomo Phiri", "Database Systems", "bsc-com-17-23"),
-        StudentListItem("Alinafe Banda", "Probability & Statistics", "bed-com-27-23"),
-        StudentListItem("Trinity Kambanje", "Web Development", "bsc-com-ne-25-23"),
-        StudentListItem("Madalitso Kasasi", "Database Systems", "bsc-com-ne-17-23"),
-        StudentListItem("Martha Bulambo", "Probability & Statistics", "bsc-com-27-23"),
-        StudentListItem("Pemphero Kalonga", "Web Development", "bsc-com-39-23"),
-        StudentListItem("Prosper Tulambe", "Database Systems", "bed-com-22-23")
-    )
+    val studentsList = uiState.students
 
     val filteredStudents = studentsList.filter {
         it.name.contains(searchQuery, ignoreCase = true) ||
@@ -197,7 +186,7 @@ fun TutorStudentsScreen(
                 ) {
                     Column {
                         Text("Active Mentees", fontSize = 11.sp, color = textGray)
-                        Text("18 Students", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textDark)
+                        Text("${studentsList.size} Students", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textDark)
                     }
                 }
             }
@@ -221,12 +210,12 @@ fun TutorStudentsScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Filter Tabs (All, Online, Offline) inspired by reference screenshot
+            // Filter Tabs (All, Online, Offline)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                val filters = listOf("All", "Online (12)", "Offline (6)")
+                val filters = listOf("All", "Online", "Offline")
                 filters.forEachIndexed { idx, filterName ->
                     val selected = selectedFilter == idx
                     Surface(
@@ -240,13 +229,13 @@ fun TutorStudentsScreen(
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (selected) Color.White else textDark,
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical =.6.dp)
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
                         )
                     }
                 }
             }
 
-            // Student Tabular List Card (Wider spacing between name and course)
+            // Student Tabular List Card
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -254,7 +243,7 @@ fun TutorStudentsScreen(
                 modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
             ) {
                 Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                    // Table Header Row: Name & Course (with wider spacing)
+                    // Table Header Row
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -270,42 +259,6 @@ fun TutorStudentsScreen(
 
                     HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
 
-                    // Student Rows (Wider spacing between name and course)
-                    filteredStudents.forEachIndexed { index, student ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onViewStudentDetails(student.name) }
-                                .padding(horizontal = 16.dp, vertical = 14.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // 1. Name
-                            Text(
-                                text = student.name,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = textDark,
-                                maxLines = 1,
-                                modifier = Modifier.width(150.dp)
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            // 2. Course
-                            Text(
-                                text = student.course,
-                                fontSize = 12.sp,
-                                color = primaryBlue,
-                                fontWeight = FontWeight.Medium,
-                                maxLines = 1,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-
-                        if (index < filteredStudents.size - 1) {
-                            HorizontalDivider(color = Color(0xFFF1F5F9), thickness = 1.dp)
-                        }
-                    }
-
                     if (filteredStudents.isEmpty()) {
                         Box(
                             modifier = Modifier
@@ -313,13 +266,50 @@ fun TutorStudentsScreen(
                                 .padding(32.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("No students found matching search.", fontSize = 13.sp, color = textGray)
+                            Text(
+                                text = if (studentsList.isEmpty()) "No enrolled students found in your courses yet." else "No students found matching search.",
+                                fontSize = 13.sp,
+                                color = textGray
+                            )
+                        }
+                    } else {
+                        filteredStudents.forEachIndexed { index, student ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onViewStudentDetails(student.name) }
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = student.name,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = textDark,
+                                    maxLines = 1,
+                                    modifier = Modifier.width(150.dp)
+                                )
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(
+                                    text = student.course,
+                                    fontSize = 12.sp,
+                                    color = primaryBlue,
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = 1,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+
+                            if (index < filteredStudents.size - 1) {
+                                HorizontalDivider(color = Color(0xFFF1F5F9), thickness = 1.dp)
+                            }
                         }
                     }
 
                     HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
 
-                    // Pagination Bar (Previous, Page X of Y, Next)
+                    // Pagination Bar
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -340,11 +330,10 @@ fun TutorStudentsScreen(
                             Text("Previous", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         }
 
-                        Text("Page $currentPage of 3", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+                        Text("Page $currentPage", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = textDark)
 
                         Button(
-                            onClick = { if (currentPage < 3) currentPage++ },
-                            enabled = currentPage < 3,
+                            onClick = { currentPage++ },
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFF0F172A),

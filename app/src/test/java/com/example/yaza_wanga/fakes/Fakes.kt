@@ -144,9 +144,21 @@ class FakeEnrollmentRepository : EnrollmentRepository(db = null) {
         }
     }
 
+    override fun observeEnrollmentsForCourses(courseCodes: List<String>): Flow<Result<List<Enrollment>>> {
+        refreshFlow()
+        return _enrollmentsFlow.map { list ->
+            Result.success(list.filter { courseCodes.contains(it.courseCode) && it.status == "ACTIVE" })
+        }
+    }
+
     override suspend fun getEnrollmentsForStudent(studentId: String): Result<List<Enrollment>> {
         refreshFlow()
         return Result.success(enrollments.filter { it.studentId == studentId && it.status == "ACTIVE" })
+    }
+
+    override suspend fun getEnrollments(): Result<List<Enrollment>> {
+        refreshFlow()
+        return Result.success(enrollments.filter { it.status == "ACTIVE" })
     }
 
     override suspend fun enroll(enrollment: Enrollment): Result<Unit> {
@@ -180,6 +192,16 @@ class FakeSessionRepository : SessionRepository(db = null) {
     override fun observeSessions(): Flow<Result<List<Session>>> {
         refreshFlow()
         return _sessionsFlow.map { list -> Result.success(list) }
+    }
+
+    override fun observeSessionsForTutor(tutorId: String): Flow<Result<List<Session>>> {
+        refreshFlow()
+        return _sessionsFlow.map { list -> Result.success(list.filter { it.tutorId == tutorId }) }
+    }
+
+    override fun observeSessionsForCourses(courseCodes: List<String>): Flow<Result<List<Session>>> {
+        refreshFlow()
+        return _sessionsFlow.map { list -> Result.success(list.filter { courseCodes.contains(it.courseCode) }) }
     }
 
     override suspend fun getSessions(): Result<List<Session>> {
@@ -242,6 +264,18 @@ class FakeTutorRepository : TutorRepository(db = null) {
         return _tutorsFlow.map { list ->
             Result.success(list.filter { (it.status == "VERIFIED" || it.status == "ACTIVE") && (it.courses.contains(courseCode) || it.courses.isEmpty()) })
         }
+    }
+
+    override fun observeTutor(tutorId: String): Flow<Result<TutorProfile?>> {
+        refreshFlow()
+        return _tutorsFlow.map { list ->
+            Result.success(list.find { it.tutorId == tutorId })
+        }
+    }
+
+    override suspend fun getTutorProfile(tutorId: String): Result<TutorProfile?> {
+        refreshFlow()
+        return Result.success(tutors.find { it.tutorId == tutorId })
     }
 
     override suspend fun getTutorsForCourse(courseCode: String): Result<List<TutorProfile>> {

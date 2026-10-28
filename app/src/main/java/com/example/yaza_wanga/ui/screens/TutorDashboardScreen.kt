@@ -165,7 +165,6 @@ fun TutorDashboardScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Real text greeting on the screen
             Text(
                 text = greeting,
                 fontSize = 20.sp,
@@ -179,14 +178,12 @@ fun TutorDashboardScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // Active Students
                     TutorStatCard(
                         title = "Active Students",
                         value = "${uiState.activeStudentsCount}",
                         modifier = Modifier.weight(1f)
                     )
 
-                    // Courses Teaching
                     TutorStatCard(
                         title = "Courses Teaching",
                         value = "${uiState.coursesTeachingCount} Courses",
@@ -198,17 +195,15 @@ fun TutorDashboardScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // Today's Sessions
                     TutorStatCard(
                         title = "Today's Sessions",
                         value = "${uiState.todaysSessionsCount} Active",
                         modifier = Modifier.weight(1f)
                     )
 
-                    // Tutor Rating
                     TutorStatCard(
                         title = "Tutor Rating",
-                        value = "${uiState.tutorRating} ★",
+                        value = uiState.tutorRating,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -237,113 +232,118 @@ fun TutorDashboardScreen(
                 }
             }
 
-            // Upcoming Banner Card ("HAPPENING IN 15 MINS")
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = primaryBlue),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Surface(
-                            shape = RoundedCornerShape(50.dp),
-                            color = Color.White.copy(alpha = 0.2f)
+            // Upcoming Session Banner / Real Next Session Card
+            val nextSession = uiState.nextUpcomingSession
+            if (nextSession != null) {
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = primaryBlue),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            Surface(
+                                shape = RoundedCornerShape(50.dp),
+                                color = Color.White.copy(alpha = 0.2f)
                             ) {
-                                Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(Color.White))
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(Color.White))
+                                    Text(
+                                        text = "NEXT UPCOMING SESSION",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+
+                            Text(
+                                text = nextSession.time,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(Color.White.copy(alpha = 0.2f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Default.Laptop, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                            }
+
+                            Column {
                                 Text(
-                                    text = "HAPPENING IN 15 MINS",
-                                    fontSize = 10.sp,
+                                    text = nextSession.courseCode,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White.copy(alpha = 0.9f)
+                                )
+                                Text(
+                                    text = nextSession.title.ifBlank { "Tutoring Session" },
+                                    fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White
+                                )
+                                Text(
+                                    text = "🎥 ${nextSession.method} • Date: ${nextSession.date}",
+                                    fontSize = 11.sp,
+                                    color = Color.White.copy(alpha = 0.8f)
                                 )
                             }
                         }
 
-                        Text(
-                            text = "16:00 – 17:30",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
+                        Spacer(modifier = Modifier.height(14.dp))
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(Color.White.copy(alpha = 0.2f)),
-                            contentAlignment = Alignment.Center
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Icon(Icons.Default.Laptop, null, tint = Color.White, modifier = Modifier.size(20.dp))
-                        }
-
-                        Column {
-                            Text(
-                                text = "INF 212: WEB DEVELOPMENT",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White.copy(alpha = 0.9f)
-                            )
-                            Text(
-                                text = tutorName,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Text(
-                                text = "🎥 Google Meet • 90 min deep dive",
-                                fontSize = 11.sp,
-                                color = Color.White.copy(alpha = 0.8f)
-                            )
+                            Button(
+                                onClick = { onStartCall(nextSession.courseCode) },
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                                modifier = Modifier
+                                    .weight(1.2f)
+                                    .height(40.dp)
+                            ) {
+                                Icon(Icons.Default.VideoCall, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Join Call / Room", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
+                            }
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                }
+            } else {
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Button(
-                            onClick = { onStartCall(tutorName) },
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                            modifier = Modifier
-                                .weight(1.2f)
-                                .height(40.dp)
-                        ) {
-                            Icon(Icons.Default.VideoCall, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Join Call Now", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                        }
-
-                        Button(
-                            onClick = {},
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.2f)),
-                            modifier = Modifier
-                                .weight(0.8f)
-                                .height(40.dp)
-                        ) {
-                            Icon(Icons.Default.Description, null, tint = Color.White, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Notes", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                        }
+                        Text("No upcoming sessions", fontSize = 14.sp, color = textGray, fontWeight = FontWeight.Medium)
                     }
                 }
             }
@@ -366,82 +366,6 @@ fun TutorDashboardScreen(
                 ) {
                     Text("View All", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
                     Icon(Icons.Default.ChevronRight, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
-                }
-            }
-
-            // Session Item 1
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Surface(
-                            shape = RoundedCornerShape(50.dp),
-                            color = lightBlueBg
-                        ) {
-                            Text(
-                                text = "Today • 18:00 - 19:00",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = primaryBlue,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Icon(Icons.Default.Link, null, tint = Color(0xFF10B981), modifier = Modifier.size(12.dp))
-                            Text("Link Attached", fontSize = 11.sp, color = Color(0xFF10B981), fontWeight = FontWeight.Bold)
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Text("Davie Gondwe", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textDark)
-                    Text("INF 212 • CSS Grid & Responsive Layout", fontSize = 13.sp, color = textGray)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text("🎥 Virtual Session", fontSize = 11.sp, color = textGray)
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Button(
-                            onClick = { onStartCall("Davie Gondwe") },
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
-                            modifier = Modifier
-                                .weight(1.2f)
-                                .height(38.dp)
-                        ) {
-                            Icon(Icons.Default.PlayArrow, null, tint = Color.White, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Start Call", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                        }
-
-                        Button(
-                            onClick = {},
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = lightBlueBg),
-                            modifier = Modifier
-                                .weight(0.8f)
-                                .height(38.dp)
-                        ) {
-                            Icon(Icons.AutoMirrored.Filled.Chat, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Chat", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                        }
-                    }
                 }
             }
 

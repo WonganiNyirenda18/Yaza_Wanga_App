@@ -33,10 +33,10 @@ fun TutorProfileScreen(
     onProfileClick: () -> Unit = {},
     onCompleteSetup: () -> Unit = {}
 ) {
-    var professionalBio by remember { mutableStateOf("Specializes in Frontend web architecture, DOM manipulation & JavaScript coaching.") }
-    var sessionRate by remember { mutableStateOf("FREE • Peer Volunteer") }
+    var professionalBio by remember { mutableStateOf("") }
+    var sessionRate by remember { mutableStateOf("") }
     var paymentMethod by remember { mutableStateOf("Airtel Money") }
-    var accountNumber by remember { mutableStateOf("+265 995 358 915") }
+    var accountNumber by remember { mutableStateOf("") }
 
     var paymentExpanded by remember { mutableStateOf(false) }
     val paymentOptions = listOf("Airtel Money", "TNM Mpamba", "National Bank of Malawi", "Standard Bank")
@@ -220,6 +220,7 @@ fun TutorProfileScreen(
                         OutlinedTextField(
                             value = professionalBio,
                             onValueChange = { professionalBio = it },
+                            placeholder = { Text("Enter professional bio...", color = textGray, fontSize = 13.sp) },
                             minLines = 3,
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
@@ -240,6 +241,7 @@ fun TutorProfileScreen(
                         OutlinedTextField(
                             value = sessionRate,
                             onValueChange = { sessionRate = it },
+                            placeholder = { Text("e.g. FREE • Peer Volunteer", color = textGray, fontSize = 13.sp) },
                             singleLine = true,
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
@@ -303,6 +305,7 @@ fun TutorProfileScreen(
                         OutlinedTextField(
                             value = accountNumber,
                             onValueChange = { accountNumber = it },
+                            placeholder = { Text("+265 ...", color = textGray, fontSize = 13.sp) },
                             singleLine = true,
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(

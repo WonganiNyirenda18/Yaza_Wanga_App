@@ -1,7 +1,18 @@
 package com.example.yaza_wanga.ui.navigation
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -168,7 +179,18 @@ fun AppNavHost(
                 route = Screen.StudentGraph.CourseDetails.route,
                 arguments = listOf(navArgument("courseCode") { type = NavType.StringType })
             ) { backStackEntry ->
-                val courseCode = backStackEntry.arguments?.getString("courseCode") ?: "INF 212"
+                val courseCode = backStackEntry.arguments?.getString("courseCode") ?: ""
+                if (courseCode.isBlank()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("Invalid or missing course code", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
+                            Button(onClick = { navController.popBackStack() }) {
+                                Text("Go Back")
+                            }
+                        }
+                    }
+                    return@composable
+                }
                 val viewModel: CourseDetailsViewModel = viewModel()
                 LaunchedEffect(courseCode) { viewModel.loadCourse(courseCode) }
                 CourseDetailsScreen(

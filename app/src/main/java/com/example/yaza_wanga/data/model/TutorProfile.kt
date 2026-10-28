@@ -9,8 +9,8 @@ data class TutorProfile(
     val rating: Double = 5.0,
     val reviewCount: Int = 0,
     val status: String = "ACTIVE",
-    val phone: String = "+265995358915",
-    val whatsapp: String = "+265995358915",
+    val phone: String = "",
+    val whatsapp: String = "",
     val teachingMethod: String = "Both Online & Offline"
 ) {
     fun toMap(): Map<String, Any?> = mapOf(
@@ -37,8 +37,8 @@ data class TutorProfile(
             rating = (map["rating"] as? Number)?.toDouble() ?: 5.0,
             reviewCount = (map["reviewCount"] as? Number)?.toInt() ?: 0,
             status = map["status"] as? String ?: "ACTIVE",
-            phone = map["phone"] as? String ?: "+265995358915",
-            whatsapp = map["whatsapp"] as? String ?: "+265995358915",
+            phone = map["phone"] as? String ?: "",
+            whatsapp = map["whatsapp"] as? String ?: "",
             teachingMethod = map["teachingMethod"] as? String ?: "Both Online & Offline"
         )
     }

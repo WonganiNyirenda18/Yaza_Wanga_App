@@ -161,7 +161,6 @@ fun AdminOverviewScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Good morning & "Admin"
             Column {
                 Text(
                     text = "Good morning, Admin",
@@ -214,10 +213,9 @@ fun AdminOverviewScreen(
                 }
             }
 
-            // Stats 2x2 Grid using real numbers from ViewModel
+            // Stats 2x2 Grid
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    // Total Users
                     AdminStatCard(
                         title = "Total Users",
                         value = "${uiState.usersCount}",
@@ -226,7 +224,6 @@ fun AdminOverviewScreen(
                         modifier = Modifier.weight(1f)
                     )
 
-                    // Active Courses
                     AdminStatCard(
                         title = "Active Courses",
                         value = "${uiState.coursesCount}",
@@ -237,10 +234,9 @@ fun AdminOverviewScreen(
                 }
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    // No. Students
                     AdminStatCard(
                         title = "No. Students",
-                        value = "${if (uiState.studentsCount > 0) uiState.studentsCount else uiState.usersCount}",
+                        value = "${uiState.studentsCount}",
                         badge = "Active",
                         badgeColor = primaryBlue,
                         subtext = "Enrolled learners",
@@ -248,7 +244,6 @@ fun AdminOverviewScreen(
                         modifier = Modifier.weight(1f)
                     )
 
-                    // No. of Tutors
                     AdminStatCard(
                         title = "No. of Tutors",
                         value = "${uiState.tutorsCount}",
@@ -261,16 +256,42 @@ fun AdminOverviewScreen(
                 }
             }
 
-            // Most In-Demand Modules
+            // Top 3 Courses by Actual Enrollment Count
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Most In-Demand Modules", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textDark)
-                Text("This Semester", fontSize = 12.sp, color = textGray)
+                Text("Top Courses by Enrollment", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textDark)
+                Text("Actual Data", fontSize = 12.sp, color = textGray)
             }
 
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                DemandModuleItem(rank = "01", code = "INF 212", desc = "Web Systems & Cloud", demand = "+42% demand", primaryBlue = primaryBlue, textDark = textDark, textGray = textGray)
-                DemandModuleItem(rank = "02", code = "STA 211", desc = "Probability & Inferences", demand = "+28% demand", primaryBlue = primaryBlue, textDark = textDark, textGray = textGray)
-                DemandModuleItem(rank = "03", code = "COM 312", desc = "Operating Systems Architecture", demand = "+18% demand", primaryBlue = primaryBlue, textDark = textDark, textGray = textGray)
+            val topCourses = uiState.topCourses
+            if (topCourses.isEmpty() || topCourses.all { it.enrollmentCount == 0 }) {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("No enrollment data yet", fontSize = 13.sp, color = textGray, fontWeight = FontWeight.Medium)
+                    }
+                }
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    topCourses.forEachIndexed { index, topCourse ->
+                        DemandModuleItem(
+                            rank = String.format("%02d", index + 1),
+                            code = topCourse.course.code,
+                            desc = topCourse.course.title,
+                            demand = "${topCourse.enrollmentCount} enrolled",
+                            primaryBlue = primaryBlue,
+                            textDark = textDark,
+                            textGray = textGray
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
