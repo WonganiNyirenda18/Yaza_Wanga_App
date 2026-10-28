@@ -109,6 +109,15 @@ open class MaterialRepository(private val db: FirebaseFirestore? = null) {
         }
     }
 
+    open suspend fun warnUploader(id: String): Result<Unit> {
+        return try {
+            safeDb.collection("materials").document(id).update("warnedAt", System.currentTimeMillis()).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     open suspend fun getMaterials(courseCode: String): Result<List<Material>> {
         return try {
             val snapshot = safeDb.collection("materials").whereEqualTo("courseCode", courseCode).get().await()

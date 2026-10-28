@@ -11,6 +11,7 @@ data class Material(
     val fileUrl: String = "",
     val access: String = "FREE",
     val status: String = "APPROVED",
+    val warnedAt: Long? = null,
     val createdAt: Long = System.currentTimeMillis()
 ) {
     fun toMap(): Map<String, Any?> = mapOf(
@@ -24,6 +25,7 @@ data class Material(
         "fileUrl" to fileUrl,
         "access" to access,
         "status" to status,
+        "warnedAt" to warnedAt,
         "createdAt" to createdAt
     )
 
@@ -39,6 +41,7 @@ data class Material(
             fileUrl = map["fileUrl"] as? String ?: "",
             access = map["access"] as? String ?: "FREE",
             status = map["status"] as? String ?: "APPROVED",
+            warnedAt = (map["warnedAt"] as? Number)?.toLong(),
             createdAt = (map["createdAt"] as? Number)?.toLong() ?: System.currentTimeMillis()
         )
     }

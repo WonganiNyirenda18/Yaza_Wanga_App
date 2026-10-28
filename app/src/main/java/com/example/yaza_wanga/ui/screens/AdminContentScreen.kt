@@ -1,15 +1,14 @@
 package com.example.yaza_wanga.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,13 +16,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.yaza_wanga.ui.components.YazaBottomBar
 import com.example.yaza_wanga.ui.components.YazaWangaLogo
 import com.example.yaza_wanga.ui.theme.*
 import com.example.yaza_wanga.ui.viewmodel.AdminContentViewModel
@@ -34,6 +33,7 @@ fun AdminContentScreen(
     viewModel: AdminContentViewModel = viewModel(),
     onNavigateTab: (Int) -> Unit = {}
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
 
@@ -151,19 +151,62 @@ fun AdminContentScreen(
                         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
                         modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
                     ) {
-                        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Surface(shape = RoundedCornerShape(6.dp), color = Color(0xFFE0ECFF)) {
                                     Text(material.courseCode, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = primaryBlue, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                                 }
                                 Surface(shape = RoundedCornerShape(6.dp), color = containerBg) {
-                                    Text(material.category, fontSize = 10.sp, color = textGray, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                    Text("${material.category} • ${material.status}", fontSize = 10.sp, color = textGray, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                                 }
                             }
 
                             Text(material.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
                             if (material.description.isNotBlank()) {
                                 Text(material.description, fontSize = 12.sp, color = textGray, maxLines = 2)
+                            }
+
+                            Spacer(modifier = Modifier.height(2.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Button(
+                                    onClick = {
+                                        viewModel.updateMaterialStatus(material.id, "APPROVED")
+                                        Toast.makeText(context, "Material approved", Toast.LENGTH_SHORT).show()
+                                    },
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
+                                    modifier = Modifier.weight(1f).height(36.dp)
+                                ) {
+                                    Text("Approve", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                }
+
+                                Button(
+                                    onClick = {
+                                        viewModel.updateMaterialStatus(material.id, "QUARANTINED")
+                                        Toast.makeText(context, "Material taken down", Toast.LENGTH_SHORT).show()
+                                    },
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEE2E2)),
+                                    modifier = Modifier.weight(1f).height(36.dp)
+                                ) {
+                                    Text("Take Down", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
+                                }
+
+                                Button(
+                                    onClick = {
+                                        viewModel.warnUploader(material.id)
+                                        Toast.makeText(context, "Warning sent to uploader", Toast.LENGTH_SHORT).show()
+                                    },
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEF3C7)),
+                                    modifier = Modifier.weight(1f).height(36.dp)
+                                ) {
+                                    Text("Warn Uploader", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFFB45309))
+                                }
                             }
                         }
                     }

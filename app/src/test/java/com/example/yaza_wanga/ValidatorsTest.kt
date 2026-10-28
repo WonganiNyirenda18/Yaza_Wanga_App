@@ -11,7 +11,7 @@ class ValidatorsTest {
 
     @Test
     fun login_emptyFields_returnsError() {
-        // AUTH_LOGIN_001
+        // AUTH_LOGIN_004
         val err1 = Validator.validateLogin("", "")
         assertEquals("Please fill all fields", err1)
 
@@ -38,7 +38,7 @@ class ValidatorsTest {
 
     @Test
     fun login_validCredentials_returnsNull() {
-        // AUTH_LOGIN_004
+        // AUTH_LOGIN_001
         val err = Validator.validateLogin("student@unima.ac.mw", "password123")
         assertNull(err)
     }
@@ -70,7 +70,7 @@ class ValidatorsTest {
 
     @Test
     fun signUp_7vs8CharPassword_validatesMinLength() {
-        // AUTH_SIGNUP_002
+        // AUTH_SIGNUP_007
         val err7Chars = Validator.validatePassword("1234567")
         assertEquals("Password must be at least 8 characters", err7Chars)
 
@@ -134,7 +134,7 @@ class ValidatorsTest {
 
     @Test
     fun signUp_validTutor_returnsNull() {
-        // AUTH_SIGNUP_007
+        // AUTH_SIGNUP_002
         val err = Validator.validateTutorSignUp(
             fullName = "Jane Doe",
             email = "jane@unima.ac.mw",
@@ -150,7 +150,7 @@ class ValidatorsTest {
 
     @Test
     fun profilePhone_digitsPlusSpaces_validatesCorrectly() {
-        // PROFILE_PHONE_001
+        // CRS_ENROLL_004
         assertNull(Validator.validatePhone("+265995358915"))
         assertNull(Validator.validatePhone("+265 995 358 915"))
         assertNull(Validator.validatePhone("0995358915"))

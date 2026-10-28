@@ -697,6 +697,12 @@ class TutorUploadMaterialViewModel : ViewModel() {
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
+        val urlErr = Validator.validateMaterialUrl(fileUrl)
+        if (urlErr != null) {
+            onError(urlErr)
+            return
+        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             val user = AppContainer.authRepository.fetchCurrentUser().getOrNull()
@@ -747,6 +753,10 @@ data class AdminOverviewUiState(
 class AdminOverviewViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AdminOverviewUiState())
     val uiState: StateFlow<AdminOverviewUiState> = _uiState.asStateFlow()
+
+    init {
+        loadData()
+    }
 
     fun loadData() {
         viewModelScope.launch {
@@ -860,6 +870,18 @@ class AdminContentViewModel : ViewModel() {
                 val materials = res.getOrElse { emptyList() }
                 _uiState.update { it.copy(materials = materials, isLoading = false) }
             }
+        }
+    }
+
+    fun updateMaterialStatus(id: String, status: String) {
+        viewModelScope.launch {
+            AppContainer.materialRepository.updateMaterialStatus(id, status)
+        }
+    }
+
+    fun warnUploader(id: String) {
+        viewModelScope.launch {
+            AppContainer.materialRepository.warnUploader(id)
         }
     }
 }

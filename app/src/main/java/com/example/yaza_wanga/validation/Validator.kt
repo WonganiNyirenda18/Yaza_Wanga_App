@@ -123,6 +123,14 @@ object Validator {
         return null
     }
 
+    fun validateMaterialUrl(url: String): String? {
+        val trimmed = url.trim()
+        if (trimmed.isBlank() || (!trimmed.startsWith("http://") && !trimmed.startsWith("https://"))) {
+            return "Enter a valid link to the material"
+        }
+        return null
+    }
+
     fun getStartOfTodayMillis(currentMillis: Long = System.currentTimeMillis()): Long {
         val calendar = Calendar.getInstance().apply {
             timeInMillis = currentMillis
