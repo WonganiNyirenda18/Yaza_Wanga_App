@@ -21,24 +21,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.yaza_wanga.ui.components.YazaBottomBar
 import com.example.yaza_wanga.ui.components.YazaWangaLogo
-import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
+import com.example.yaza_wanga.ui.theme.*
 import com.example.yaza_wanga.ui.viewmodel.TutorStudentsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TutorStudentsScreen(
-    viewModel: TutorStudentsViewModel = viewModel(),
     onNavigateDashboard: () -> Unit = {},
     onNavigateSessions: () -> Unit = {},
     onNavigateStudents: () -> Unit = {},
     onNavigateMenu: () -> Unit = {},
-    onViewStudentDetails: (String) -> Unit = {}
+    onViewStudentDetails: (String) -> Unit = {},
+    viewModel: TutorStudentsViewModel = viewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableIntStateOf(0) } // 0: All, 1: Online, 2: Offline
+    var selectedFilter by remember { mutableIntStateOf(0) }
     var currentPage by remember { mutableIntStateOf(1) }
 
     val primaryBlue = Color(0xFF1D4ED8)
@@ -48,10 +50,10 @@ fun TutorStudentsScreen(
 
     val studentsList = uiState.students
 
-    val filteredStudents = studentsList.filter {
-        it.name.contains(searchQuery, ignoreCase = true) ||
-                it.course.contains(searchQuery, ignoreCase = true) ||
-                it.regNumber.contains(searchQuery, ignoreCase = true)
+    val filteredStudents = studentsList.filter { (user, courseCode) ->
+        user.name.contains(searchQuery, ignoreCase = true) ||
+                user.email.contains(searchQuery, ignoreCase = true) ||
+                courseCode.contains(searchQuery, ignoreCase = true)
     }
 
     Scaffold(
@@ -94,67 +96,23 @@ fun TutorStudentsScreen(
             }
         },
         bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 8.dp
-            ) {
-                val tabs = listOf(
+            YazaBottomBar(
+                tabs = listOf(
                     Triple(0, "Dashboard", Icons.Default.Home),
                     Triple(1, "Sessions", Icons.Default.CalendarToday),
                     Triple(2, "Students", Icons.Default.School),
                     Triple(3, "Menu", Icons.Default.Menu)
-                )
-
-                tabs.forEach { (index, label, icon) ->
-                    val selected = index == 2 // Students tab selected
-                    NavigationBarItem(
-                        selected = selected,
-                        onClick = {
-                            when (index) {
-                                0 -> onNavigateDashboard()
-                                1 -> onNavigateSessions()
-                                2 -> onNavigateStudents()
-                                3 -> onNavigateMenu()
-                            }
-                        },
-                        icon = {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Icon(
-                                    imageVector = icon,
-                                    contentDescription = label,
-                                    tint = if (selected) primaryBlue else textGray
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .width(24.dp)
-                                        .height(3.dp)
-                                        .clip(RoundedCornerShape(1.5.dp))
-                                        .background(if (selected) primaryBlue else Color.Transparent)
-                                )
-                            }
-                        },
-                        label = {
-                            Text(
-                                text = label,
-                                fontSize = 11.sp,
-                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                                color = if (selected) primaryBlue else textGray
-                            )
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = Color.Transparent,
-                            selectedIconColor = primaryBlue,
-                            selectedTextColor = primaryBlue,
-                            unselectedIconColor = textGray,
-                            unselectedTextColor = textGray
-                        )
-                    )
+                ),
+                currentTab = 2,
+                onSelectTab = { index ->
+                    when (index) {
+                        0 -> onNavigateDashboard()
+                        1 -> onNavigateSessions()
+                        2 -> onNavigateStudents()
+                        3 -> onNavigateMenu()
+                    }
                 }
-            }
+            )
         },
         containerColor = Color(0xFFF8FAFC)
     ) { innerPadding ->
@@ -210,12 +168,12 @@ fun TutorStudentsScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Filter Tabs (All, Online, Offline)
+            // Filter Tabs
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                val filters = listOf("All", "Online", "Offline")
+                val filters = listOf("All", "Active", "Pending")
                 filters.forEachIndexed { idx, filterName ->
                     val selected = selectedFilter == idx
                     Surface(
@@ -243,7 +201,6 @@ fun TutorStudentsScreen(
                 modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
             ) {
                 Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                    // Table Header Row
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -259,6 +216,39 @@ fun TutorStudentsScreen(
 
                     HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
 
+                    filteredStudents.forEachIndexed { index, (user, courseCode) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onViewStudentDetails(user.name.ifBlank { user.email }) }
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = user.name.ifBlank { user.email.substringBefore("@") },
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = textDark,
+                                maxLines = 1,
+                                modifier = Modifier.width(150.dp)
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Text(
+                                text = courseCode,
+                                fontSize = 12.sp,
+                                color = primaryBlue,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        if (index < filteredStudents.size - 1) {
+                            HorizontalDivider(color = Color(0xFFF1F5F9), thickness = 1.dp)
+                        }
+                    }
+
                     if (filteredStudents.isEmpty()) {
                         Box(
                             modifier = Modifier
@@ -266,44 +256,7 @@ fun TutorStudentsScreen(
                                 .padding(32.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = if (studentsList.isEmpty()) "No enrolled students found in your courses yet." else "No students found matching search.",
-                                fontSize = 13.sp,
-                                color = textGray
-                            )
-                        }
-                    } else {
-                        filteredStudents.forEachIndexed { index, student ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { onViewStudentDetails(student.name) }
-                                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = student.name,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = textDark,
-                                    maxLines = 1,
-                                    modifier = Modifier.width(150.dp)
-                                )
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Text(
-                                    text = student.course,
-                                    fontSize = 12.sp,
-                                    color = primaryBlue,
-                                    fontWeight = FontWeight.Medium,
-                                    maxLines = 1,
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-
-                            if (index < filteredStudents.size - 1) {
-                                HorizontalDivider(color = Color(0xFFF1F5F9), thickness = 1.dp)
-                            }
+                            Text("No students enrolled yet.", fontSize = 13.sp, color = textGray)
                         }
                     }
 
@@ -330,10 +283,11 @@ fun TutorStudentsScreen(
                             Text("Previous", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         }
 
-                        Text("Page $currentPage", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+                        Text("Page $currentPage of 1", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = textDark)
 
                         Button(
-                            onClick = { currentPage++ },
+                            onClick = { if (currentPage < 1) currentPage++ },
+                            enabled = false,
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFF0F172A),

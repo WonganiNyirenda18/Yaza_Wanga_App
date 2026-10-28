@@ -68,12 +68,9 @@ open class EnrollmentRepository(private val db: FirebaseFirestore? = null) {
         }
     }
 
-    open suspend fun getEnrollments(): Result<List<Enrollment>> {
+    open suspend fun getAllEnrollments(): Result<List<Enrollment>> {
         return try {
-            val snapshot = safeDb.collection("enrollments")
-                .whereEqualTo("status", "ACTIVE")
-                .get()
-                .await()
+            val snapshot = safeDb.collection("enrollments").get().await()
             val enrollments = snapshot.documents.mapNotNull { doc ->
                 doc.data?.let { Enrollment.fromMap(it) }
             }

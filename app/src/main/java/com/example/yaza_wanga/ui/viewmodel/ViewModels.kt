@@ -4,11 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.yaza_wanga.data.AppContainer
 import com.example.yaza_wanga.data.model.*
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -131,6 +133,38 @@ class StudentProfileViewModel : ViewModel() {
             _uiState.update { it.copy(user = result.getOrNull(), isLoading = false) }
         }
     }
+
+    fun saveProfile(data: Map<String, String>, onError: (String?) -> Unit, onComplete: () -> Unit) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            val user = AppContainer.authRepository.fetchCurrentUser().getOrNull()
+            if (user == null) {
+                _uiState.update { it.copy(isLoading = false) }
+                onError("Please sign in")
+                return@launch
+            }
+            val department = data["department"] ?: ""
+            val programme = data["programme"] ?: ""
+            val yearOfStudy = data["yearOfStudy"] ?: ""
+            val phone = data["phone"] ?: ""
+
+            val updatedUser = user.copy(
+                department = department,
+                programme = programme,
+                yearOfStudy = yearOfStudy,
+                phone = phone
+            )
+
+            val result = AppContainer.userRepository.updateUser(updatedUser)
+            _uiState.update { it.copy(isLoading = false) }
+            if (result.isSuccess) {
+                onComplete()
+            } else {
+                val msg = result.exceptionOrNull()?.localizedMessage ?: "Failed to save profile"
+                onError(msg)
+            }
+        }
+    }
 }
 
 data class StudentDashboardUiState(
@@ -238,10 +272,6 @@ class CourseDetailsViewModel : ViewModel() {
 
     fun loadCourse(courseCode: String) {
         viewModelScope.launch {
-            if (courseCode.isBlank()) {
-                _uiState.update { it.copy(course = null, isLoading = false) }
-                return@launch
-            }
             _uiState.update { it.copy(isLoading = true) }
             val course = AppContainer.courseRepository.getCourse(courseCode).getOrNull()
             val user = AppContainer.authRepository.fetchCurrentUser().getOrNull()
@@ -262,10 +292,6 @@ class CourseDetailsViewModel : ViewModel() {
 
     fun enrollCourse(courseCode: String, onResult: (Boolean, String?) -> Unit) {
         viewModelScope.launch {
-            if (courseCode.isBlank()) {
-                onResult(false, "Invalid course code")
-                return@launch
-            }
             val user = AppContainer.authRepository.fetchCurrentUser().getOrNull()
             if (user == null) {
                 onResult(false, "Please sign in to enroll")
@@ -293,9 +319,9 @@ data class TutorDashboardUiState(
     val activeStudentsCount: Int = 0,
     val coursesTeachingCount: Int = 0,
     val todaysSessionsCount: Int = 0,
+    val todaySessionsCount: Int = 0,
     val tutorRating: String = "4.9 ★",
     val nextUpcomingSession: Session? = null,
-    val tutorCourses: List<String> = emptyList(),
     val isLoading: Boolean = false
 )
 class TutorDashboardViewModel : ViewModel() {
@@ -310,55 +336,34 @@ class TutorDashboardViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val user = AppContainer.authRepository.fetchCurrentUser().getOrNull()
+            var nextSession: Session? = null
+            var studentsCount = 0
+            var teachingCount = 0
             if (user != null) {
-                val tutorProfile = AppContainer.tutorRepository.getTutorProfile(user.uid).getOrNull()
-                val courses = tutorProfile?.courses ?: emptyList()
-                val enrollments = AppContainer.enrollmentRepository.observeEnrollmentsForCourses(courses).let { flow ->
-                    var list = emptyList<Enrollment>()
-                    flow.collect { res ->
-                        list = res.getOrElse { emptyList() }
-                        return@collect
-                    }
-                    list
-                }
-                val uniqueStudents = enrollments.map { it.studentId }.distinct().size
-
-                val sessions = AppContainer.sessionRepository.getSessions().getOrNull() ?: emptyList()
+                val profile = AppContainer.tutorRepository.getTutorProfile(user.uid).getOrNull()
+                teachingCount = profile?.courses?.size ?: 0
+                val sessions = AppContainer.sessionRepository.getSessions().getOrElse { emptyList() }
                 val tutorSessions = sessions.filter { it.tutorId == user.uid }
-                val todayStr = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date())
-                val todayCount = tutorSessions.count { it.date == todayStr }
-                val upcoming = tutorSessions.filter { (it.status == "SCHEDULED" || it.status == "PENDING") && it.date >= todayStr }
-                    .sortedBy { it.date }
-
-                _uiState.update {
-                    it.copy(
-                        user = user,
-                        activeStudentsCount = uniqueStudents,
-                        coursesTeachingCount = courses.size,
-                        todaysSessionsCount = todayCount,
-                        nextUpcomingSession = upcoming.firstOrNull(),
-                        tutorCourses = courses,
-                        isLoading = false
-                    )
-                }
-            } else {
-                _uiState.update { it.copy(isLoading = false) }
+                nextSession = tutorSessions.firstOrNull()
+                studentsCount = tutorSessions.map { it.studentId }.distinct().size
+            }
+            _uiState.update {
+                it.copy(
+                    user = user,
+                    activeStudentsCount = studentsCount,
+                    coursesTeachingCount = teachingCount,
+                    todaysSessionsCount = if (nextSession != null) 1 else 0,
+                    nextUpcomingSession = nextSession,
+                    isLoading = false
+                )
             }
         }
     }
 }
 
-data class StudentListItem(
-    val studentId: String,
-    val name: String,
-    val course: String,
-    val regNumber: String
-)
-
 data class TutorStudentsUiState(
-    val students: List<StudentListItem> = emptyList(),
-    val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val students: List<Pair<User, String>> = emptyList(), // User + CourseCode
+    val isLoading: Boolean = false
 )
 class TutorStudentsViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(TutorStudentsUiState())
@@ -372,45 +377,35 @@ class TutorStudentsViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val user = AppContainer.authRepository.fetchCurrentUser().getOrNull()
-            if (user == null) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = "Please sign in") }
-                return@launch
-            }
-            val tutorProfile = AppContainer.tutorRepository.getTutorProfile(user.uid).getOrNull()
-            val courses = tutorProfile?.courses ?: emptyList()
-            if (courses.isEmpty()) {
-                _uiState.update { it.copy(students = emptyList(), isLoading = false) }
-                return@launch
-            }
-            AppContainer.enrollmentRepository.observeEnrollmentsForCourses(courses).collect { res ->
-                val enrollments = res.getOrElse { emptyList() }
-                val studentItems = mutableListOf<StudentListItem>()
-                for (enr in enrollments) {
-                    val studentUser = AppContainer.userRepository.getUser(enr.studentId).getOrNull()
-                    val name = studentUser?.name?.ifBlank { studentUser.email.substringBefore("@") } ?: "Student"
-                    val regNum = studentUser?.studentId?.ifBlank { enr.studentId } ?: enr.studentId
-                    studentItems.add(
-                        StudentListItem(
-                            studentId = enr.studentId,
-                            name = name,
-                            course = enr.courseCode,
-                            regNumber = regNum
-                        )
-                    )
+            val list = mutableListOf<Pair<User, String>>()
+            if (user != null) {
+                val profile = AppContainer.tutorRepository.getTutorProfile(user.uid).getOrNull()
+                val courses = profile?.courses ?: emptyList()
+                val allUsers = AppContainer.userRepository.getUsers().getOrElse { emptyList() }
+
+                for (u in allUsers) {
+                    if (u.role == UserRole.STUDENT) {
+                        val studentEnrollments = AppContainer.enrollmentRepository.getEnrollmentsForStudent(u.uid).getOrElse { emptyList() }
+                        for (enr in studentEnrollments) {
+                            if (courses.contains(enr.courseCode)) {
+                                list.add(u to enr.courseCode)
+                            }
+                        }
+                    }
                 }
-                _uiState.update { it.copy(students = studentItems.distinctBy { it.studentId }, isLoading = false) }
             }
+            _uiState.update { it.copy(students = list.distinctBy { it.first.uid }, isLoading = false) }
         }
     }
 }
 
 data class TutorSessionUiState(
+    val sessions: List<Session> = emptyList(),
     val pendingSessions: List<Session> = emptyList(),
     val upcomingSessions: List<Session> = emptyList(),
     val completedSessions: List<Session> = emptyList(),
     val studentMap: Map<String, User> = emptyMap(),
-    val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val isLoading: Boolean = false
 )
 class TutorSessionViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(TutorSessionUiState())
@@ -424,79 +419,60 @@ class TutorSessionViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val user = AppContainer.authRepository.fetchCurrentUser().getOrNull()
-            if (user == null) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = "Please sign in") }
-                return@launch
-            }
-            AppContainer.sessionRepository.observeSessionsForTutor(user.uid).collect { res ->
-                val sessions = res.getOrElse { emptyList() }
-                val pending = sessions.filter { it.status.uppercase() == "PENDING" }
-                val upcoming = sessions.filter { it.status.uppercase() == "SCHEDULED" || it.status.uppercase() == "ACCEPTED" }
-                val completed = sessions.filter { it.status.uppercase() == "COMPLETED" || it.status.uppercase() == "FINISHED" }
+            val sessions = if (user != null) {
+                AppContainer.sessionRepository.getSessions().getOrElse { emptyList() }.filter { it.tutorId == user.uid }
+            } else emptyList()
 
-                val sMap = mutableMapOf<String, User>()
-                for (s in sessions) {
-                    if (s.studentId.isNotBlank() && !sMap.containsKey(s.studentId)) {
-                        AppContainer.userRepository.getUser(s.studentId).getOrNull()?.let {
-                            sMap[s.studentId] = it
-                        }
-                    }
-                }
+            val pending = sessions.filter { it.status == "PENDING" }
+            val upcoming = sessions.filter { it.status == "SCHEDULED" || it.status == "ACCEPTED" }
+            val completed = sessions.filter { it.status == "COMPLETED" }
 
-                _uiState.update {
-                    it.copy(
-                        pendingSessions = pending,
-                        upcomingSessions = upcoming,
-                        completedSessions = completed,
-                        studentMap = sMap,
-                        isLoading = false
-                    )
-                }
-            }
-        }
-    }
+            val allUsers = AppContainer.userRepository.getUsers().getOrElse { emptyList() }
+            val studentMap = allUsers.associateBy { it.uid }
 
-    fun acceptRequest(sessionId: String, meetingLink: String = "", onComplete: () -> Unit = {}) {
-        viewModelScope.launch {
-            val sessions = AppContainer.sessionRepository.getSessions().getOrNull() ?: emptyList()
-            val session = sessions.find { it.id == sessionId }
-            if (session != null) {
-                val updated = session.copy(
-                    status = "SCHEDULED",
-                    meetingLink = if (meetingLink.isNotBlank()) meetingLink else session.meetingLink
+            _uiState.update {
+                it.copy(
+                    sessions = sessions,
+                    pendingSessions = pending,
+                    upcomingSessions = upcoming,
+                    completedSessions = completed,
+                    studentMap = studentMap,
+                    isLoading = false
                 )
-                AppContainer.sessionRepository.createSession(updated)
-                onComplete()
             }
         }
     }
 
-    fun declineRequest(sessionId: String, onComplete: () -> Unit = {}) {
+    fun acceptRequest(id: String, onComplete: () -> Unit = {}) {
         viewModelScope.launch {
-            val sessions = AppContainer.sessionRepository.getSessions().getOrNull() ?: emptyList()
-            val session = sessions.find { it.id == sessionId }
-            if (session != null) {
-                val updated = session.copy(status = "DECLINED")
-                AppContainer.sessionRepository.createSession(updated)
-                onComplete()
-            }
+            val db = FirebaseFirestore.getInstance()
+            db.collection("sessions").document(id).update("status", "ACCEPTED").await()
+            loadSessions()
+            onComplete()
         }
     }
 
-    fun attachLink(sessionId: String, link: String, onComplete: () -> Unit = {}) {
+    fun declineRequest(id: String, onComplete: () -> Unit = {}) {
         viewModelScope.launch {
-            val sessions = AppContainer.sessionRepository.getSessions().getOrNull() ?: emptyList()
-            val session = sessions.find { it.id == sessionId }
-            if (session != null) {
-                val updated = session.copy(meetingLink = link)
-                AppContainer.sessionRepository.createSession(updated)
-                onComplete()
-            }
+            val db = FirebaseFirestore.getInstance()
+            db.collection("sessions").document(id).update("status", "REJECTED").await()
+            loadSessions()
+            onComplete()
+        }
+    }
+
+    fun attachLink(id: String, link: String, onComplete: () -> Unit = {}) {
+        viewModelScope.launch {
+            val db = FirebaseFirestore.getInstance()
+            db.collection("sessions").document(id).update("meetingLink", link).await()
+            loadSessions()
+            onComplete()
         }
     }
 }
 
 data class TutorCreateSessionUiState(
+    val tutorCourses: List<String> = emptyList(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null
 )
@@ -516,49 +492,9 @@ class TutorCreateSessionViewModel : ViewModel() {
             val user = AppContainer.authRepository.fetchCurrentUser().getOrNull()
             if (user != null) {
                 val profile = AppContainer.tutorRepository.getTutorProfile(user.uid).getOrNull()
-                _tutorCourses.value = profile?.courses ?: emptyList()
-            }
-        }
-    }
-
-    fun createSession(
-        courseCode: String,
-        format: String,
-        link: String,
-        venue: String,
-        date: String,
-        time: String,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit
-    ) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val user = AppContainer.authRepository.fetchCurrentUser().getOrNull()
-            if (user == null) {
-                onError("Please sign in")
-                return@launch
-            }
-            val session = Session(
-                id = UUID.randomUUID().toString(),
-                courseCode = courseCode,
-                tutorId = user.uid,
-                studentId = "",
-                date = date,
-                time = time,
-                method = format,
-                meetingLink = link,
-                venue = venue,
-                status = "PENDING",
-                createdAt = System.currentTimeMillis()
-            )
-            val result = AppContainer.sessionRepository.createSession(session)
-            _uiState.update { it.copy(isLoading = false) }
-            if (result.isSuccess) {
-                onSuccess()
-            } else {
-                val msg = result.exceptionOrNull()?.localizedMessage ?: "Failed to create session"
-                _uiState.update { it.copy(errorMessage = msg) }
-                onError(msg)
+                val courses = profile?.courses ?: emptyList()
+                _uiState.update { it.copy(tutorCourses = courses) }
+                _tutorCourses.value = courses
             }
         }
     }
@@ -573,10 +509,6 @@ class TutorCreateSessionViewModel : ViewModel() {
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
-        if (courseCode.isBlank()) {
-            onError("Please select a course")
-            return
-        }
         if (format == "Online" && meetingLink.isBlank()) {
             onError("Valid meeting link required for online sessions")
             return
@@ -590,6 +522,9 @@ class TutorCreateSessionViewModel : ViewModel() {
             return
         }
 
+        val formatter = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+        val dateStr = formatter.format(Date(dateMillis))
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             val user = AppContainer.authRepository.fetchCurrentUser().getOrNull()
@@ -597,9 +532,6 @@ class TutorCreateSessionViewModel : ViewModel() {
                 onError("Please sign in")
                 return@launch
             }
-            val formatter = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
-            val dateStr = formatter.format(Date(dateMillis))
-
             val session = Session(
                 id = UUID.randomUUID().toString(),
                 courseCode = courseCode,
@@ -629,6 +561,7 @@ class TutorCreateSessionViewModel : ViewModel() {
 }
 
 data class TutorUploadMaterialUiState(
+    val tutorCourses: List<String> = emptyList(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null
 )
@@ -648,7 +581,9 @@ class TutorUploadMaterialViewModel : ViewModel() {
             val user = AppContainer.authRepository.fetchCurrentUser().getOrNull()
             if (user != null) {
                 val profile = AppContainer.tutorRepository.getTutorProfile(user.uid).getOrNull()
-                _tutorCourses.value = profile?.courses ?: emptyList()
+                val courses = profile?.courses ?: emptyList()
+                _uiState.update { it.copy(tutorCourses = courses) }
+                _tutorCourses.value = courses
             }
         }
     }
@@ -664,10 +599,6 @@ class TutorUploadMaterialViewModel : ViewModel() {
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
-        if (courseCode.isBlank()) {
-            onError("Please select a course")
-            return
-        }
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             val user = AppContainer.authRepository.fetchCurrentUser().getOrNull()
@@ -717,7 +648,7 @@ class TutorUploadMaterialViewModel : ViewModel() {
     }
 }
 
-data class TopCourseInfo(
+data class CourseEnrollmentStat(
     val course: Course,
     val enrollmentCount: Int
 )
@@ -728,7 +659,7 @@ data class AdminOverviewUiState(
     val studentsCount: Int = 0,
     val tutorsCount: Int = 0,
     val materialsCount: Int = 0,
-    val topCourses: List<TopCourseInfo> = emptyList(),
+    val topCourses: List<CourseEnrollmentStat> = emptyList(),
     val isLoading: Boolean = false
 )
 class AdminOverviewViewModel : ViewModel() {
@@ -741,14 +672,15 @@ class AdminOverviewViewModel : ViewModel() {
             val users = AppContainer.userRepository.getUsers().getOrElse { emptyList() }
             val courses = AppContainer.courseRepository.getCourses(includeDrafts = true).getOrElse { emptyList() }
             val materials = AppContainer.materialRepository.getAllMaterials().getOrElse { emptyList() }
-            val enrollments = AppContainer.enrollmentRepository.getEnrollments().getOrElse { emptyList() }
 
             val students = users.count { it.role == UserRole.STUDENT }
             val tutors = users.count { it.role == UserRole.TUTOR }
 
-            val enrollmentCounts = enrollments.groupBy { it.courseCode }.mapValues { it.value.size }
-            val topCourses = courses.map { course ->
-                TopCourseInfo(course = course, enrollmentCount = enrollmentCounts[course.code] ?: 0)
+            val enrollments = AppContainer.enrollmentRepository.getAllEnrollments().getOrElse { emptyList() }
+
+            val countsMap = enrollments.groupBy { it.courseCode }.mapValues { it.value.size }
+            val sortedCourses = courses.map { course ->
+                CourseEnrollmentStat(course, countsMap[course.code] ?: 0)
             }.sortedByDescending { it.enrollmentCount }.take(3)
 
             _uiState.update {
@@ -758,7 +690,7 @@ class AdminOverviewViewModel : ViewModel() {
                     studentsCount = students,
                     tutorsCount = tutors,
                     materialsCount = materials.size,
-                    topCourses = topCourses,
+                    topCourses = sortedCourses,
                     isLoading = false
                 )
             }

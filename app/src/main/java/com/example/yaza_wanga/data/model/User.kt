@@ -38,6 +38,8 @@ data class User(
     val studentId: String? = null,
     val department: String? = null,
     val programme: String? = null,
+    val yearOfStudy: String? = null,
+    val phone: String? = null,
     val createdAt: Long = System.currentTimeMillis()
 ) {
     fun toMap(): Map<String, Any?> {
@@ -51,6 +53,8 @@ data class User(
             "studentId" to studentId,
             "department" to department,
             "programme" to programme,
+            "yearOfStudy" to yearOfStudy,
+            "phone" to phone,
             "createdAt" to createdAt
         )
     }
@@ -67,6 +71,8 @@ data class User(
                 studentId = map["studentId"] as? String,
                 department = map["department"] as? String,
                 programme = map["programme"] as? String,
+                yearOfStudy = map["yearOfStudy"] as? String,
+                phone = map["phone"] as? String,
                 createdAt = (map["createdAt"] as? Number)?.toLong() ?: System.currentTimeMillis()
             )
         }

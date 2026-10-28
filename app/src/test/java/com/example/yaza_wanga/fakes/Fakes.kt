@@ -19,19 +19,19 @@ import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 class FakeAuthRepository : AuthRepository(auth = null, db = null) {
     val users = mutableMapOf<String, User>()
     val passwords = mutableMapOf<String, String>()
-
+    
     private val _currentUserFlow = MutableStateFlow<User?>(null)
-    override val currentUserFlow: StateFlow<User?> = _currentUserFlow.asStateFlow()
+    override val currentUserFlow: StateFlow<User?> = _currentUserFlow
 
-    var loggedInUser: User?
-        get() = _currentUserFlow.value
+    var loggedInUser: User? = null
         set(value) {
+            field = value
             _currentUserFlow.value = value
         }
 
@@ -50,7 +50,7 @@ class FakeAuthRepository : AuthRepository(auth = null, db = null) {
         if (user.status == UserStatus.SUSPENDED) {
             return Result.failure(Exception("Your account has been suspended. Contact the administrator"))
         }
-        _currentUserFlow.value = user
+        loggedInUser = user
         return Result.success(user)
     }
 
@@ -81,7 +81,7 @@ class FakeAuthRepository : AuthRepository(auth = null, db = null) {
         users[user.uid] = user
         passwords[email.lowercase()] = pass
         passwords[user.uid] = pass
-        _currentUserFlow.value = user
+        loggedInUser = user
         return Result.success(user)
     }
 
@@ -90,32 +90,26 @@ class FakeAuthRepository : AuthRepository(auth = null, db = null) {
     }
 
     override suspend fun fetchCurrentUser(): Result<User?> {
-        return Result.success(_currentUserFlow.value)
+        return Result.success(loggedInUser)
     }
 
     override fun signOut() {
-        _currentUserFlow.value = null
+        loggedInUser = null
     }
 }
 
 class FakeCourseRepository : CourseRepository(db = null) {
     val courses = mutableMapOf<String, Course>()
-    private val _coursesFlow = MutableStateFlow<List<Course>>(emptyList())
-
-    fun refreshFlow() {
-        _coursesFlow.value = courses.values.toList()
-    }
+    private val coursesFlow = MutableStateFlow<List<Course>>(emptyList())
 
     override fun observeCourses(includeDrafts: Boolean): Flow<Result<List<Course>>> {
-        refreshFlow()
-        return _coursesFlow.map { list ->
-            Result.success(list.filter { if (includeDrafts) true else it.status == "ACTIVE" })
-        }
+        coursesFlow.value = courses.values.toList()
+        return coursesFlow.map { list -> Result.success(list.filter { if (includeDrafts) true else it.status == "ACTIVE" }) }
     }
 
     override suspend fun getCourses(includeDrafts: Boolean): Result<List<Course>> {
-        refreshFlow()
-        return Result.success(_coursesFlow.value.filter { if (includeDrafts) true else it.status == "ACTIVE" })
+        coursesFlow.value = courses.values.toList()
+        return Result.success(courses.values.toList().filter { if (includeDrafts) true else it.status == "ACTIVE" })
     }
 
     override suspend fun getCourse(code: String): Result<Course?> {
@@ -124,41 +118,29 @@ class FakeCourseRepository : CourseRepository(db = null) {
 
     override suspend fun saveCourse(course: Course): Result<Unit> {
         courses[course.code] = course
-        refreshFlow()
+        coursesFlow.value = courses.values.toList()
         return Result.success(Unit)
     }
 }
 
 class FakeEnrollmentRepository : EnrollmentRepository(db = null) {
     val enrollments = mutableListOf<Enrollment>()
-    private val _enrollmentsFlow = MutableStateFlow<List<Enrollment>>(emptyList())
-
-    fun refreshFlow() {
-        _enrollmentsFlow.value = enrollments.toList()
-    }
+    private val enrollmentsFlow = MutableStateFlow<List<Enrollment>>(emptyList())
 
     override fun observeEnrollmentsForStudent(studentId: String): Flow<Result<List<Enrollment>>> {
-        refreshFlow()
-        return _enrollmentsFlow.map { list ->
-            Result.success(list.filter { it.studentId == studentId && it.status == "ACTIVE" })
-        }
-    }
-
-    override fun observeEnrollmentsForCourses(courseCodes: List<String>): Flow<Result<List<Enrollment>>> {
-        refreshFlow()
-        return _enrollmentsFlow.map { list ->
-            Result.success(list.filter { courseCodes.contains(it.courseCode) && it.status == "ACTIVE" })
-        }
+        enrollmentsFlow.value = enrollments.toList()
+        return enrollmentsFlow.map { list -> Result.success(list.filter { it.studentId == studentId && it.status == "ACTIVE" }) }
     }
 
     override suspend fun getEnrollmentsForStudent(studentId: String): Result<List<Enrollment>> {
-        refreshFlow()
-        return Result.success(enrollments.filter { it.studentId == studentId && it.status == "ACTIVE" })
+        enrollmentsFlow.value = enrollments.toList()
+        val list = enrollments.filter { it.studentId == studentId && it.status == "ACTIVE" }
+        return Result.success(list)
     }
 
-    override suspend fun getEnrollments(): Result<List<Enrollment>> {
-        refreshFlow()
-        return Result.success(enrollments.filter { it.status == "ACTIVE" })
+    override suspend fun getAllEnrollments(): Result<List<Enrollment>> {
+        enrollmentsFlow.value = enrollments.toList()
+        return Result.success(enrollments.toList())
     }
 
     override suspend fun enroll(enrollment: Enrollment): Result<Unit> {
@@ -169,7 +151,7 @@ class FakeEnrollmentRepository : EnrollmentRepository(db = null) {
             return Result.failure(Exception("Already enrolled in this course"))
         }
         enrollments.add(enrollment)
-        refreshFlow()
+        enrollmentsFlow.value = enrollments.toList()
         return Result.success(Unit)
     }
 
@@ -183,123 +165,68 @@ class FakeEnrollmentRepository : EnrollmentRepository(db = null) {
 
 class FakeSessionRepository : SessionRepository(db = null) {
     val sessions = mutableListOf<Session>()
-    private val _sessionsFlow = MutableStateFlow<List<Session>>(emptyList())
 
-    fun refreshFlow() {
-        _sessionsFlow.value = sessions.toList()
-    }
-
-    override fun observeSessions(): Flow<Result<List<Session>>> {
-        refreshFlow()
-        return _sessionsFlow.map { list -> Result.success(list) }
-    }
-
-    override fun observeSessionsForTutor(tutorId: String): Flow<Result<List<Session>>> {
-        refreshFlow()
-        return _sessionsFlow.map { list -> Result.success(list.filter { it.tutorId == tutorId }) }
-    }
-
-    override fun observeSessionsForCourses(courseCodes: List<String>): Flow<Result<List<Session>>> {
-        refreshFlow()
-        return _sessionsFlow.map { list -> Result.success(list.filter { courseCodes.contains(it.courseCode) }) }
-    }
+    override fun observeSessions(): Flow<Result<List<Session>>> =
+        flowOf(Result.success(sessions.toList()))
 
     override suspend fun getSessions(): Result<List<Session>> {
-        refreshFlow()
-        return Result.success(_sessionsFlow.value)
+        return Result.success(sessions.toList())
     }
 
     override suspend fun createSession(session: Session): Result<Unit> {
         sessions.add(session)
-        refreshFlow()
         return Result.success(Unit)
     }
 }
 
 class FakeMaterialRepository : MaterialRepository(db = null) {
     val materials = mutableListOf<Material>()
-    private val _materialsFlow = MutableStateFlow<List<Material>>(emptyList())
 
-    fun refreshFlow() {
-        _materialsFlow.value = materials.toList()
-    }
+    fun refreshFlow() {}
 
-    override fun observeMaterials(courseCode: String): Flow<Result<List<Material>>> {
-        refreshFlow()
-        return _materialsFlow.map { list -> Result.success(list.filter { it.courseCode == courseCode }) }
-    }
+    override fun observeMaterials(courseCode: String): Flow<Result<List<Material>>> =
+        flowOf(Result.success(materials.filter { it.courseCode == courseCode }))
 
-    override fun observeAllMaterials(): Flow<Result<List<Material>>> {
-        refreshFlow()
-        return _materialsFlow.map { list -> Result.success(list) }
-    }
+    override fun observeAllMaterials(): Flow<Result<List<Material>>> =
+        flowOf(Result.success(materials.toList()))
 
     override suspend fun getMaterials(courseCode: String): Result<List<Material>> {
-        refreshFlow()
         return Result.success(materials.filter { it.courseCode == courseCode })
     }
 
     override suspend fun getAllMaterials(): Result<List<Material>> {
-        refreshFlow()
         return Result.success(materials.toList())
     }
 
     override suspend fun uploadMaterial(material: Material): Result<Unit> {
         materials.add(material)
-        refreshFlow()
         return Result.success(Unit)
     }
 }
 
 class FakeTutorRepository : TutorRepository(db = null) {
     val tutors = mutableListOf<TutorProfile>()
-    private val _tutorsFlow = MutableStateFlow<List<TutorProfile>>(emptyList())
 
-    fun refreshFlow() {
-        _tutorsFlow.value = tutors.toList()
-    }
-
-    override fun observeVerifiedTutorsForCourse(courseCode: String): Flow<Result<List<TutorProfile>>> {
-        refreshFlow()
-        return _tutorsFlow.map { list ->
-            Result.success(list.filter { (it.status == "VERIFIED" || it.status == "ACTIVE") && (it.courses.contains(courseCode) || it.courses.isEmpty()) })
-        }
-    }
-
-    override fun observeTutor(tutorId: String): Flow<Result<TutorProfile?>> {
-        refreshFlow()
-        return _tutorsFlow.map { list ->
-            Result.success(list.find { it.tutorId == tutorId })
-        }
-    }
-
-    override suspend fun getTutorProfile(tutorId: String): Result<TutorProfile?> {
-        refreshFlow()
-        return Result.success(tutors.find { it.tutorId == tutorId })
-    }
+    override fun observeVerifiedTutorsForCourse(courseCode: String): Flow<Result<List<TutorProfile>>> =
+        flowOf(Result.success(tutors.filter { (it.status == "VERIFIED" || it.status == "ACTIVE") && (it.courses.contains(courseCode) || it.courses.isEmpty()) }))
 
     override suspend fun getTutorsForCourse(courseCode: String): Result<List<TutorProfile>> {
-        refreshFlow()
         return Result.success(tutors.filter { (it.status == "VERIFIED" || it.status == "ACTIVE") && (it.courses.contains(courseCode) || it.courses.isEmpty()) })
     }
 }
 
 class FakeUserRepository : UserRepository(db = null) {
     val users = mutableMapOf<String, User>()
-    private val _usersFlow = MutableStateFlow<List<User>>(emptyList())
 
-    fun refreshFlow() {
-        _usersFlow.value = users.values.toList()
+    fun saveUser(user: User) {
+        users[user.uid] = user
     }
 
-    override fun observeUsers(): Flow<Result<List<User>>> {
-        refreshFlow()
-        return _usersFlow.map { list -> Result.success(list) }
-    }
+    override fun observeUsers(): Flow<Result<List<User>>> =
+        flowOf(Result.success(users.values.toList()))
 
     override suspend fun getUsers(): Result<List<User>> {
-        refreshFlow()
-        return Result.success(_usersFlow.value)
+        return Result.success(users.values.toList())
     }
 
     override suspend fun getUser(uid: String): Result<User?> {
@@ -310,13 +237,7 @@ class FakeUserRepository : UserRepository(db = null) {
         val u = users[uid]
         if (u != null) {
             users[uid] = u.copy(status = status)
-            refreshFlow()
         }
         return Result.success(Unit)
-    }
-
-    fun saveUser(user: User) {
-        users[user.uid] = user
-        refreshFlow()
     }
 }

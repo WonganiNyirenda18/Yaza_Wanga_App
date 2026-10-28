@@ -106,7 +106,7 @@ class RefactoringTests {
         )
         fakeAuthRepository.loggedInUser = student
 
-        // Seed enrollments
+        // Seed enrollments via enroll
         fakeEnrollmentRepository.enroll(Enrollment("e1", "student_1", "INF 212", 0L, "ACTIVE"))
         fakeEnrollmentRepository.enroll(Enrollment("e2", "student_1", "COM 311", 0L, "ACTIVE"))
 
