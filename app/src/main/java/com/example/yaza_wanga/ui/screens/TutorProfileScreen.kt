@@ -1,5 +1,6 @@
 package com.example.yaza_wanga.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,28 +19,38 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.yaza_wanga.ui.components.YazaWangaLogo
-import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
+import com.example.yaza_wanga.ui.theme.*
+import com.example.yaza_wanga.ui.viewmodel.TutorProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TutorProfileScreen(
+    viewModel: TutorProfileViewModel = viewModel(),
     onBackClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
     onCompleteSetup: () -> Unit = {}
 ) {
-    var professionalBio by remember { mutableStateOf("") }
-    var sessionRate by remember { mutableStateOf("") }
-    var paymentMethod by remember { mutableStateOf("Airtel Money") }
-    var accountNumber by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val profile = uiState.profile
 
-    var paymentExpanded by remember { mutableStateOf(false) }
-    val paymentOptions = listOf("Airtel Money", "TNM Mpamba", "National Bank of Malawi", "Standard Bank")
+    var professionalBio by remember(profile) { mutableStateOf(profile?.bio ?: "") }
+    var sessionRate by remember(profile) { mutableStateOf(if (profile != null && profile.hourlyRate > 0) profile.hourlyRate.toInt().toString() else "") }
+    var teachingMethod by remember(profile) { mutableStateOf(profile?.teachingMethod ?: "Both Online & Offline") }
+    var phone by remember(profile) { mutableStateOf(profile?.phone ?: "") }
+    var whatsapp by remember(profile) { mutableStateOf(profile?.whatsapp ?: "") }
+
+    var methodExpanded by remember { mutableStateOf(false) }
+    val methodOptions = listOf("Both Online & Offline", "Online Only (Google Meet)", "In-Person Only")
 
     val primaryBlue = Color(0xFF1D4ED8)
     val lightBlueBg = Color(0xFFF0F4FF)
@@ -128,76 +139,13 @@ fun TutorProfileScreen(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Set up your professional bio, tutoring rates, and payment payout methods to start accepting mentees.",
+                    text = "Set up your professional bio, tutoring rates, courses you teach, and contact details.",
                     fontSize = 13.sp,
                     color = textGray
                 )
             }
 
             Spacer(modifier = Modifier.height(4.dp))
-
-            // Profile Picture Upload Avatar Section with Plus Badge & Format Note
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(96.dp)
-                        .clickable { }
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(96.dp)
-                            .clip(CircleShape)
-                            .background(lightBlueBg)
-                            .border(2.dp, primaryBlue, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CameraAlt,
-                            contentDescription = "Upload Photo",
-                            tint = primaryBlue,
-                            modifier = Modifier.size(36.dp)
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .background(primaryBlue)
-                            .border(2.dp, Color.White, CircleShape)
-                            .align(Alignment.BottomEnd),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add Photo",
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(2.dp))
-
-                Text(
-                    text = "Upload Tutor Avatar",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = primaryBlue
-                )
-
-                Text(
-                    text = "Supported: PNG, JPG • Max size: 5MB",
-                    fontSize = 11.sp,
-                    color = textGray,
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             // Tutor Profile Form Card
             Card(
@@ -216,7 +164,7 @@ fun TutorProfileScreen(
                 ) {
                     // 1. Professional Bio / Expertise
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Professional Bio / Specialization", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+                        Text("Professional Bio / Specialization *", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
                         OutlinedTextField(
                             value = professionalBio,
                             onValueChange = { professionalBio = it },
@@ -235,40 +183,48 @@ fun TutorProfileScreen(
                         )
                     }
 
-                    // 2. Session Fee / Rate
+                    // 2. Select Courses Taught (from real Firestore courses)
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Session Fee / Rate", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
-                        OutlinedTextField(
-                            value = sessionRate,
-                            onValueChange = { sessionRate = it },
-                            placeholder = { Text("e.g. FREE • Peer Volunteer", color = textGray, fontSize = 13.sp) },
-                            singleLine = true,
-                            shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = containerBg,
-                                unfocusedContainerColor = containerBg,
-                                focusedBorderColor = primaryBlue,
-                                unfocusedBorderColor = Color(0xFFE2E8F0),
-                                focusedTextColor = textDark,
-                                unfocusedTextColor = textDark
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        Text("Courses You Teach *", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+                        if (uiState.availableCourses.isEmpty()) {
+                            Text("No courses available in system", fontSize = 12.sp, color = textGray)
+                        } else {
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                uiState.availableCourses.forEach { course ->
+                                    val isSelected = uiState.selectedCourses.contains(course.code)
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable { viewModel.toggleCourseSelection(course.code) }
+                                            .padding(vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Checkbox(
+                                            checked = isSelected,
+                                            onCheckedChange = { viewModel.toggleCourseSelection(course.code) },
+                                            colors = CheckboxDefaults.colors(checkedColor = primaryBlue)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text("${course.code} - ${course.title}", fontSize = 13.sp, color = textDark)
+                                    }
+                                }
+                            }
+                        }
                     }
 
-                    // 3. Payment Method Payout Dropdown
+                    // 3. Teaching Method Dropdown
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Payment Payout Method", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+                        Text("Teaching Method *", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
                         ExposedDropdownMenuBox(
-                            expanded = paymentExpanded,
-                            onExpandedChange = { paymentExpanded = it },
+                            expanded = methodExpanded,
+                            onExpandedChange = { methodExpanded = it },
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             OutlinedTextField(
-                                value = paymentMethod,
+                                value = teachingMethod,
                                 onValueChange = {},
                                 readOnly = true,
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = paymentExpanded) },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = methodExpanded) },
                                 shape = RoundedCornerShape(12.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedContainerColor = containerBg,
@@ -283,15 +239,15 @@ fun TutorProfileScreen(
                                     .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, true)
                             )
                             ExposedDropdownMenu(
-                                expanded = paymentExpanded,
-                                onDismissRequest = { paymentExpanded = false }
+                                expanded = methodExpanded,
+                                onDismissRequest = { methodExpanded = false }
                             ) {
-                                paymentOptions.forEach { method ->
+                                methodOptions.forEach { method ->
                                     DropdownMenuItem(
                                         text = { Text(method) },
                                         onClick = {
-                                            paymentMethod = method
-                                            paymentExpanded = false
+                                            teachingMethod = method
+                                            methodExpanded = false
                                         }
                                     )
                                 }
@@ -299,12 +255,54 @@ fun TutorProfileScreen(
                         }
                     }
 
-                    // 4. Payout Account Number / Phone
+                    // 4. Hourly Rate (0 = Free)
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Payout Account Number / Phone", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+                        Text("Hourly Rate in MK (0 = Free / Volunteer)", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
                         OutlinedTextField(
-                            value = accountNumber,
-                            onValueChange = { accountNumber = it },
+                            value = sessionRate,
+                            onValueChange = { sessionRate = it },
+                            placeholder = { Text("0 for free or e.g. 2500", color = textGray, fontSize = 13.sp) },
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = containerBg,
+                                unfocusedContainerColor = containerBg,
+                                focusedBorderColor = primaryBlue,
+                                unfocusedBorderColor = Color(0xFFE2E8F0),
+                                focusedTextColor = textDark,
+                                unfocusedTextColor = textDark
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    // 5. Phone Number
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("Phone Number *", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+                        OutlinedTextField(
+                            value = phone,
+                            onValueChange = { phone = it },
+                            placeholder = { Text("+265 ...", color = textGray, fontSize = 13.sp) },
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = containerBg,
+                                unfocusedContainerColor = containerBg,
+                                focusedBorderColor = primaryBlue,
+                                unfocusedBorderColor = Color(0xFFE2E8F0),
+                                focusedTextColor = textDark,
+                                unfocusedTextColor = textDark
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    // 6. WhatsApp Number
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("WhatsApp Number", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+                        OutlinedTextField(
+                            value = whatsapp,
+                            onValueChange = { whatsapp = it },
                             placeholder = { Text("+265 ...", color = textGray, fontSize = 13.sp) },
                             singleLine = true,
                             shape = RoundedCornerShape(12.dp),
@@ -326,7 +324,36 @@ fun TutorProfileScreen(
 
             // Complete Tutor Setup & Publish Button
             Button(
-                onClick = onCompleteSetup,
+                onClick = {
+                    if (professionalBio.isBlank()) {
+                        Toast.makeText(context, "Please enter your professional bio", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    if (uiState.selectedCourses.isEmpty()) {
+                        Toast.makeText(context, "Please select at least one course", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    if (phone.isBlank()) {
+                        Toast.makeText(context, "Please enter your phone number", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    viewModel.saveProfile(
+                        bio = professionalBio,
+                        rateStr = sessionRate,
+                        teachingMethod = teachingMethod,
+                        phone = phone,
+                        whatsapp = whatsapp,
+                        onSuccess = {
+                            Toast.makeText(context, "Tutor profile saved successfully (Status: PENDING)", Toast.LENGTH_LONG).show()
+                            onCompleteSetup()
+                        },
+                        onError = { err ->
+                            Toast.makeText(context, err, Toast.LENGTH_LONG).show()
+                        }
+                    )
+                },
+                enabled = !uiState.isLoading,
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                 modifier = Modifier
@@ -337,20 +364,24 @@ fun TutorProfileScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Text(
-                        text = "Complete Tutor Setup & Publish",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        letterSpacing = 0.5.sp
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp)
-                    )
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
+                    } else {
+                        Text(
+                            text = "Complete Tutor Setup & Publish",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            letterSpacing = 0.5.sp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
 

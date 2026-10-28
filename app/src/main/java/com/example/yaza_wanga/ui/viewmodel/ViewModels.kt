@@ -167,6 +167,97 @@ class StudentProfileViewModel : ViewModel() {
     }
 }
 
+data class TutorProfileUiState(
+    val profile: TutorProfile? = null,
+    val availableCourses: List<Course> = emptyList(),
+    val selectedCourses: Set<String> = emptySet(),
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null
+)
+class TutorProfileViewModel : ViewModel() {
+    private val _uiState = MutableStateFlow(TutorProfileUiState())
+    val uiState: StateFlow<TutorProfileUiState> = _uiState.asStateFlow()
+
+    init {
+        loadProfileAndCourses()
+    }
+
+    fun loadProfileAndCourses() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            val user = AppContainer.authRepository.fetchCurrentUser().getOrNull()
+            val courses = AppContainer.courseRepository.getCourses().getOrElse { emptyList() }
+            var profile: TutorProfile? = null
+            if (user != null) {
+                profile = AppContainer.tutorRepository.getTutorProfile(user.uid).getOrNull()
+            }
+            _uiState.update {
+                it.copy(
+                    profile = profile,
+                    availableCourses = courses,
+                    selectedCourses = profile?.courses?.toSet() ?: emptySet(),
+                    isLoading = false
+                )
+            }
+        }
+    }
+
+    fun toggleCourseSelection(courseCode: String) {
+        _uiState.update { state ->
+            val set = state.selectedCourses.toMutableSet()
+            if (set.contains(courseCode)) set.remove(courseCode) else set.add(courseCode)
+            state.copy(selectedCourses = set)
+        }
+    }
+
+    fun saveProfile(
+        bio: String,
+        rateStr: String,
+        teachingMethod: String,
+        phone: String,
+        whatsapp: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            val user = AppContainer.authRepository.fetchCurrentUser().getOrNull()
+            if (user == null) {
+                onError("Please sign in")
+                _uiState.update { it.copy(isLoading = false) }
+                return@launch
+            }
+            val hourlyRate = rateStr.toDoubleOrNull() ?: 0.0
+            val existingProfile = AppContainer.tutorRepository.getTutorProfile(user.uid).getOrNull()
+            val status = if (existingProfile?.status == "VERIFIED") "VERIFIED" else "PENDING"
+
+            val profile = TutorProfile(
+                tutorId = user.uid,
+                name = user.name.ifBlank { user.email.substringBefore("@") },
+                bio = bio,
+                hourlyRate = hourlyRate,
+                courses = _uiState.value.selectedCourses.toList(),
+                rating = existingProfile?.rating ?: 5.0,
+                reviewCount = existingProfile?.reviewCount ?: 0,
+                status = status,
+                phone = phone,
+                whatsapp = whatsapp.ifBlank { phone },
+                teachingMethod = teachingMethod
+            )
+
+            val result = AppContainer.tutorRepository.saveTutorProfile(profile)
+            _uiState.update { it.copy(isLoading = false) }
+            if (result.isSuccess) {
+                onSuccess()
+            } else {
+                val msg = result.exceptionOrNull()?.localizedMessage ?: "Failed to save tutor profile"
+                _uiState.update { it.copy(errorMessage = msg) }
+                onError(msg)
+            }
+        }
+    }
+}
+
 data class StudentDashboardUiState(
     val user: User? = null,
     val enrolledCoursesCount: Int = 0,
@@ -592,10 +683,12 @@ class TutorUploadMaterialViewModel : ViewModel() {
         courseCode: String,
         title: String,
         category: String,
-        tag: String,
         description: String,
         fileUrl: String,
-        accessMode: String,
+        fileSizeMb: Double,
+        certified: Boolean,
+        tag: String = "",
+        accessMode: String = "FREE",
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
@@ -629,22 +722,6 @@ class TutorUploadMaterialViewModel : ViewModel() {
                 onError(msg)
             }
         }
-    }
-
-    fun uploadMaterial(
-        courseCode: String,
-        title: String,
-        category: String,
-        description: String,
-        fileUrl: String,
-        fileSizeMb: Double,
-        certified: Boolean,
-        tag: String = "",
-        accessMode: String = "FREE",
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit
-    ) {
-        uploadMaterial(courseCode, title, category, tag, description, fileUrl, accessMode, onSuccess, onError)
     }
 }
 
