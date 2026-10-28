@@ -115,7 +115,7 @@ class RefactoringTests {
 
         // Seed sessions (today / future)
         val todayStr = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date())
-        fakeSessionRepository.createSession(Session("s1", "t1", "", "INF 212", "Workshop", "Desc", todayStr, "04:00 PM", "Online", "", "", "SCHEDULED", 0L))
+        fakeSessionRepository.createSession(Session("s1", "t1", "", "INF 212", "Workshop", "Desc", todayStr, System.currentTimeMillis(), "04:00 PM", "Online", "", "", "SCHEDULED", 0L))
 
         val dashboardViewModel = StudentDashboardViewModel()
         testDispatcher.scheduler.advanceUntilIdle()

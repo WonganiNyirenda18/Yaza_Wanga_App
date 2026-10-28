@@ -1,5 +1,7 @@
 package com.example.yaza_wanga.validation
 
+import java.util.Calendar
+
 object Validator {
     private val EMAIL_REGEX = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
     private val PHONE_REGEX = Regex("^\\+?[0-9\\s]{7,15}$")
@@ -121,6 +123,17 @@ object Validator {
         return null
     }
 
+    fun getStartOfTodayMillis(currentMillis: Long = System.currentTimeMillis()): Long {
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = currentMillis
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        return calendar.timeInMillis
+    }
+
     fun validateSession(
         format: String,
         meetingLink: String,
@@ -134,7 +147,8 @@ object Validator {
         if (format == "In-Person" && venue.isBlank()) {
             return "Venue location required for in-person sessions"
         }
-        if (dateMillis < currentTimeMillis - 86400000) {
+        val todayStart = getStartOfTodayMillis(currentTimeMillis)
+        if (dateMillis < todayStart) {
             return "Session date cannot be in the past"
         }
         return null

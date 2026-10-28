@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.yaza_wanga.data.AppContainer
 import com.example.yaza_wanga.data.model.*
+import com.example.yaza_wanga.validation.Validator
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -293,8 +294,8 @@ class StudentDashboardViewModel : ViewModel() {
                         tutorCount = tutorsSet.size
 
                         val allSessions = AppContainer.sessionRepository.getSessions().getOrElse { emptyList() }
-                        val todayStr = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date())
-                        val upcoming = allSessions.filter { courseCodes.contains(it.courseCode) && it.date >= todayStr }
+                        val todayStart = Validator.getStartOfTodayMillis()
+                        val upcoming = allSessions.filter { courseCodes.contains(it.courseCode) && it.dateMillis >= todayStart }
 
                         _uiState.update {
                             it.copy(
@@ -434,7 +435,8 @@ class TutorDashboardViewModel : ViewModel() {
                 val profile = AppContainer.tutorRepository.getTutorProfile(user.uid).getOrNull()
                 teachingCount = profile?.courses?.size ?: 0
                 val sessions = AppContainer.sessionRepository.getSessions().getOrElse { emptyList() }
-                val tutorSessions = sessions.filter { it.tutorId == user.uid }
+                val todayStart = Validator.getStartOfTodayMillis()
+                val tutorSessions = sessions.filter { it.tutorId == user.uid && it.dateMillis >= todayStart }
                 nextSession = tutorSessions.firstOrNull()
                 studentsCount = tutorSessions.map { it.studentId }.distinct().size
             }
@@ -514,9 +516,10 @@ class TutorSessionViewModel : ViewModel() {
                 AppContainer.sessionRepository.getSessions().getOrElse { emptyList() }.filter { it.tutorId == user.uid }
             } else emptyList()
 
+            val todayStart = Validator.getStartOfTodayMillis()
             val pending = sessions.filter { it.status == "PENDING" }
-            val upcoming = sessions.filter { it.status == "SCHEDULED" || it.status == "ACCEPTED" }
-            val completed = sessions.filter { it.status == "COMPLETED" }
+            val upcoming = sessions.filter { (it.status == "SCHEDULED" || it.status == "ACCEPTED") && it.dateMillis >= todayStart }
+            val completed = sessions.filter { it.status == "COMPLETED" || it.dateMillis < todayStart }
 
             val allUsers = AppContainer.userRepository.getUsers().getOrElse { emptyList() }
             val studentMap = allUsers.associateBy { it.uid }
@@ -608,7 +611,8 @@ class TutorCreateSessionViewModel : ViewModel() {
             onError("Venue location required for in-person sessions")
             return
         }
-        if (dateMillis < System.currentTimeMillis() - 60000) {
+        val todayStart = Validator.getStartOfTodayMillis()
+        if (dateMillis < todayStart) {
             onError("Session date cannot be in the past")
             return
         }
@@ -631,6 +635,7 @@ class TutorCreateSessionViewModel : ViewModel() {
                 title = title,
                 description = if (format == "Online") "Online Link: $meetingLink" else "Venue: $venue",
                 date = dateStr,
+                dateMillis = dateMillis,
                 time = "04:00 PM",
                 method = format,
                 meetingLink = meetingLink,
