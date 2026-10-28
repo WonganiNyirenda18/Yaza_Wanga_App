@@ -62,7 +62,23 @@ open class UserRepository(private val db: FirebaseFirestore? = null) {
 
     open suspend fun updateUserStatus(uid: String, status: UserStatus): Result<Unit> {
         return try {
-            safeDb.collection("users").document(uid).update("status", status.name).await()
+            val batch = safeDb.batch()
+            val userRef = safeDb.collection("users").document(uid)
+            batch.update(userRef, "status", status.name)
+
+            val tutorRef = safeDb.collection("tutors").document(uid)
+            val tutorDoc = tutorRef.get().await()
+            if (tutorDoc.exists()) {
+                val tutorStatus = when (status) {
+                    UserStatus.ACTIVE -> "VERIFIED"
+                    UserStatus.REJECTED -> "REJECTED"
+                    UserStatus.SUSPENDED -> "SUSPENDED"
+                    else -> "PENDING"
+                }
+                batch.update(tutorRef, "status", tutorStatus)
+            }
+
+            batch.commit().await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

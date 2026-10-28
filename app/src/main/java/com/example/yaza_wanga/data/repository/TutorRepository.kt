@@ -21,8 +21,7 @@ open class TutorRepository(private val db: FirebaseFirestore? = null) {
                     val tutors = snapshot.documents.mapNotNull { doc ->
                         doc.data?.let { TutorProfile.fromMap(it) }
                     }.filter {
-                        (it.status == "VERIFIED" || it.status == "ACTIVE") &&
-                                (it.courses.contains(courseCode) || it.courses.isEmpty())
+                        it.status == "VERIFIED" && it.courses.contains(courseCode)
                     }
                     trySend(Result.success(tutors))
                 }
@@ -69,8 +68,7 @@ open class TutorRepository(private val db: FirebaseFirestore? = null) {
             val tutors = snapshot.documents.mapNotNull { doc ->
                 doc.data?.let { TutorProfile.fromMap(it) }
             }.filter {
-                (it.status == "VERIFIED" || it.status == "ACTIVE") &&
-                        (it.courses.contains(courseCode) || it.courses.isEmpty())
+                it.status == "VERIFIED" && it.courses.contains(courseCode)
             }
             Result.success(tutors)
         } catch (e: Exception) {
