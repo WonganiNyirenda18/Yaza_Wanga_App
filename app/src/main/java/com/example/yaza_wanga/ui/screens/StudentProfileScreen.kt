@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,7 +33,6 @@ import com.example.yaza_wanga.validation.Validator
 fun StudentProfileScreen(
     onBackClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
-    onSignOut: () -> Unit = {},
     onSaveAndContinue: (Map<String, String>, (String?) -> Unit) -> Unit = { _, _ -> }
 ) {
     var department by remember { mutableStateOf("") }
@@ -53,6 +53,7 @@ fun StudentProfileScreen(
     val programmes = listOf("Computer Science", "Information Systems", "Computer Network Engineering", "Business Information Technology")
 
     val primaryBlue = Color(0xFF1D4ED8)
+    val lightBlueBg = Color(0xFFF0F4FF)
     val containerBg = Color(0xFFF8FAFC)
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
@@ -123,33 +124,91 @@ fun StudentProfileScreen(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Provide your academic details and phone contact to finish account setup.",
+                    text = "Please verify your academic details and upload a photo to personalize your peer tutoring dashboard.",
                     fontSize = 13.sp,
                     color = textGray
                 )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // General Error Banner
-            generalError?.let { err ->
-                Card(
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF2F2)),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .border(1.dp, Color(0xFFFCA5A5), RoundedCornerShape(12.dp))
+            if (generalError != null) {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(Icons.Default.Error, null, tint = Color(0xFFDC2626), modifier = Modifier.size(20.dp))
-                        Text(err, fontSize = 12.sp, color = Color(0xFFDC2626), fontWeight = FontWeight.Medium)
-                    }
+                    Text(
+                        text = generalError ?: "",
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(12.dp)
+                    )
                 }
             }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Profile Picture Upload Avatar Section
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(96.dp)
+                        .clickable { }
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(96.dp)
+                            .clip(CircleShape)
+                            .background(lightBlueBg)
+                            .border(2.dp, primaryBlue, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CameraAlt,
+                            contentDescription = "Upload Photo",
+                            tint = primaryBlue,
+                            modifier = Modifier.size(36.dp)
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(primaryBlue)
+                            .border(2.dp, Color.White, CircleShape)
+                            .align(Alignment.BottomEnd),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add Photo",
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(2.dp))
+
+                Text(
+                    text = "Upload Profile Picture",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = primaryBlue
+                )
+
+                Text(
+                    text = "Supported: PNG, JPG • Max size: 5MB",
+                    fontSize = 11.sp,
+                    color = textGray,
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Profile Form Card
             Card(
@@ -168,7 +227,7 @@ fun StudentProfileScreen(
                 ) {
                     // 1. Department Dropdown
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Department *", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+                        Text("Department", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
                         ExposedDropdownMenuBox(
                             expanded = departmentExpanded,
                             onExpandedChange = { departmentExpanded = it },
@@ -178,9 +237,10 @@ fun StudentProfileScreen(
                                 value = department,
                                 onValueChange = {},
                                 readOnly = true,
-                                placeholder = { Text("Select your department...", color = textGray.copy(alpha = 0.6f), fontSize = 13.sp) },
+                                placeholder = { Text("Select your department...", color = textGray, fontSize = 13.sp) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = departmentExpanded) },
                                 isError = departmentError != null,
+                                supportingText = departmentError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                                 shape = RoundedCornerShape(12.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedContainerColor = containerBg,
@@ -203,9 +263,8 @@ fun StudentProfileScreen(
                                         text = { Text(dept) },
                                         onClick = {
                                             department = dept
-                                            departmentExpanded = false
                                             departmentError = null
-                                            generalError = null
+                                            departmentExpanded = false
                                         }
                                     )
                                 }
@@ -213,9 +272,9 @@ fun StudentProfileScreen(
                         }
                     }
 
-                    // 2. Programme Dropdown
+                    // 2. Programme of Study Dropdown
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Programme of Study *", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+                        Text("Programme of Study", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
                         ExposedDropdownMenuBox(
                             expanded = programmeExpanded,
                             onExpandedChange = { programmeExpanded = it },
@@ -225,9 +284,10 @@ fun StudentProfileScreen(
                                 value = programme,
                                 onValueChange = {},
                                 readOnly = true,
-                                placeholder = { Text("Select your programme...", color = textGray.copy(alpha = 0.6f), fontSize = 13.sp) },
+                                placeholder = { Text("Select your programme...", color = textGray, fontSize = 13.sp) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = programmeExpanded) },
                                 isError = programmeError != null,
+                                supportingText = programmeError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                                 shape = RoundedCornerShape(12.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedContainerColor = containerBg,
@@ -250,9 +310,8 @@ fun StudentProfileScreen(
                                         text = { Text(prog) },
                                         onClick = {
                                             programme = prog
-                                            programmeExpanded = false
                                             programmeError = null
-                                            generalError = null
+                                            programmeExpanded = false
                                         }
                                     )
                                 }
@@ -260,15 +319,14 @@ fun StudentProfileScreen(
                         }
                     }
 
-                    // 3. Year of Study Chips
+                    // 3. Year of Study Selection
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Year of Study *", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+                        Text("Year of Study", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = textDark)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            val years = listOf("Year 1", "Year 2", "Year 3", "Year 4")
-                            years.forEach { yr ->
+                            listOf("Year 1", "Year 2", "Year 3", "Year 4").forEach { yr ->
                                 val selected = yearOfStudy == yr
                                 Surface(
                                     shape = RoundedCornerShape(10.dp),
@@ -302,7 +360,7 @@ fun StudentProfileScreen(
                                 phoneError = null
                                 generalError = null
                             },
-                            placeholder = { Text("+265 ...", color = textGray.copy(alpha = 0.6f), fontSize = 13.sp) },
+                            placeholder = { Text("+265 995 358 915", color = textGray.copy(alpha = 0.6f), fontSize = 13.sp) },
                             singleLine = true,
                             isError = phoneError != null,
                             supportingText = phoneError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
@@ -389,26 +447,6 @@ fun StudentProfileScreen(
                             modifier = Modifier.size(18.dp)
                         )
                     }
-                }
-            }
-
-            // Sign Out Button
-            OutlinedButton(
-                onClick = onSignOut,
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFDC2626)),
-                border = BorderStroke(1.dp, Color(0xFFDC2626)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Icon(Icons.Default.Logout, null, tint = Color(0xFFDC2626), modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Sign Out", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
                 }
             }
 
