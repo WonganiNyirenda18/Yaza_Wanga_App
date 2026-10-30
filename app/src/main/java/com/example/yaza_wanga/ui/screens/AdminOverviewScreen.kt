@@ -1,5 +1,6 @@
 package com.example.yaza_wanga.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,6 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -29,7 +31,7 @@ import com.example.yaza_wanga.ui.viewmodel.AdminOverviewViewModel
 
 @Composable
 fun AdminBottomBar(
-    currentTab: Int, // 0: Overview, 1: Users, 2: Courses, 3: Content, 4: Finance
+    currentTab: Int, // 0: Overview, 1: Users, 2: Courses, 3: Content
     onSelectTab: (Int) -> Unit
 ) {
     val primaryBlue = Color(0xFF1D4ED8)
@@ -43,8 +45,7 @@ fun AdminBottomBar(
             Triple(0, "Overview", Icons.Default.GridView),
             Triple(1, "Users", Icons.Default.Group),
             Triple(2, "Courses", Icons.AutoMirrored.Filled.MenuBook),
-            Triple(3, "Content", Icons.Default.VerifiedUser),
-            Triple(4, "Finance", Icons.Default.AccountBalanceWallet)
+            Triple(3, "Content", Icons.Default.VerifiedUser)
         )
 
         tabs.forEach { (index, label, icon) ->
@@ -96,7 +97,8 @@ fun AdminBottomBar(
 @Composable
 fun AdminOverviewScreen(
     viewModel: AdminOverviewViewModel = viewModel(),
-    onNavigateTab: (Int) -> Unit = {}
+    onNavigateTab: (Int) -> Unit = {},
+    onSignOut: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -128,7 +130,7 @@ fun AdminOverviewScreen(
                     },
                     actions = {
                         IconButton(
-                            onClick = {},
+                            onClick = onSignOut,
                             modifier = Modifier
                                 .padding(end = 8.dp)
                                 .size(38.dp)
@@ -137,7 +139,7 @@ fun AdminOverviewScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Person,
-                                contentDescription = "Profile",
+                                contentDescription = "Sign Out",
                                 tint = Color.White,
                                 modifier = Modifier.size(20.dp)
                             )
@@ -161,96 +163,58 @@ fun AdminOverviewScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Column {
-                Text(
-                    text = "Good morning, Admin",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textDark
-                )
-                Text(
-                    text = "Institutional Governance Dashboard",
-                    fontSize = 12.sp,
-                    color = textGray
-                )
+            // Header title & caption
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text("System Administration", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textDark)
+                Text("Real-Time Analytics & Platform Overview", fontSize = 12.sp, color = textGray)
             }
 
-            // Top Action Pills Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(50.dp),
-                    color = lightBlueBg,
-                    modifier = Modifier.clickable { onNavigateTab(1) }
+            // Top Stat Cards Grid (2x2)
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(Icons.Default.PersonAdd, null, tint = primaryBlue, modifier = Modifier.size(14.dp))
-                        Text("Tutor Approvals", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
-                        Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(primaryBlue))
-                    }
-                }
-
-                Surface(
-                    shape = RoundedCornerShape(50.dp),
-                    color = Color(0xFFFEF2F2),
-                    modifier = Modifier.clickable { onNavigateTab(3) }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(Icons.Default.Flag, null, tint = Color(0xFFDC2626), modifier = Modifier.size(14.dp))
-                        Text("${uiState.materialsCount} Materials", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
-                        Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(Color(0xFFDC2626)))
-                    }
-                }
-            }
-
-            // Stats 2x2 Grid
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     AdminStatCard(
                         title = "Total Users",
-                        value = "${uiState.usersCount}",
-                        subtext = "Registered platform accounts",
+                        count = uiState.usersCount.toString(),
+                        subtitle = "${uiState.studentsCount} Students • ${uiState.tutorsCount} Tutors",
                         icon = Icons.Default.Group,
+                        color = primaryBlue,
+                        bgColor = lightBlueBg,
                         modifier = Modifier.weight(1f)
                     )
-
                     AdminStatCard(
                         title = "Active Courses",
-                        value = "${uiState.coursesCount}",
-                        subtext = "Syllabus modules",
-                        icon = Icons.Default.School,
+                        count = uiState.coursesCount.toString(),
+                        subtitle = "Published Catalog",
+                        icon = Icons.AutoMirrored.Filled.MenuBook,
+                        color = Color(0xFF0D9488),
+                        bgColor = Color(0xFFCCFBF1),
                         modifier = Modifier.weight(1f)
                     )
                 }
 
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     AdminStatCard(
-                        title = "No. Students",
-                        value = "${uiState.studentsCount}",
-                        badge = "Active",
-                        badgeColor = primaryBlue,
-                        subtext = "Enrolled learners",
-                        icon = Icons.Default.Person,
+                        title = "Study Artifacts",
+                        count = uiState.materialsCount.toString(),
+                        subtitle = "Contributed Content",
+                        icon = Icons.Default.Folder,
+                        color = Color(0xFFD97706),
+                        bgColor = Color(0xFFFEF3C7),
                         modifier = Modifier.weight(1f)
                     )
-
                     AdminStatCard(
-                        title = "No. of Tutors",
-                        value = "${uiState.tutorsCount}",
-                        badge = "Verified",
-                        badgeColor = Color(0xFF16A34A),
-                        subtext = "Peer mentors",
-                        icon = Icons.Default.VerifiedUser,
+                        title = "Pending Tutors",
+                        count = (uiState.usersCount - uiState.studentsCount - uiState.tutorsCount).coerceAtLeast(0).toString(),
+                        subtitle = "Awaiting Review",
+                        icon = Icons.Default.Verified,
+                        color = Color(0xFF7C3AED),
+                        bgColor = Color(0xFFF3E8FF),
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -294,19 +258,25 @@ fun AdminOverviewScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-            // Export Analytics Button
-            Button(
-                onClick = {},
+            // Admin Sign Out Button
+            OutlinedButton(
+                onClick = onSignOut,
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
-                modifier = Modifier.fillMaxWidth().height(52.dp)
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFDC2626)),
+                border = BorderStroke(1.dp, Color(0xFFDC2626)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                    Icon(Icons.Default.Download, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.Logout, null, tint = Color(0xFFDC2626), modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Export Analytics Report (PDF/CSV)", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Sign Out Administrator", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
                 }
             }
 
@@ -318,37 +288,37 @@ fun AdminOverviewScreen(
 @Composable
 fun AdminStatCard(
     title: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    badge: String = "",
-    badgeColor: Color = Color(0xFF16A34A),
-    subtext: String = "",
-    subtextColor: Color = Color(0xFF64748B),
-    valueColor: Color = Color(0xFF0F172A),
-    icon: ImageVector
+    count: String,
+    subtitle: String,
+    icon: ImageVector,
+    color: Color,
+    bgColor: Color,
+    modifier: Modifier = Modifier
 ) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = modifier.border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(title, fontSize = 11.sp, color = Color(0xFF64748B))
-                Icon(icon, null, tint = Color(0xFF64748B), modifier = Modifier.size(16.dp))
-            }
-            Spacer(modifier = Modifier.height(6.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(value, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = valueColor)
-                if (badge.isNotEmpty()) {
-                    Text(badge, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = badgeColor)
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(title, fontSize = 12.sp, color = Color(0xFF64748B), fontWeight = FontWeight.Medium)
+                Surface(shape = RoundedCornerShape(8.dp), color = bgColor, modifier = Modifier.size(32.dp)) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(icon, null, tint = color, modifier = Modifier.size(18.dp))
+                    }
                 }
             }
-            if (subtext.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(subtext, fontSize = 11.sp, color = subtextColor)
-            }
+            Text(count, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
+            Text(subtitle, fontSize = 10.sp, color = Color(0xFF64748B))
         }
     }
 }
@@ -361,32 +331,54 @@ fun DemandModuleItem(
     demand: String,
     primaryBlue: Color,
     textDark: Color,
-    textGray: Color,
-    modifier: Modifier = Modifier
+    textGray: Color
 ) {
-    Surface(
-        shape = RoundedCornerShape(14.dp),
-        color = Color.White,
-        modifier = modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(14.dp))
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(12.dp))
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Box(
-                modifier = Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)).background(primaryBlue),
-                contentAlignment = Alignment.Center
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.weight(1f)
             ) {
-                Text(rank, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = primaryBlue.copy(alpha = 0.1f),
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(rank, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
+                    }
+                }
+
+                Column {
+                    Text(code, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textDark)
+                    Text(desc, fontSize = 11.sp, color = textGray, maxLines = 1)
+                }
             }
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(code, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
-                Text(desc, fontSize = 11.sp, color = textGray)
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = Color(0xFFFEF3C7)
+            ) {
+                Text(
+                    text = demand,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFB45309),
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                )
             }
-
-            Text(demand, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF16A34A))
         }
     }
 }

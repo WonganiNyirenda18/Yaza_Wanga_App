@@ -17,6 +17,69 @@ import java.util.Date
 import java.util.Locale
 import java.util.UUID
 
+data class AppSessionUiState(
+    val user: User? = null,
+    val isLoading: Boolean = true,
+    val isSignedOut: Boolean = false,
+    val error: String? = null
+)
+
+class AppSessionViewModel : ViewModel() {
+    private val _uiState = MutableStateFlow(AppSessionUiState())
+    val uiState: StateFlow<AppSessionUiState> = _uiState.asStateFlow()
+
+    init {
+        observeSession()
+    }
+
+    fun observeSession() {
+        viewModelScope.launch {
+            AppContainer.authRepository.currentUserFlow.collect { user ->
+                if (user != null) {
+                    if (user.status == UserStatus.SUSPENDED || user.status == UserStatus.REJECTED) {
+                        AppContainer.authRepository.signOut()
+                        _uiState.update {
+                            it.copy(
+                                user = null,
+                                isSignedOut = true,
+                                error = "Your account has been suspended. Contact the administrator",
+                                isLoading = false
+                            )
+                        }
+                    } else {
+                        _uiState.update {
+                            it.copy(
+                                user = user,
+                                isSignedOut = false,
+                                error = null,
+                                isLoading = false
+                            )
+                        }
+                    }
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            user = null,
+                            isSignedOut = false,
+                            error = null,
+                            isLoading = false
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fun signOut() {
+        viewModelScope.launch {
+            AppContainer.authRepository.signOut()
+            _uiState.update {
+                AppSessionUiState(user = null, isLoading = false, isSignedOut = true)
+            }
+        }
+    }
+}
+
 data class SplashUiState(val isLoading: Boolean = true)
 class SplashViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(SplashUiState())
@@ -753,10 +816,6 @@ data class AdminOverviewUiState(
 class AdminOverviewViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AdminOverviewUiState())
     val uiState: StateFlow<AdminOverviewUiState> = _uiState.asStateFlow()
-
-    init {
-        loadData()
-    }
 
     fun loadData() {
         viewModelScope.launch {

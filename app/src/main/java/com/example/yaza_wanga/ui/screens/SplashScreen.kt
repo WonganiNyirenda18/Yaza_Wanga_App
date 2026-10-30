@@ -12,26 +12,38 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.yaza_wanga.ui.components.SystemBarsStyle
 import com.example.yaza_wanga.ui.components.YazaWangaLogo
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
+import com.example.yaza_wanga.ui.theme.primaryBlue
+import com.example.yaza_wanga.ui.viewmodel.AppSessionUiState
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
+    sessionState: AppSessionUiState = AppSessionUiState(isLoading = false),
     onSplashFinished: () -> Unit = {}
 ) {
-    val primaryBlue = Color(0xFF1D4ED8)
+    SystemBarsStyle(darkIcons = false)
+
     val words = listOf("Connect", "Learn", "Progress")
     var currentIndex by remember { mutableIntStateOf(0) }
+    var delayFinished by remember { mutableStateOf(false) }
 
-    // Cycle through slideshow words
+    // Cycle through slideshow words for min duration ~2.7s
     LaunchedEffect(Unit) {
-        // Total duration ~2.7s for 3 words (900ms each)
         repeat(3) {
             delay(900)
             currentIndex = (currentIndex + 1) % words.size
         }
-        onSplashFinished()
+        delayFinished = true
+    }
+
+    // Wait for both slideshow delay AND session state loading completion
+    LaunchedEffect(delayFinished, sessionState.isLoading) {
+        if (delayFinished && !sessionState.isLoading) {
+            onSplashFinished()
+        }
     }
 
     Box(
@@ -44,7 +56,6 @@ fun SplashScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Large official Yaza Wanga Logo
             YazaWangaLogo(size = 96.dp)
 
             Text(
@@ -57,7 +68,6 @@ fun SplashScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Animated slideshow word
             AnimatedContent(
                 targetState = words[currentIndex],
                 transitionSpec = {
@@ -78,9 +88,9 @@ fun SplashScreen(
     }
 }
 
-@Preview(showBackground = true, widthDp = 392, heightDp = 850)
+@Preview(showBackground = true, widthDp = 360, heightDp = 640)
 @Composable
-fun SplashPreview() {
+fun SplashPreviewSmall() {
     Yaza_WangaTheme {
         SplashScreen()
     }

@@ -2,6 +2,7 @@ package com.example.yaza_wanga.ui.navigation
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -52,9 +53,11 @@ sealed class Screen(val route: String) {
 @Composable
 fun AppNavHost(
     modifier: Modifier = Modifier,
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    sessionViewModel: AppSessionViewModel = viewModel()
 ) {
-    var userRole by remember { mutableStateOf<UserRole?>(null) }
+    val sessionState by sessionViewModel.uiState.collectAsStateWithLifecycle()
+    val activeUser = sessionState.user
 
     NavHost(
         navController = navController,
@@ -64,9 +67,21 @@ fun AppNavHost(
         // Splash
         composable(Screen.Splash.route) {
             SplashScreen(
+                sessionState = sessionState,
                 onSplashFinished = {
-                    navController.navigate(Screen.AuthGraph.SignIn.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    if (activeUser != null) {
+                        val dest = when (activeUser.role) {
+                            UserRole.ADMIN -> Screen.AdminGraph.Overview.route
+                            UserRole.TUTOR -> Screen.TutorGraph.Dashboard.route
+                            UserRole.STUDENT -> Screen.StudentGraph.Dashboard.route
+                        }
+                        navController.navigate(dest) {
+                            popUpTo(Screen.Splash.route) { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate(Screen.AuthGraph.SignIn.route) {
+                            popUpTo(Screen.Splash.route) { inclusive = true }
+                        }
                     }
                 }
             )
@@ -84,7 +99,6 @@ fun AppNavHost(
                     onProfileClick = {},
                     onLoginClick = { email, password, onError ->
                         viewModel.signIn(email, password, onNavigate = { role ->
-                            userRole = role
                             val dest = when (role) {
                                 UserRole.ADMIN -> Screen.AdminGraph.Overview.route
                                 UserRole.TUTOR -> Screen.TutorGraph.Dashboard.route
@@ -128,13 +142,13 @@ fun AppNavHost(
             }
         }
 
-        // Student Graph (Guarded: only STUDENT or ADMIN)
+        // Student Graph
         navigation(
             startDestination = Screen.StudentGraph.Dashboard.route,
             route = Screen.StudentGraph.route
         ) {
             composable(Screen.StudentGraph.Dashboard.route) {
-                if (userRole == UserRole.TUTOR) {
+                if (activeUser != null && activeUser.role == UserRole.TUTOR) {
                     LaunchedEffect(Unit) { navController.navigate(Screen.TutorGraph.Dashboard.route) { popUpTo(Screen.StudentGraph.route) { inclusive = true } } }
                     return@composable
                 }
@@ -152,6 +166,12 @@ fun AppNavHost(
                 StudentProfileScreen(
                     onBackClick = { navController.popBackStack() },
                     onProfileClick = {},
+                    onSignOut = {
+                        sessionViewModel.signOut()
+                        navController.navigate(Screen.AuthGraph.SignIn.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    },
                     onSaveAndContinue = { data, onError ->
                         viewModel.saveProfile(data, onError, onComplete = {
                             navController.navigate(Screen.StudentGraph.Dashboard.route) {
@@ -175,7 +195,11 @@ fun AppNavHost(
                 route = Screen.StudentGraph.CourseDetails.route,
                 arguments = listOf(navArgument("courseCode") { type = NavType.StringType })
             ) { backStackEntry ->
-                val courseCode = backStackEntry.arguments?.getString("courseCode") ?: "INF 212"
+                val courseCode = backStackEntry.arguments?.getString("courseCode") ?: ""
+                if (courseCode.isBlank()) {
+                    LaunchedEffect(Unit) { navController.popBackStack() }
+                    return@composable
+                }
                 val viewModel: CourseDetailsViewModel = viewModel()
                 LaunchedEffect(courseCode) { viewModel.loadCourse(courseCode) }
                 CourseDetailsScreen(
@@ -187,13 +211,13 @@ fun AppNavHost(
             }
         }
 
-        // Tutor Graph (Guarded: only TUTOR or ADMIN; Students blocked)
+        // Tutor Graph
         navigation(
             startDestination = Screen.TutorGraph.Dashboard.route,
             route = Screen.TutorGraph.route
         ) {
             composable(Screen.TutorGraph.Dashboard.route) {
-                if (userRole == UserRole.STUDENT) {
+                if (activeUser != null && activeUser.role == UserRole.STUDENT) {
                     LaunchedEffect(Unit) { navController.navigate(Screen.StudentGraph.Dashboard.route) { popUpTo(Screen.TutorGraph.route) { inclusive = true } } }
                     return@composable
                 }
@@ -208,10 +232,22 @@ fun AppNavHost(
                 )
             }
             composable(Screen.TutorGraph.Profile.route) {
+                val viewModel: TutorProfileViewModel = viewModel()
                 TutorProfileScreen(
+                    viewModel = viewModel,
                     onBackClick = { navController.popBackStack() },
                     onProfileClick = {},
-                    onCompleteSetup = { navController.navigate(Screen.TutorGraph.Dashboard.route) }
+                    onSignOut = {
+                        sessionViewModel.signOut()
+                        navController.navigate(Screen.AuthGraph.SignIn.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    },
+                    onCompleteSetup = {
+                        navController.navigate(Screen.TutorGraph.Dashboard.route) {
+                            popUpTo(Screen.TutorGraph.Profile.route) { inclusive = true }
+                        }
+                    }
                 )
             }
             composable(Screen.TutorGraph.Session.route) {
@@ -255,15 +291,15 @@ fun AppNavHost(
             }
         }
 
-        // Admin Graph (Guarded: only ADMIN)
+        // Admin Graph
         navigation(
             startDestination = Screen.AdminGraph.Overview.route,
             route = Screen.AdminGraph.route
         ) {
             composable(Screen.AdminGraph.Overview.route) {
-                if (userRole != UserRole.ADMIN) {
+                if (activeUser != null && activeUser.role != UserRole.ADMIN) {
                     LaunchedEffect(Unit) {
-                        val dest = if (userRole == UserRole.TUTOR) Screen.TutorGraph.Dashboard.route else Screen.StudentGraph.Dashboard.route
+                        val dest = if (activeUser.role == UserRole.TUTOR) Screen.TutorGraph.Dashboard.route else Screen.StudentGraph.Dashboard.route
                         navController.navigate(dest) { popUpTo(Screen.AdminGraph.route) { inclusive = true } }
                     }
                     return@composable
@@ -276,11 +312,17 @@ fun AppNavHost(
                             2 -> navController.navigate(Screen.AdminGraph.Courses.route)
                             3 -> navController.navigate(Screen.AdminGraph.Content.route)
                         }
+                    },
+                    onSignOut = {
+                        sessionViewModel.signOut()
+                        navController.navigate(Screen.AuthGraph.SignIn.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
                     }
                 )
             }
             composable(Screen.AdminGraph.Users.route) {
-                if (userRole != UserRole.ADMIN) {
+                if (activeUser != null && activeUser.role != UserRole.ADMIN) {
                     navController.popBackStack()
                     return@composable
                 }
@@ -296,7 +338,7 @@ fun AppNavHost(
                 )
             }
             composable(Screen.AdminGraph.Courses.route) {
-                if (userRole != UserRole.ADMIN) {
+                if (activeUser != null && activeUser.role != UserRole.ADMIN) {
                     navController.popBackStack()
                     return@composable
                 }
@@ -313,7 +355,7 @@ fun AppNavHost(
                 )
             }
             composable(Screen.AdminGraph.CreateCourse.route) {
-                if (userRole != UserRole.ADMIN) {
+                if (activeUser != null && activeUser.role != UserRole.ADMIN) {
                     navController.popBackStack()
                     return@composable
                 }
@@ -324,7 +366,7 @@ fun AppNavHost(
                 )
             }
             composable(Screen.AdminGraph.Content.route) {
-                if (userRole != UserRole.ADMIN) {
+                if (activeUser != null && activeUser.role != UserRole.ADMIN) {
                     navController.popBackStack()
                     return@composable
                 }
