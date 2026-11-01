@@ -52,10 +52,13 @@ fun FindTutorsScreen(
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
 
-    // Filter tutors by search query & method
+    // Filter tutors by tutor name, course, and teaching method
     val filteredTutors = tutors.filter { tutor ->
-        val matchesSearch = tutor.name.contains(searchQuery, ignoreCase = true) ||
-                tutor.courses.any { it.contains(searchQuery, ignoreCase = true) }
+        val query = searchQuery.trim()
+        val matchesName = query.isEmpty() || tutor.name.contains(query, ignoreCase = true)
+        val matchesCourse = query.isEmpty() || tutor.courses.any { it.contains(query, ignoreCase = true) }
+        val matchesSearch = matchesName || matchesCourse
+
         val matchesMethod = when (selectedMethod) {
             "Online" -> tutor.teachingMethod.contains("Online", ignoreCase = true) || tutor.teachingMethod.contains("Both", ignoreCase = true)
             "In-Person" -> tutor.teachingMethod.contains("In-Person", ignoreCase = true) || tutor.teachingMethod.contains("Offline", ignoreCase = true) || tutor.teachingMethod.contains("Both", ignoreCase = true)
@@ -137,7 +140,7 @@ fun FindTutorsScreen(
             // Header title
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text("Verified Peer Tutors", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textDark)
-                Text("Search tutors by course or teaching method", fontSize = 12.sp, color = textGray)
+                Text("Search tutors by name, course, or teaching method", fontSize = 12.sp, color = textGray)
             }
 
             // Search Bar
@@ -146,7 +149,7 @@ fun FindTutorsScreen(
                 onValueChange = { viewModel.setSearchQuery(it) },
                 placeholder = {
                     Text(
-                        text = "Search tutors or course codes...",
+                        text = "Search tutors by name or course...",
                         color = textGray,
                         fontSize = 13.sp,
                         maxLines = 1,
