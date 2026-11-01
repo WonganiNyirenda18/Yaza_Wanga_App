@@ -10,7 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.yaza_wanga.data.model.*
+import com.example.yaza_wanga.data.model.UserRole
 import com.example.yaza_wanga.ui.screens.*
 import com.example.yaza_wanga.ui.viewmodel.*
 
@@ -26,6 +26,7 @@ sealed class Screen(val route: String) {
         object Dashboard : Screen("student/dashboard")
         object Profile : Screen("student/profile")
         object CourseDirectory : Screen("student/courses")
+        object FindTutors : Screen("student/tutors")
         object CourseDetails : Screen("student/courses/{courseCode}") {
             fun createRoute(courseCode: String) = "student/courses/$courseCode"
         }
@@ -141,7 +142,7 @@ fun AppNavHost(
                 StudentDashboardScreen(
                     onNavigateHome = {},
                     onNavigateCourses = { navController.navigate(Screen.StudentGraph.CourseDirectory.route) },
-                    onNavigateTutors = {},
+                    onNavigateTutors = { navController.navigate(Screen.StudentGraph.FindTutors.route) },
                     onNavigateAlerts = {},
                     onNavigateProfile = { navController.navigate(Screen.StudentGraph.Profile.route) },
                     onViewCourseClick = { code -> navController.navigate(Screen.StudentGraph.CourseDetails.createRoute(code)) }
@@ -165,10 +166,20 @@ fun AppNavHost(
                 CourseDirectoryScreen(
                     onNavigateHome = { navController.navigate(Screen.StudentGraph.Dashboard.route) },
                     onNavigateCourses = {},
-                    onNavigateTutors = {},
+                    onNavigateTutors = { navController.navigate(Screen.StudentGraph.FindTutors.route) },
                     onNavigateAlerts = {},
                     onNavigateProfile = { navController.navigate(Screen.StudentGraph.Profile.route) },
                     onViewDetailsClick = { code -> navController.navigate(Screen.StudentGraph.CourseDetails.createRoute(code)) }
+                )
+            }
+            composable(Screen.StudentGraph.FindTutors.route) {
+                FindTutorsScreen(
+                    onNavigateHome = { navController.navigate(Screen.StudentGraph.Dashboard.route) },
+                    onNavigateCourses = { navController.navigate(Screen.StudentGraph.CourseDirectory.route) },
+                    onNavigateTutors = {},
+                    onNavigateAlerts = {},
+                    onNavigateProfile = { navController.navigate(Screen.StudentGraph.Profile.route) },
+                    onViewCourseClick = { code -> navController.navigate(Screen.StudentGraph.CourseDetails.createRoute(code)) }
                 )
             }
             composable(
@@ -187,7 +198,7 @@ fun AppNavHost(
             }
         }
 
-        // Tutor Graph (Guarded: only TUTOR or ADMIN; Students blocked)
+        // Tutor Graph (Guarded: only TUTOR or ADMIN)
         navigation(
             startDestination = Screen.TutorGraph.Dashboard.route,
             route = Screen.TutorGraph.route
@@ -211,7 +222,11 @@ fun AppNavHost(
                 TutorProfileScreen(
                     onBackClick = { navController.popBackStack() },
                     onProfileClick = {},
-                    onCompleteSetup = { navController.navigate(Screen.TutorGraph.Dashboard.route) }
+                    onCompleteSetup = {
+                        navController.navigate(Screen.TutorGraph.Dashboard.route) {
+                            popUpTo(Screen.TutorGraph.Profile.route) { inclusive = true }
+                        }
+                    }
                 )
             }
             composable(Screen.TutorGraph.Session.route) {
@@ -261,7 +276,7 @@ fun AppNavHost(
             route = Screen.AdminGraph.route
         ) {
             composable(Screen.AdminGraph.Overview.route) {
-                if (userRole != UserRole.ADMIN) {
+                if (userRole != null && userRole != UserRole.ADMIN) {
                     LaunchedEffect(Unit) {
                         val dest = if (userRole == UserRole.TUTOR) Screen.TutorGraph.Dashboard.route else Screen.StudentGraph.Dashboard.route
                         navController.navigate(dest) { popUpTo(Screen.AdminGraph.route) { inclusive = true } }
@@ -280,7 +295,7 @@ fun AppNavHost(
                 )
             }
             composable(Screen.AdminGraph.Users.route) {
-                if (userRole != UserRole.ADMIN) {
+                if (userRole != null && userRole != UserRole.ADMIN) {
                     navController.popBackStack()
                     return@composable
                 }
@@ -296,7 +311,7 @@ fun AppNavHost(
                 )
             }
             composable(Screen.AdminGraph.Courses.route) {
-                if (userRole != UserRole.ADMIN) {
+                if (userRole != null && userRole != UserRole.ADMIN) {
                     navController.popBackStack()
                     return@composable
                 }
@@ -313,7 +328,7 @@ fun AppNavHost(
                 )
             }
             composable(Screen.AdminGraph.CreateCourse.route) {
-                if (userRole != UserRole.ADMIN) {
+                if (userRole != null && userRole != UserRole.ADMIN) {
                     navController.popBackStack()
                     return@composable
                 }
@@ -324,7 +339,7 @@ fun AppNavHost(
                 )
             }
             composable(Screen.AdminGraph.Content.route) {
-                if (userRole != UserRole.ADMIN) {
+                if (userRole != null && userRole != UserRole.ADMIN) {
                     navController.popBackStack()
                     return@composable
                 }
