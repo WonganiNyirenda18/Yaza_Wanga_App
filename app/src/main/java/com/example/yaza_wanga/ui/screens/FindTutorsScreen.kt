@@ -52,12 +52,12 @@ fun FindTutorsScreen(
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
 
-    // Filter tutors by tutor name, course, and teaching method
+    // Display all available tutors by default; filter when search or method is specified
     val filteredTutors = tutors.filter { tutor ->
         val query = searchQuery.trim()
-        val matchesName = query.isEmpty() || tutor.name.contains(query, ignoreCase = true)
-        val matchesCourse = query.isEmpty() || tutor.courses.any { it.contains(query, ignoreCase = true) }
-        val matchesSearch = matchesName || matchesCourse
+        val matchesSearch = query.isEmpty() ||
+                tutor.name.contains(query, ignoreCase = true) ||
+                tutor.courses.any { it.contains(query, ignoreCase = true) }
 
         val matchesMethod = when (selectedMethod) {
             "Online" -> tutor.teachingMethod.contains("Online", ignoreCase = true) || tutor.teachingMethod.contains("Both", ignoreCase = true)
@@ -73,7 +73,7 @@ fun FindTutorsScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            text = "Find Tutors",
+                            text = "Available Tutors",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = textDark
@@ -137,10 +137,19 @@ fun FindTutorsScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Header title
+            // Header title & count
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text("Verified Peer Tutors", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textDark)
-                Text("Search tutors by name, course, or teaching method", fontSize = 12.sp, color = textGray)
+                Text(
+                    text = if (filteredTutors.isNotEmpty()) "Available Peer Tutors (${filteredTutors.size})" else "Available Peer Tutors",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textDark
+                )
+                Text(
+                    text = "Browse active tutors or search by name / course",
+                    fontSize = 12.sp,
+                    color = textGray
+                )
             }
 
             // Search Bar
@@ -149,7 +158,7 @@ fun FindTutorsScreen(
                 onValueChange = { viewModel.setSearchQuery(it) },
                 placeholder = {
                     Text(
-                        text = "Search tutors by name or course...",
+                        text = "Filter by tutor name or course...",
                         color = textGray,
                         fontSize = 13.sp,
                         maxLines = 1,
@@ -232,7 +241,7 @@ fun FindTutorsScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No tutors match your search.",
+                            text = "No tutors available.",
                             fontSize = 14.sp,
                             color = textGray,
                             fontWeight = FontWeight.Medium
