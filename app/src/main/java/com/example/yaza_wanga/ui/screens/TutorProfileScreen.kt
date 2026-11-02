@@ -1,6 +1,7 @@
 package com.example.yaza_wanga.ui.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,7 +23,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,6 +38,7 @@ fun TutorProfileScreen(
     viewModel: TutorProfileViewModel = viewModel(),
     onBackClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
+    onSignOut: () -> Unit = {},
     onCompleteSetup: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -53,7 +55,6 @@ fun TutorProfileScreen(
     val methodOptions = listOf("Both Online & Offline", "Online Only (Google Meet)", "In-Person Only")
 
     val primaryBlue = Color(0xFF1D4ED8)
-    val lightBlueBg = Color(0xFFF0F4FF)
     val containerBg = Color(0xFFF8FAFC)
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
@@ -382,6 +383,26 @@ fun TutorProfileScreen(
                             modifier = Modifier.size(18.dp)
                         )
                     }
+                }
+            }
+
+            // Sign Out Button
+            OutlinedButton(
+                onClick = onSignOut,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFDC2626)),
+                border = BorderStroke(1.dp, Color(0xFFDC2626)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.Logout, null, tint = Color(0xFFDC2626), modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Sign Out", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
                 }
             }
 
