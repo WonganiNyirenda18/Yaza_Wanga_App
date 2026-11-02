@@ -259,39 +259,6 @@ class TutorProfileViewModel : ViewModel() {
     }
 }
 
-data class FindTutorsUiState(
-    val tutors: List<TutorProfile> = emptyList(),
-    val searchQuery: String = "",
-    val selectedMethod: String = "All",
-    val isLoading: Boolean = false
-)
-class FindTutorsViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(FindTutorsUiState())
-    val uiState: StateFlow<FindTutorsUiState> = _uiState.asStateFlow()
-
-    init {
-        observeTutors()
-    }
-
-    fun observeTutors() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            AppContainer.tutorRepository.observeVerifiedTutorsForCourse("").collect { res ->
-                val tutors = res.getOrElse { emptyList() }
-                _uiState.update { it.copy(tutors = tutors, isLoading = false) }
-            }
-        }
-    }
-
-    fun setSearchQuery(query: String) {
-        _uiState.update { it.copy(searchQuery = query) }
-    }
-
-    fun setSelectedMethod(method: String) {
-        _uiState.update { it.copy(selectedMethod = method) }
-    }
-}
-
 data class StudentDashboardUiState(
     val user: User? = null,
     val enrolledCoursesCount: Int = 0,
@@ -786,6 +753,10 @@ data class AdminOverviewUiState(
 class AdminOverviewViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AdminOverviewUiState())
     val uiState: StateFlow<AdminOverviewUiState> = _uiState.asStateFlow()
+
+    init {
+        loadData()
+    }
 
     fun loadData() {
         viewModelScope.launch {

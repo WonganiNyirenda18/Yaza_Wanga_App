@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.map
 class FakeAuthRepository : AuthRepository(auth = null, db = null) {
     val users = mutableMapOf<String, User>()
     val passwords = mutableMapOf<String, String>()
-    
+
     private val _currentUserFlow = MutableStateFlow<User?>(null)
     override val currentUserFlow: StateFlow<User?> = _currentUserFlow
 
