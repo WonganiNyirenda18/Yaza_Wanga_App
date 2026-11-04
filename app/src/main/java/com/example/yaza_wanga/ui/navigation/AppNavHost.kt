@@ -27,6 +27,7 @@ sealed class Screen(val route: String) {
         object Dashboard : Screen("student/dashboard")
         object Profile : Screen("student/profile")
         object CourseDirectory : Screen("student/courses")
+        object MySessions : Screen("student/sessions")
         object FindTutors : Screen("student/tutors")
         object CourseDetails : Screen("student/courses/{courseCode}") {
             fun createRoute(courseCode: String) = "student/courses/$courseCode"
@@ -151,9 +152,16 @@ fun AppNavHost(
                     onNavigateHome = {},
                     onNavigateCourses = { navController.navigate(Screen.StudentGraph.CourseDirectory.route) },
                     onNavigateTutors = { navController.navigate(Screen.StudentGraph.FindTutors.route) },
+                    onNavigateSessions = { navController.navigate(Screen.StudentGraph.MySessions.route) },
                     onNavigateAlerts = {},
                     onNavigateProfile = { navController.navigate(Screen.StudentGraph.Profile.route) },
                     onViewCourseClick = { code -> navController.navigate(Screen.StudentGraph.CourseDetails.createRoute(code)) }
+                )
+            }
+            composable(Screen.StudentGraph.MySessions.route) {
+                MySessionsScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onProfileClick = { navController.navigate(Screen.StudentGraph.Profile.route) }
                 )
             }
             composable(Screen.StudentGraph.Profile.route) {
@@ -214,7 +222,7 @@ fun AppNavHost(
         ) {
             composable(Screen.TutorGraph.Dashboard.route) {
                 if (userRole == UserRole.STUDENT) {
-                    LaunchedEffect(Unit) { navController.navigate(Screen.StudentGraph.Dashboard.route) { popUpTo(Screen.TutorGraph.route) { inclusive = true } } }
+                    LaunchedEffect(Unit) { navController.navigate(Screen.StudentGraph.Dashboard.route) { popUpTo(Screen.StudentGraph.route) { inclusive = true } } }
                     return@composable
                 }
                 TutorDashboardScreen(

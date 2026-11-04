@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.map
 class FakeAuthRepository : AuthRepository(auth = null, db = null) {
     val users = mutableMapOf<String, User>()
     val passwords = mutableMapOf<String, String>()
-
+    
     private val _currentUserFlow = MutableStateFlow<User?>(null)
     override val currentUserFlow: StateFlow<User?> = _currentUserFlow
 
@@ -165,6 +165,12 @@ class FakeEnrollmentRepository : EnrollmentRepository(db = null) {
 
 class FakeSessionRepository : SessionRepository(db = null) {
     val sessions = mutableListOf<Session>()
+
+    override fun observeSessionsForCourses(courseCodes: List<String>): Flow<Result<List<Session>>> =
+        flowOf(Result.success(sessions.filter { courseCodes.contains(it.courseCode) }))
+
+    override fun observeSessionsForTutor(tutorId: String): Flow<Result<List<Session>>> =
+        flowOf(Result.success(sessions.filter { it.tutorId == tutorId }))
 
     override fun observeSessions(): Flow<Result<List<Session>>> =
         flowOf(Result.success(sessions.toList()))

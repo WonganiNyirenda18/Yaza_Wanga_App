@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,6 +34,7 @@ fun StudentDashboardScreen(
     onNavigateHome: () -> Unit = {},
     onNavigateCourses: () -> Unit = {},
     onNavigateTutors: () -> Unit = {},
+    onNavigateSessions: () -> Unit = {},
     onNavigateAlerts: () -> Unit = {},
     onNavigateProfile: () -> Unit = {},
     onViewCourseClick: (String) -> Unit = {},
@@ -45,6 +45,11 @@ fun StudentDashboardScreen(
 
     val displayName = (user?.name?.ifBlank { user.email.substringBefore("@") } ?: user?.email?.substringBefore("@") ?: "").uppercase()
     val studentIdDisplay = user?.studentId?.ifBlank { user.email.substringBefore("@") } ?: user?.email?.substringBefore("@") ?: ""
+
+    val primaryBlue = Color(0xFF1D4ED8)
+    val lightBlueBg = Color(0xFFF0F4FF)
+    val textDark = Color(0xFF0F172A)
+    val textGray = Color(0xFF64748B)
 
     Scaffold(
         bottomBar = {
@@ -74,89 +79,177 @@ fun StudentDashboardScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            // Blue Header Section
-            Column(
+            // Header Section
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(primaryBlue)
-                    .padding(bottom = 56.dp)
+                    .padding(horizontal = 20.dp, vertical = 20.dp)
             ) {
-                Spacer(modifier = Modifier.height(8.dp))
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = "Student Home",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    },
-                    navigationIcon = {
-                        Box(modifier = Modifier.padding(start = 12.dp)) {
-                            YazaWangaLogo(size = 36.dp)
-                        }
-                    },
-                    actions = {
-                        IconButton(
-                            onClick = onNavigateProfile,
-                            modifier = Modifier
-                                .padding(end = 8.dp)
-                                .size(38.dp)
-                                .clip(CircleShape)
-                                .background(Color.White.copy(alpha = 0.2f))
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "Profile",
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
+                            YazaWangaLogo(size = 40.dp)
+                            Column {
+                                Text(
+                                    text = "Champo Tutors",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                                Text(
+                                    text = "Peer Mentorship Portal",
+                                    fontSize = 11.sp,
+                                    color = Color.White.copy(alpha = 0.8f)
+                                )
+                            }
+                        }
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconButton(
+                                onClick = onNavigateAlerts,
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.White.copy(alpha = 0.15f))
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Notifications,
+                                    contentDescription = "Notifications",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+
+                            IconButton(
+                                onClick = onNavigateProfile,
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.White.copy(alpha = 0.15f))
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = "Profile",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "STUDENT DASHBOARD",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White.copy(alpha = 0.8f),
+                                letterSpacing = 1.sp
+                            )
+                            Text(
+                                text = "Welcome, $displayName",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
                             )
                         }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-                )
+
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = Color.White.copy(alpha = 0.2f)
+                        ) {
+                            Text(
+                                text = "VERIFIED STUDENT",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+                }
             }
 
-            // Scrollable Content Column connected/overlapping the blue header
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .offset(y = (-48).dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                // User Account & Stats Card
+                // Student Profile Info Card
                 Card(
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Box(modifier = Modifier.size(52.dp)) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(52.dp)
+                                        .clip(CircleShape)
+                                        .background(lightBlueBg)
+                                        .border(2.dp, primaryBlue, CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Person,
+                                        contentDescription = "Avatar",
+                                        tint = primaryBlue,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = displayName,
-                                    fontSize = 13.sp,
+                                    fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = textDark,
-                                    maxLines = 1
+                                    color = textDark
                                 )
-                                Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = "Student - $studentIdDisplay",
+                                    text = "Reg No: $studentIdDisplay",
                                     fontSize = 12.sp,
-                                    color = textGray,
-                                    maxLines = 1
+                                    color = textGray
+                                )
+                                Text(
+                                    text = "${user?.department?.ifBlank { "Computer Science" }} • ${user?.yearOfStudy?.ifBlank { "Year 3" }}",
+                                    fontSize = 11.sp,
+                                    color = primaryBlue,
+                                    fontWeight = FontWeight.SemiBold
                                 )
                             }
 
@@ -201,9 +294,13 @@ fun StudentDashboardScreen(
                                 modifier = Modifier.height(36.dp).padding(horizontal = 8.dp)
                             )
 
-                            Column(modifier = Modifier.weight(1f)) {
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable { onNavigateTutors() }
+                            ) {
                                 Text(
-                                    text = "0",
+                                    text = uiState.activeTutorsCount.toString(),
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = textDark
@@ -222,9 +319,13 @@ fun StudentDashboardScreen(
                                 modifier = Modifier.height(36.dp).padding(horizontal = 8.dp)
                             )
 
-                            Column(modifier = Modifier.weight(1f)) {
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable { onNavigateSessions() }
+                            ) {
                                 Text(
-                                    text = "0",
+                                    text = uiState.upcomingSessionsCount.toString(),
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = textDark
@@ -295,7 +396,7 @@ fun StudentDashboardScreen(
 
                 val quickActions = listOf(
                     Triple("My Courses", Icons.AutoMirrored.Filled.MenuBook, onNavigateCourses),
-                    Triple("My Sessions", Icons.Default.CalendarToday, {}),
+                    Triple("My Sessions", Icons.Default.CalendarToday, onNavigateSessions),
                     Triple("Materials", Icons.Default.FolderOpen, {}),
                     Triple("Progress", Icons.Default.TrendingUp, {}),
                     Triple("Tutors", Icons.Default.School, onNavigateTutors),
@@ -347,8 +448,7 @@ fun StudentDashboardScreen(
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Medium,
                                         color = textDark,
-                                        maxLines = 1,
-                                        textAlign = TextAlign.Center
+                                        maxLines = 1
                                     )
                                 }
                             }
