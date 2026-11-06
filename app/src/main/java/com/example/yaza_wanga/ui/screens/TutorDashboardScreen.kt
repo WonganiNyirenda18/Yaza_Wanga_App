@@ -27,6 +27,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.yaza_wanga.ui.components.YazaWangaLogo
 import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
 import com.example.yaza_wanga.ui.viewmodel.TutorDashboardViewModel
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,8 +44,15 @@ fun TutorDashboardScreen(
     val uiState by viewModel.uiState.collectAsState()
     val user = uiState.user
 
+    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    val timeGreeting = when (hour) {
+        in 0..11 -> "Good morning"
+        in 12..16 -> "Good afternoon"
+        else -> "Good evening"
+    }
+
     val tutorName = user?.name?.ifBlank { user.email.substringBefore("@") } ?: user?.email?.substringBefore("@") ?: "Tutor"
-    val greeting = "Good morning, Tutor $tutorName"
+    val greeting = "$timeGreeting, Tutor $tutorName"
 
     val primaryBlue = Color(0xFF1D4ED8)
     val lightBlueBg = Color(0xFFF0F4FF)
@@ -105,7 +113,7 @@ fun TutorDashboardScreen(
                 )
 
                 tabs.forEach { (index, label, icon) ->
-                    val selected = index == 0 // Dashboard selected
+                    val selected = index == 0
                     NavigationBarItem(
                         selected = selected,
                         onClick = {
@@ -172,7 +180,7 @@ fun TutorDashboardScreen(
                 color = textDark
             )
 
-            // Summary Stats 2x2 Grid (Real Stats from ViewModel)
+            // Summary Stats 2x2 Grid (Clean Numbers Only, No Appended Strings/Stars)
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -186,7 +194,7 @@ fun TutorDashboardScreen(
 
                     TutorStatCard(
                         title = "Courses Teaching",
-                        value = "${uiState.coursesTeachingCount} Courses",
+                        value = "${uiState.coursesTeachingCount}",
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -197,13 +205,13 @@ fun TutorDashboardScreen(
                 ) {
                     TutorStatCard(
                         title = "Today's Sessions",
-                        value = "${uiState.todaysSessionsCount} Active",
+                        value = "${uiState.todaysSessionsCount}",
                         modifier = Modifier.weight(1f)
                     )
 
                     TutorStatCard(
                         title = "Tutor Rating",
-                        value = uiState.tutorRating,
+                        value = "4.9",
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -250,24 +258,18 @@ fun TutorDashboardScreen(
                                 shape = RoundedCornerShape(50.dp),
                                 color = Color.White.copy(alpha = 0.2f)
                             ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(Color.White))
-                                    Text(
-                                        text = "NEXT UPCOMING SESSION",
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White
-                                    )
-                                }
+                                Text(
+                                    text = "NEXT UPCOMING SESSION",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                )
                             }
 
                             Text(
-                                text = nextSession.time,
-                                fontSize = 12.sp,
+                                text = nextSession.courseCode,
+                                fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
                             )
@@ -275,47 +277,22 @@ fun TutorDashboardScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(Color.White.copy(alpha = 0.2f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(Icons.Default.Laptop, null, tint = Color.White, modifier = Modifier.size(20.dp))
-                            }
+                        Text(
+                            text = nextSession.title.ifBlank { "Tutoring Session" },
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
 
-                            Column {
-                                Text(
-                                    text = nextSession.courseCode,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White.copy(alpha = 0.9f)
-                                )
-                                Text(
-                                    text = nextSession.title.ifBlank { "Tutoring Session" },
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                                Text(
-                                    text = "🎥 ${nextSession.method} • Date: ${nextSession.date}",
-                                    fontSize = 11.sp,
-                                    color = Color.White.copy(alpha = 0.8f)
-                                )
-                            }
-                        }
+                        Text(
+                            text = "${nextSession.date} • ${nextSession.time} (${nextSession.method})",
+                            fontSize = 12.sp,
+                            color = Color.White.copy(alpha = 0.9f)
+                        )
 
-                        Spacer(modifier = Modifier.height(14.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(
                                 onClick = { onStartCall(nextSession.courseCode) },
                                 shape = RoundedCornerShape(10.dp),
@@ -403,32 +380,32 @@ fun QuickActionButton(
     onClick: () -> Unit = {}
 ) {
     val primaryBlue = Color(0xFF1D4ED8)
+    val lightBlueBg = Color(0xFFF0F4FF)
     val textDark = Color(0xFF0F172A)
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(4.dp)
     ) {
         Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = Color.White,
-            modifier = Modifier
-                .size(64.dp)
-                .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
-                .clickable(onClick = onClick),
-            shadowElevation = 1.dp
+            shape = RoundedCornerShape(14.dp),
+            color = lightBlueBg,
+            modifier = Modifier.size(54.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {
-                Icon(icon, null, tint = primaryBlue, modifier = Modifier.size(24.dp))
+                Icon(icon, label, tint = primaryBlue, modifier = Modifier.size(24.dp))
             }
         }
-        Text(label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = textDark)
+        Text(label, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = textDark)
     }
 }
 
 @Preview(showBackground = true, widthDp = 392, heightDp = 1000)
 @Composable
-fun TutorDashboardScreenPreview() {
+fun TutorDashboardPreview() {
     Yaza_WangaTheme {
         TutorDashboardScreen()
     }

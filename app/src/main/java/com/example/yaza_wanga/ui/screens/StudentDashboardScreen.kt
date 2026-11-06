@@ -27,6 +27,7 @@ import com.example.yaza_wanga.ui.components.YazaBottomBar
 import com.example.yaza_wanga.ui.components.YazaWangaLogo
 import com.example.yaza_wanga.ui.theme.*
 import com.example.yaza_wanga.ui.viewmodel.StudentDashboardViewModel
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +45,13 @@ fun StudentDashboardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val user = uiState.user
+
+    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    val timeGreeting = when (hour) {
+        in 0..11 -> "Good morning"
+        in 12..16 -> "Good afternoon"
+        else -> "Good evening"
+    }
 
     val displayName = (user?.name?.ifBlank { user.email.substringBefore("@") } ?: user?.email?.substringBefore("@") ?: "").uppercase()
     val studentIdDisplay = user?.studentId?.ifBlank { user.email.substringBefore("@") } ?: user?.email?.substringBefore("@") ?: ""
@@ -168,7 +176,7 @@ fun StudentDashboardScreen(
                                 letterSpacing = 1.sp
                             )
                             Text(
-                                text = "Welcome, $displayName",
+                                text = "$timeGreeting, $displayName",
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
