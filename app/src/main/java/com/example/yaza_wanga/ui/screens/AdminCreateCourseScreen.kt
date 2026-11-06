@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -24,8 +25,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.yaza_wanga.ui.AppOptions
-import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
+import com.example.yaza_wanga.data.model.Course
+import com.example.yaza_wanga.ui.components.YazaWangaLogo
+import com.example.yaza_wanga.ui.theme.*
 import com.example.yaza_wanga.ui.viewmodel.AdminCreateCourseViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,21 +39,26 @@ fun AdminCreateCourseScreen(
     onPublishSuccess: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val uiState by viewModel.uiState.collectAsState()
+
     var courseName by remember { mutableStateOf("") }
     var courseCode by remember { mutableStateOf("") }
-    var courseCredits by remember { mutableStateOf("3") }
-    var selectedFaculty by remember { mutableStateOf("Computer Science & IT") }
-    var facultyDropdownExpanded by remember { mutableStateOf(false) }
     var courseDescription by remember { mutableStateOf("") }
-    var scheduledSemester by remember { mutableStateOf("Semester 1") }
+    var selectedFaculty by remember { mutableStateOf("Faculty of Science") }
+    var selectedSemester by remember { mutableStateOf("Semester 1") }
+    var isDraft by remember { mutableStateOf(false) }
+
+    var facultyDropdownExpanded by remember { mutableStateOf(false) }
+    var semesterDropdownExpanded by remember { mutableStateOf(false) }
+
+    val faculties = listOf("Faculty of Science", "Faculty of Education", "Faculty of Commerce", "School of Humanities")
+    val semesters = listOf("Semester 1", "Semester 2", "Summer Session")
 
     val primaryBlue = Color(0xFF1D4ED8)
-    val lightBlueBg = Color(0xFFF0F4FF)
     val containerBg = Color(0xFFF8FAFC)
+    val lightBlueBg = Color(0xFFF0F4FF)
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
-
-    val faculties = AppOptions.DEPARTMENTS.filter { it != "All Departments" }
 
     Scaffold(
         topBar = {
@@ -59,7 +66,7 @@ fun AdminCreateCourseScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            text = "Create Course",
+                            text = "Add Module",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = textDark
@@ -75,11 +82,19 @@ fun AdminCreateCourseScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = onBackClick) {
+                        IconButton(
+                            onClick = {},
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(38.dp)
+                                .clip(CircleShape)
+                                .background(primaryBlue)
+                        ) {
                             Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Close",
-                                tint = textDark
+                                imageVector = Icons.Default.Person,
+                                contentDescription = "Profile",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     },
@@ -128,7 +143,7 @@ fun AdminCreateCourseScreen(
                 OutlinedTextField(
                     value = courseName,
                     onValueChange = { courseName = it },
-                    placeholder = { Text("e.g., Introduction to Web Development") },
+                    placeholder = { Text("Introduction to Web", color = textGray, fontSize = 14.sp) },
                     leadingIcon = { Icon(Icons.AutoMirrored.Filled.MenuBook, null, tint = primaryBlue, modifier = Modifier.size(18.dp)) },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
@@ -144,55 +159,32 @@ fun AdminCreateCourseScreen(
                 )
             }
 
-            // Course Code Section *
+            // Course Code Section * (3 CR field removed)
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text("Course Code & Credits", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
+                        Text("Course Code", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
                         Text("*", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
                     }
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    OutlinedTextField(
-                        value = courseCode,
-                        onValueChange = { courseCode = it },
-                        placeholder = { Text("e.g., INF 212") },
-                        leadingIcon = { Icon(Icons.Default.Numbers, null, tint = primaryBlue, modifier = Modifier.size(18.dp)) },
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = containerBg,
-                            unfocusedContainerColor = containerBg,
-                            focusedBorderColor = primaryBlue,
-                            unfocusedBorderColor = Color(0xFFE2E8F0),
-                            focusedTextColor = textDark,
-                            unfocusedTextColor = textDark
-                        ),
-                        modifier = Modifier.weight(2.4f)
-                    )
-
-                    OutlinedTextField(
-                        value = courseCredits,
-                        onValueChange = { courseCredits = it },
-                        placeholder = { Text("3") },
-                        trailingIcon = { Text("CR", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = textGray, modifier = Modifier.padding(end = 12.dp)) },
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = containerBg,
-                            unfocusedContainerColor = containerBg,
-                            focusedBorderColor = primaryBlue,
-                            unfocusedBorderColor = Color(0xFFE2E8F0),
-                            focusedTextColor = textDark,
-                            unfocusedTextColor = textDark
-                        ),
-                        modifier = Modifier.weight(1.2f)
-                    )
-                }
+                OutlinedTextField(
+                    value = courseCode,
+                    onValueChange = { courseCode = it },
+                    placeholder = { Text("e.g., INF 212", color = textGray, fontSize = 14.sp) },
+                    leadingIcon = { Icon(Icons.Default.Numbers, null, tint = primaryBlue, modifier = Modifier.size(18.dp)) },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = containerBg,
+                        unfocusedContainerColor = containerBg,
+                        focusedBorderColor = primaryBlue,
+                        unfocusedBorderColor = Color(0xFFE2E8F0),
+                        focusedTextColor = textDark,
+                        unfocusedTextColor = textDark
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
 
             // Academic Department / Faculty *
@@ -268,7 +260,7 @@ fun AdminCreateCourseScreen(
                 }
             }
 
-            // Course Description & Scope * (Max 500 validation)
+            // Course Description & Scope *
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -281,8 +273,9 @@ fun AdminCreateCourseScreen(
                 OutlinedTextField(
                     value = courseDescription,
                     onValueChange = { if (it.length <= 500) courseDescription = it },
-                    placeholder = { Text("Enter detailed syllabus overview (max 500 characters)...") },
+                    placeholder = { Text("Provide a concise summary of the module curriculum, prerequisites, and learning outcomes...", color = textGray, fontSize = 13.sp) },
                     minLines = 4,
+                    maxLines = 6,
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = containerBg,
@@ -296,57 +289,122 @@ fun AdminCreateCourseScreen(
                 )
             }
 
-            // Scheduled Semester
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Scheduled Semester", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+            // Target Semester Selection *
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text("Target Semester", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
+                    Text("*", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
+                }
+
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
+                        .clickable { semesterDropdownExpanded = !semesterDropdownExpanded }
                 ) {
-                    listOf("Semester 1", "Semester 2").forEach { sem ->
-                        val selected = scheduledSemester == sem
-                        Card(
-                            shape = RoundedCornerShape(14.dp),
-                            colors = CardDefaults.cardColors(containerColor = if (selected) lightBlueBg else Color.White),
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { scheduledSemester = sem }
-                                .border(1.dp, if (selected) primaryBlue else Color(0xFFE2E8F0), RoundedCornerShape(14.dp))
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Icon(Icons.Default.DateRange, null, tint = primaryBlue, modifier = Modifier.size(16.dp))
-                                Text(
-                                    text = sem,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (selected) primaryBlue else textDark
-                                )
+                    Row(
+                        modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Icon(Icons.Default.DateRange, null, tint = primaryBlue, modifier = Modifier.size(20.dp))
+                            Text(selectedSemester, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
+                        }
+
+                        Icon(if (semesterDropdownExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null, tint = textGray)
+                    }
+                }
+
+                if (semesterDropdownExpanded) {
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+                        modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
+                    ) {
+                        Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            semesters.forEach { title ->
+                                val selected = selectedSemester == title
+                                Surface(
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = if (selected) lightBlueBg else Color.Transparent,
+                                    modifier = Modifier.fillMaxWidth().clickable {
+                                        selectedSemester = title
+                                        semesterDropdownExpanded = false
+                                    }
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
+                                        if (selected) {
+                                            Icon(Icons.Default.CheckCircle, null, tint = primaryBlue, modifier = Modifier.size(18.dp))
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            // Save as Unpublished Draft Checkbox
+            Row(
+                modifier = Modifier.fillMaxWidth().clickable { isDraft = !isDraft },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Checkbox(
+                    checked = isDraft,
+                    onCheckedChange = { isDraft = it },
+                    colors = CheckboxDefaults.colors(checkedColor = primaryBlue)
+                )
+                Column {
+                    Text("Save as Unpublished Draft", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
+                    Text("Hide this module from public enrollment until syllabus is verified.", fontSize = 11.sp, color = textGray)
+                }
+            }
 
-            // Create Course & Publish Button
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Error Message Banner
+            uiState.errorMessage?.let { err ->
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF2F2)),
+                    modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFFCA5A5), RoundedCornerShape(12.dp))
+                ) {
+                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(Icons.Default.Error, null, tint = Color(0xFFDC2626), modifier = Modifier.size(20.dp))
+                        Text(err, fontSize = 12.sp, color = Color(0xFFDC2626), fontWeight = FontWeight.Medium)
+                    }
+                }
+            }
+
+            // Submit Button
             Button(
                 onClick = {
-                    val creditsInt = courseCredits.toIntOrNull() ?: 3
+                    if (courseName.isBlank() || courseCode.isBlank() || courseDescription.isBlank()) {
+                        Toast.makeText(context, "Please fill all required fields", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
                     viewModel.createCourse(
-                        code = courseCode,
-                        title = courseName,
+                        code = courseCode.trim().uppercase(),
+                        title = courseName.trim(),
                         department = selectedFaculty,
-                        credits = creditsInt,
-                        description = courseDescription,
-                        semester = scheduledSemester,
-                        isDraft = false,
+                        credits = 3,
+                        description = courseDescription.trim(),
+                        semester = selectedSemester,
+                        isDraft = isDraft,
                         onSuccess = {
-                            Toast.makeText(context, "Course published successfully", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Course created successfully", Toast.LENGTH_SHORT).show()
                             onPublishSuccess()
                         },
                         onError = { err ->
@@ -354,46 +412,19 @@ fun AdminCreateCourseScreen(
                         }
                     )
                 },
+                enabled = !uiState.isLoading,
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
                 modifier = Modifier.fillMaxWidth().height(52.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                    Icon(Icons.Default.AddCircle, null, tint = Color.White, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Create Course & Publish", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                }
-            }
-
-            // Save as Draft (keeps hidden from students)
-            Button(
-                onClick = {
-                    val creditsInt = courseCredits.toIntOrNull() ?: 3
-                    viewModel.createCourse(
-                        code = courseCode,
-                        title = courseName,
-                        department = selectedFaculty,
-                        credits = creditsInt,
-                        description = courseDescription,
-                        semester = scheduledSemester,
-                        isDraft = true,
-                        onSuccess = {
-                            Toast.makeText(context, "Course saved as draft (hidden from students)", Toast.LENGTH_SHORT).show()
-                            onPublishSuccess()
-                        },
-                        onError = { err ->
-                            Toast.makeText(context, err, Toast.LENGTH_LONG).show()
-                        }
-                    )
-                },
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE2E8F0)),
-                modifier = Modifier.fillMaxWidth().height(48.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                    Icon(Icons.Default.BookmarkBorder, null, tint = textDark, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Save as Draft", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textDark)
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
+                    } else {
+                        Icon(Icons.Default.Publish, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(if (isDraft) "Save Draft Course" else "Publish Course to Directory", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
                 }
             }
 
@@ -402,7 +433,7 @@ fun AdminCreateCourseScreen(
     }
 }
 
-@Preview(showBackground = true, widthDp = 392, heightDp = 1200)
+@Preview(showBackground = true, widthDp = 392, heightDp = 1100)
 @Composable
 fun AdminCreateCoursePreview() {
     Yaza_WangaTheme {

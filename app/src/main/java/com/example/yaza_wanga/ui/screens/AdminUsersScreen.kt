@@ -5,12 +5,14 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,12 +22,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.yaza_wanga.data.model.User
+import com.example.yaza_wanga.data.model.UserRole
 import com.example.yaza_wanga.data.model.UserStatus
-import com.example.yaza_wanga.ui.theme.Yaza_WangaTheme
+import com.example.yaza_wanga.ui.components.YazaWangaLogo
+import com.example.yaza_wanga.ui.theme.*
 import com.example.yaza_wanga.ui.viewmodel.AdminUsersViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,27 +42,39 @@ fun AdminUsersScreen(
     onNavigateTab: (Int) -> Unit = {}
 ) {
     val context = LocalContext.current
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val users = uiState.users
+
     var searchQuery by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableIntStateOf(0) } // 0: All, 1: Pending
+    var selectedFilter by remember { mutableStateOf("ALL USERS") }
 
     val primaryBlue = Color(0xFF1D4ED8)
-    val lightBlueBg = Color(0xFFF0F4FF)
     val containerBg = Color(0xFFF8FAFC)
+    val lightBlueBg = Color(0xFFF0F4FF)
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
 
-    val query = searchQuery.trim()
-    val filteredUsers = uiState.users.filter { user ->
-        val matchesSearch = query.isEmpty() ||
-            user.name.contains(query, ignoreCase = true) ||
-            user.email.contains(query, ignoreCase = true)
-        val matchesFilter = if (selectedFilter == 1) user.status == UserStatus.PENDING else true
+    // Calculate Summary Stats
+    val pendingCount = users.count { it.status == UserStatus.PENDING || (it.role == UserRole.TUTOR && it.status != UserStatus.ACTIVE) }
+    val activeTutorsCount = users.count { it.role == UserRole.TUTOR && it.status == UserStatus.ACTIVE }
+
+    // Filter Users
+    val filteredUsers = users.filter { u ->
+        val matchesSearch = searchQuery.isBlank() ||
+                u.name.contains(searchQuery, ignoreCase = true) ||
+                u.email.contains(searchQuery, ignoreCase = true)
+
+        val matchesFilter = when (selectedFilter) {
+            "STUDENTS" -> u.role == UserRole.STUDENT
+            "TUTORS" -> u.role == UserRole.TUTOR
+            "PENDING VETTING" -> u.status == UserStatus.PENDING || (u.role == UserRole.TUTOR && u.status != UserStatus.ACTIVE)
+            "ACTIVE" -> u.status == UserStatus.ACTIVE
+            "SUSPENDED" -> u.status == UserStatus.SUSPENDED
+            else -> true
+        }
+
         matchesSearch && matchesFilter
     }
-
-    val pendingCount = uiState.users.count { it.status == UserStatus.PENDING }
-    val activeTutorsCount = uiState.users.count { it.role.name == "TUTOR" && it.status == UserStatus.ACTIVE }
 
     Scaffold(
         topBar = {
@@ -63,32 +82,20 @@ fun AdminUsersScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            text = "Users & Vetting",
+                            text = "User Directory & Vetting",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = textDark
                         )
                     },
                     navigationIcon = {
-                        Box(
-                            modifier = Modifier
-                                .padding(start = 12.dp)
-                                .size(36.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(primaryBlue),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.School,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
-                            )
+                        Box(modifier = Modifier.padding(start = 12.dp)) {
+                            YazaWangaLogo(size = 36.dp)
                         }
                     },
                     actions = {
                         IconButton(
-                            onClick = { viewModel.loadUsers() },
+                            onClick = {},
                             modifier = Modifier
                                 .padding(end = 8.dp)
                                 .size(38.dp)
@@ -96,8 +103,8 @@ fun AdminUsersScreen(
                                 .background(primaryBlue)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Refresh,
-                                contentDescription = "Refresh",
+                                imageVector = Icons.Default.Person,
+                                contentDescription = "Profile",
                                 tint = Color.White,
                                 modifier = Modifier.size(20.dp)
                             )
@@ -118,14 +125,12 @@ fun AdminUsersScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Header Description
             Column {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(primaryBlue))
-                    Text("ACADEMIC GOVERNANCE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
+                Surface(shape = RoundedCornerShape(50.dp), color = lightBlueBg, modifier = Modifier.padding(bottom = 6.dp)) {
+                    Text("PORTFOLIO VETTING • SECURITY AUDIT", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = primaryBlue, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
                 }
                 Spacer(modifier = Modifier.height(2.dp))
                 Text("User Directory & Verification", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = textDark)
@@ -133,7 +138,7 @@ fun AdminUsersScreen(
                 Text("Review credential portfolios, triage verification pipelines, and manage institutional standing.", fontSize = 12.sp, color = textGray)
             }
 
-            // Stats Cards Row
+            // Stats Cards Row (Equal Size & Single Line)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -143,13 +148,17 @@ fun AdminUsersScreen(
                     color = lightBlueBg,
                     modifier = Modifier.weight(1f).border(1.dp, Color(0xFFDBEAFE), RoundedCornerShape(16.dp))
                 ) {
-                    Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(
+                        modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Box(modifier = Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFFDBEAFE)), contentAlignment = Alignment.Center) {
                             Icon(Icons.Default.PersonSearch, null, tint = primaryBlue, modifier = Modifier.size(18.dp))
                         }
-                        Column {
-                            Text("Pending Vetting", fontSize = 11.sp, color = textGray)
-                            Text("$pendingCount In Queue", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Pending Vetting", fontSize = 11.sp, color = textGray, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text("$pendingCount In Queue", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
                 }
@@ -159,13 +168,17 @@ fun AdminUsersScreen(
                     color = Color(0xFFE6F4EA),
                     modifier = Modifier.weight(1f).border(1.dp, Color(0xFFC6F6D5), RoundedCornerShape(16.dp))
                 ) {
-                    Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(
+                        modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Box(modifier = Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFFC6F6D5)), contentAlignment = Alignment.Center) {
                             Icon(Icons.Default.Verified, null, tint = Color(0xFF137333), modifier = Modifier.size(18.dp))
                         }
-                        Column {
-                            Text("Active Tutors", fontSize = 11.sp, color = textGray)
-                            Text("$activeTutorsCount Verified", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Active Tutors", fontSize = 11.sp, color = textGray, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text("$activeTutorsCount Verified", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
                 }
@@ -188,123 +201,187 @@ fun AdminUsersScreen(
                     focusedTextColor = textDark,
                     unfocusedTextColor = textDark
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().height(52.dp)
             )
 
-            // Filter Chips
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Surface(
-                    shape = RoundedCornerShape(50.dp),
-                    color = if (selectedFilter == 0) primaryBlue else Color.White,
-                    modifier = Modifier.clickable { selectedFilter = 0 },
-                    border = BorderStroke(1.dp, if (selectedFilter == 0) primaryBlue else Color(0xFFE2E8F0))
-                ) {
-                    Text("All Users (${uiState.users.size})", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (selectedFilter == 0) Color.White else textDark, modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp))
-                }
-
-                Surface(
-                    shape = RoundedCornerShape(50.dp),
-                    color = if (selectedFilter == 1) Color(0xFFDC2626) else Color.White,
-                    modifier = Modifier.clickable { selectedFilter = 1 },
-                    border = BorderStroke(1.dp, if (selectedFilter == 1) Color(0xFFDC2626) else Color(0xFFE2E8F0))
-                ) {
-                    Text("Pending Verification ($pendingCount)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (selectedFilter == 1) Color.White else Color(0xFFDC2626), modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp))
+            // Filter Chips Row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val filters = listOf("ALL USERS", "PENDING VETTING", "TUTORS", "STUDENTS", "ACTIVE", "SUSPENDED")
+                filters.forEach { filter ->
+                    val isSelected = selectedFilter == filter
+                    Surface(
+                        shape = RoundedCornerShape(50.dp),
+                        color = if (isSelected) primaryBlue else Color.White,
+                        modifier = Modifier.clickable { selectedFilter = filter },
+                        border = BorderStroke(1.dp, if (isSelected) primaryBlue else Color(0xFFE2E8F0))
+                    ) {
+                        Text(
+                            text = filter,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isSelected) Color.White else textDark,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+                        )
+                    }
                 }
             }
 
+            // Users List
             if (uiState.isLoading) {
-                Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = primaryBlue)
                 }
             } else if (filteredUsers.isEmpty()) {
-                Box(modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp), contentAlignment = Alignment.Center) {
-                    Text("No users found matching query or filter.", fontSize = 13.sp, color = textGray)
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                ) {
+                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                        Text("No users match the selected criteria.", fontSize = 13.sp, color = textGray)
+                    }
                 }
             } else {
-                filteredUsers.forEach { user ->
-                    Card(
-                        shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                        modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(Color(0xFFE2E8F0)), contentAlignment = Alignment.Center) {
-                                        Icon(Icons.Default.Person, null, tint = textGray)
-                                    }
-                                    Column {
-                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                            Text(user.name.ifBlank { "User" }, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
-                                            if (user.status == UserStatus.ACTIVE) {
-                                                Icon(Icons.Default.Verified, null, tint = primaryBlue, modifier = Modifier.size(14.dp))
-                                            }
-                                        }
-                                        Surface(shape = RoundedCornerShape(4.dp), color = if (user.status == UserStatus.PENDING) Color(0xFFFEF3C7) else Color(0xFFE0ECFF)) {
-                                            Text("${user.role.name} • ${user.status.name}", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = if (user.status == UserStatus.PENDING) Color(0xFFB45309) else primaryBlue, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
-                                        }
-                                        Text(user.email, fontSize = 11.sp, color = textGray)
-                                    }
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    filteredUsers.forEach { user ->
+                        AdminUserCard(
+                            user = user,
+                            onStatusChange = { newStatus ->
+                                viewModel.updateUserStatus(user.uid, newStatus) {
+                                    Toast.makeText(context, "Status updated to ${newStatus.name}", Toast.LENGTH_SHORT).show()
                                 }
                             }
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                if (user.status != UserStatus.ACTIVE) {
-                                    Button(
-                                        onClick = {
-                                            viewModel.updateUserStatus(user.uid, UserStatus.ACTIVE) {
-                                                Toast.makeText(context, "Approved ${user.name}", Toast.LENGTH_SHORT).show()
-                                            }
-                                        },
-                                        shape = RoundedCornerShape(10.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = primaryBlue),
-                                        modifier = Modifier.weight(1f).height(38.dp)
-                                    ) {
-                                        Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(14.dp))
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Text("Approve", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                                    }
-                                }
-
-                                if (user.status != UserStatus.REJECTED) {
-                                    Button(
-                                        onClick = {
-                                            viewModel.updateUserStatus(user.uid, UserStatus.REJECTED) {
-                                                Toast.makeText(context, "Rejected ${user.name}", Toast.LENGTH_SHORT).show()
-                                            }
-                                        },
-                                        shape = RoundedCornerShape(10.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEE2E2)),
-                                        modifier = Modifier.weight(1f).height(38.dp)
-                                    ) {
-                                        Text("Reject", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
-                                    }
-                                }
-
-                                if (user.status != UserStatus.SUSPENDED) {
-                                    Button(
-                                        onClick = {
-                                            viewModel.updateUserStatus(user.uid, UserStatus.SUSPENDED) {
-                                                Toast.makeText(context, "Suspended ${user.name}", Toast.LENGTH_SHORT).show()
-                                            }
-                                        },
-                                        shape = RoundedCornerShape(10.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEF2F2)),
-                                        modifier = Modifier.weight(1f).height(38.dp)
-                                    ) {
-                                        Text("Suspend", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
-                                    }
-                                }
-                            }
-                        }
+                        )
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+fun AdminUserCard(
+    user: User,
+    onStatusChange: (UserStatus) -> Unit
+) {
+    val primaryBlue = Color(0xFF1D4ED8)
+    val textDark = Color(0xFF0F172A)
+    val textGray = Color(0xFF64748B)
+
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Surface(shape = CircleShape, color = Color(0xFFE0ECFF), modifier = Modifier.size(40.dp)) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(user.name.take(2).uppercase().ifEmpty { "U" }, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = primaryBlue)
+                        }
+                    }
+
+                    Column {
+                        Text(user.name.ifBlank { user.email.substringBefore("@") }, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
+                        Text(user.email, fontSize = 12.sp, color = textGray)
+                    }
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = when (user.role) {
+                        UserRole.ADMIN -> Color(0xFFF3E8FF)
+                        UserRole.TUTOR -> Color(0xFFFEF3C7)
+                        UserRole.STUDENT -> Color(0xFFE0ECFF)
+                    }
+                ) {
+                    Text(
+                        text = user.role.name,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = when (user.role) {
+                            UserRole.ADMIN -> Color(0xFF7C3AED)
+                            UserRole.TUTOR -> Color(0xFFB45309)
+                            UserRole.STUDENT -> primaryBlue
+                        },
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+            }
+
+            HorizontalDivider(color = Color(0xFFF1F5F9), thickness = 1.dp)
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("Status:", fontSize = 12.sp, color = textGray)
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = when (user.status) {
+                            UserStatus.ACTIVE -> Color(0xFFE6F4EA)
+                            UserStatus.PENDING -> Color(0xFFFEF3C7)
+                            UserStatus.SUSPENDED -> Color(0xFFFEF2F2)
+                            UserStatus.REJECTED -> Color(0xFFFEF2F2)
+                        }
+                    ) {
+                        Text(
+                            text = user.status.name,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = when (user.status) {
+                                UserStatus.ACTIVE -> Color(0xFF137333)
+                                UserStatus.PENDING -> Color(0xFFB45309)
+                                UserStatus.SUSPENDED -> Color(0xFFDC2626)
+                                UserStatus.REJECTED -> Color(0xFFDC2626)
+                            },
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    if (user.status != UserStatus.ACTIVE) {
+                        Button(
+                            onClick = { onStatusChange(UserStatus.ACTIVE) },
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF137333)),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                            modifier = Modifier.height(32.dp)
+                        ) {
+                            Text("Approve / Activate", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                    }
+
+                    if (user.status != UserStatus.SUSPENDED && user.role != UserRole.ADMIN) {
+                        OutlinedButton(
+                            onClick = { onStatusChange(UserStatus.SUSPENDED) },
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFDC2626)),
+                            border = BorderStroke(1.dp, Color(0xFFDC2626)),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                            modifier = Modifier.height(32.dp)
+                        ) {
+                            Text("Suspend", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
+                        }
+                    }
+                }
+            }
         }
     }
 }
