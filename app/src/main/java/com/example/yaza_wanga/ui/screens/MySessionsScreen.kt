@@ -257,6 +257,7 @@ fun MySessionsScreen(
                                     if (link.startsWith("http://") || link.startsWith("https://")) {
                                         Button(
                                             onClick = {
+                                                viewModel.markSessionAttended(session.courseCode, session.id)
                                                 try {
                                                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
                                                     context.startActivity(intent)

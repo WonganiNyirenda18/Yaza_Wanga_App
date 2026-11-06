@@ -11,4 +11,5 @@ object AppContainer {
     var userRepository: UserRepository = UserRepository()
     var enrollmentRepository: EnrollmentRepository = EnrollmentRepository()
     var departmentRepository: DepartmentRepository = DepartmentRepository()
+    var progressRepository: ProgressRepository = ProgressRepository()
 }

@@ -8,7 +8,6 @@ import android.net.Uri
 import android.os.Environment
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -252,6 +251,7 @@ fun MaterialDetailsScreen(
                         try {
                             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                             context.startActivity(intent)
+                            viewModel.markMaterialViewed(courseCode, materialId)
                         } catch (_: ActivityNotFoundException) {
                             Toast.makeText(context, "This link cannot be opened", Toast.LENGTH_SHORT).show()
                         } catch (_: Exception) {
@@ -290,6 +290,7 @@ fun MaterialDetailsScreen(
                             val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
                             downloadManager.enqueue(request)
 
+                            viewModel.markMaterialViewed(courseCode, materialId)
                             Toast.makeText(context, "Download started", Toast.LENGTH_SHORT).show()
                         } catch (_: Exception) {
                             Toast.makeText(context, "This link cannot be downloaded, use Open instead", Toast.LENGTH_LONG).show()

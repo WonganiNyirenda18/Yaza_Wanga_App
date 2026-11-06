@@ -190,4 +190,15 @@ class MaterialDetailsViewModel : ViewModel() {
             }
         }
     }
+
+    fun markMaterialViewed(courseCode: String, materialId: String) {
+        viewModelScope.launch {
+            try {
+                val user = AppContainer.authRepository.fetchCurrentUser().getOrNull()
+                if (user != null) {
+                    AppContainer.progressRepository.markMaterialViewed(user.uid, courseCode, materialId)
+                }
+            } catch (_: Throwable) {}
+        }
+    }
 }

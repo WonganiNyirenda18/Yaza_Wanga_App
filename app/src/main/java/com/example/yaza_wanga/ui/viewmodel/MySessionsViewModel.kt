@@ -114,6 +114,17 @@ class MySessionsViewModel : ViewModel() {
         }
     }
 
+    fun markSessionAttended(courseCode: String, sessionId: String) {
+        viewModelScope.launch {
+            try {
+                val user = AppContainer.authRepository.fetchCurrentUser().getOrNull()
+                if (user != null) {
+                    AppContainer.progressRepository.markSessionAttended(user.uid, courseCode, sessionId)
+                }
+            } catch (_: Throwable) {}
+        }
+    }
+
     fun retry() {
         loadData()
     }

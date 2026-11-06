@@ -35,6 +35,7 @@ sealed class Screen(val route: String) {
             fun createRoute(courseCode: String, materialId: String) =
                 "student/material/${URLEncoder.encode(courseCode, "UTF-8")}/${URLEncoder.encode(materialId, "UTF-8")}"
         }
+        object Progress : Screen("student/progress")
         object FindTutors : Screen("student/tutors")
         object CourseDetails : Screen("student/courses/{courseCode}") {
             fun createRoute(courseCode: String) = "student/courses/$courseCode"
@@ -161,6 +162,7 @@ fun AppNavHost(
                     onNavigateTutors = { navController.navigate(Screen.StudentGraph.FindTutors.route) },
                     onNavigateSessions = { navController.navigate(Screen.StudentGraph.MySessions.route) },
                     onNavigateMaterials = { navController.navigate(Screen.StudentGraph.Materials.route) },
+                    onNavigateProgress = { navController.navigate(Screen.StudentGraph.Progress.route) },
                     onNavigateAlerts = {},
                     onNavigateProfile = { navController.navigate(Screen.StudentGraph.Profile.route) },
                     onViewCourseClick = { code -> navController.navigate(Screen.StudentGraph.CourseDetails.createRoute(code)) }
@@ -196,6 +198,13 @@ fun AppNavHost(
                     courseCode = courseCode,
                     materialId = materialId,
                     onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(Screen.StudentGraph.Progress.route) {
+                ProgressScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onProfileClick = { navController.navigate(Screen.StudentGraph.Profile.route) },
+                    onNavigateCourses = { navController.navigate(Screen.StudentGraph.CourseDirectory.route) }
                 )
             }
             composable(Screen.StudentGraph.Profile.route) {

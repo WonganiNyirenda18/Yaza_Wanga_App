@@ -3,6 +3,7 @@ package com.example.yaza_wanga.fakes
 import com.example.yaza_wanga.data.model.Course
 import com.example.yaza_wanga.data.model.Enrollment
 import com.example.yaza_wanga.data.model.Material
+import com.example.yaza_wanga.data.model.Progress
 import com.example.yaza_wanga.data.model.Session
 import com.example.yaza_wanga.data.model.TutorProfile
 import com.example.yaza_wanga.data.model.User
@@ -12,6 +13,7 @@ import com.example.yaza_wanga.data.repository.AuthRepository
 import com.example.yaza_wanga.data.repository.CourseRepository
 import com.example.yaza_wanga.data.repository.EnrollmentRepository
 import com.example.yaza_wanga.data.repository.MaterialRepository
+import com.example.yaza_wanga.data.repository.ProgressRepository
 import com.example.yaza_wanga.data.repository.SessionRepository
 import com.example.yaza_wanga.data.repository.TutorRepository
 import com.example.yaza_wanga.data.repository.UserRepository
@@ -253,6 +255,69 @@ class FakeUserRepository : UserRepository(db = null) {
         if (u != null) {
             users[uid] = u.copy(status = status)
         }
+        return Result.success(Unit)
+    }
+}
+
+class FakeProgressRepository : ProgressRepository(db = null) {
+    val progressList = mutableListOf<Progress>()
+
+    override fun observeProgressForStudent(studentId: String): Flow<Result<List<Progress>>> =
+        flowOf(Result.success(progressList.filter { it.studentId == studentId }))
+
+    override suspend fun setTopicCompleted(
+        studentId: String,
+        courseCode: String,
+        topic: String,
+        completed: Boolean
+    ): Result<Unit> {
+        val docId = "${studentId}_${courseCode}"
+        val existing = progressList.find { it.id == docId }
+        val topics = existing?.completedTopics?.toMutableList() ?: mutableListOf()
+        if (completed) {
+            if (!topics.contains(topic)) topics.add(topic)
+        } else {
+            topics.remove(topic)
+        }
+        val updated = (existing ?: Progress(id = docId, studentId = studentId, courseCode = courseCode))
+            .copy(completedTopics = topics, updatedAt = System.currentTimeMillis())
+
+        progressList.removeIf { it.id == docId }
+        progressList.add(updated)
+        return Result.success(Unit)
+    }
+
+    override suspend fun markMaterialViewed(
+        studentId: String,
+        courseCode: String,
+        materialId: String
+    ): Result<Unit> {
+        val docId = "${studentId}_${courseCode}"
+        val existing = progressList.find { it.id == docId }
+        val materials = existing?.viewedMaterialIds?.toMutableList() ?: mutableListOf()
+        if (!materials.contains(materialId)) materials.add(materialId)
+        val updated = (existing ?: Progress(id = docId, studentId = studentId, courseCode = courseCode))
+            .copy(viewedMaterialIds = materials, updatedAt = System.currentTimeMillis())
+
+        progressList.removeIf { it.id == docId }
+        progressList.add(updated)
+        return Result.success(Unit)
+    }
+
+    override suspend fun markSessionAttended(
+        studentId: String,
+        courseCode: String,
+        sessionId: String
+    ): Result<Unit> {
+        val docId = "${studentId}_${courseCode}"
+        val existing = progressList.find { it.id == docId }
+        val sessions = existing?.attendedSessionIds?.toMutableList() ?: mutableListOf()
+        if (!sessions.contains(sessionId)) sessions.add(sessionId)
+        val updated = (existing ?: Progress(id = docId, studentId = studentId, courseCode = courseCode))
+            .copy(attendedSessionIds = sessions, updatedAt = System.currentTimeMillis())
+
+        progressList.removeIf { it.id == docId }
+        progressList.add(updated)
         return Result.success(Unit)
     }
 }
