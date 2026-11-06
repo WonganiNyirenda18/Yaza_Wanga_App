@@ -14,6 +14,8 @@ import com.example.yaza_wanga.data.AppContainer
 import com.example.yaza_wanga.data.model.UserRole
 import com.example.yaza_wanga.ui.screens.*
 import com.example.yaza_wanga.ui.viewmodel.*
+import java.net.URLDecoder
+import java.net.URLEncoder
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -28,6 +30,11 @@ sealed class Screen(val route: String) {
         object Profile : Screen("student/profile")
         object CourseDirectory : Screen("student/courses")
         object MySessions : Screen("student/sessions")
+        object Materials : Screen("student/materials")
+        object MaterialDetails : Screen("student/material/{courseCode}/{materialId}") {
+            fun createRoute(courseCode: String, materialId: String) =
+                "student/material/${URLEncoder.encode(courseCode, "UTF-8")}/${URLEncoder.encode(materialId, "UTF-8")}"
+        }
         object FindTutors : Screen("student/tutors")
         object CourseDetails : Screen("student/courses/{courseCode}") {
             fun createRoute(courseCode: String) = "student/courses/$courseCode"
@@ -153,6 +160,7 @@ fun AppNavHost(
                     onNavigateCourses = { navController.navigate(Screen.StudentGraph.CourseDirectory.route) },
                     onNavigateTutors = { navController.navigate(Screen.StudentGraph.FindTutors.route) },
                     onNavigateSessions = { navController.navigate(Screen.StudentGraph.MySessions.route) },
+                    onNavigateMaterials = { navController.navigate(Screen.StudentGraph.Materials.route) },
                     onNavigateAlerts = {},
                     onNavigateProfile = { navController.navigate(Screen.StudentGraph.Profile.route) },
                     onViewCourseClick = { code -> navController.navigate(Screen.StudentGraph.CourseDetails.createRoute(code)) }
@@ -162,6 +170,32 @@ fun AppNavHost(
                 MySessionsScreen(
                     onBackClick = { navController.popBackStack() },
                     onProfileClick = { navController.navigate(Screen.StudentGraph.Profile.route) }
+                )
+            }
+            composable(Screen.StudentGraph.Materials.route) {
+                MaterialsScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onProfileClick = { navController.navigate(Screen.StudentGraph.Profile.route) },
+                    onNavigateCourses = { navController.navigate(Screen.StudentGraph.CourseDirectory.route) },
+                    onMaterialClick = { c, m -> navController.navigate(Screen.StudentGraph.MaterialDetails.createRoute(c, m)) }
+                )
+            }
+            composable(
+                route = Screen.StudentGraph.MaterialDetails.route,
+                arguments = listOf(
+                    navArgument("courseCode") { type = NavType.StringType },
+                    navArgument("materialId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val encodedCode = backStackEntry.arguments?.getString("courseCode") ?: ""
+                val encodedId = backStackEntry.arguments?.getString("materialId") ?: ""
+                val courseCode = URLDecoder.decode(encodedCode, "UTF-8")
+                val materialId = URLDecoder.decode(encodedId, "UTF-8")
+
+                MaterialDetailsScreen(
+                    courseCode = courseCode,
+                    materialId = materialId,
+                    onBackClick = { navController.popBackStack() }
                 )
             }
             composable(Screen.StudentGraph.Profile.route) {

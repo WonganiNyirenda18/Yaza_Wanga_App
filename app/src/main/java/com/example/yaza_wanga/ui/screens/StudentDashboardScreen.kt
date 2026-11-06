@@ -35,6 +35,7 @@ fun StudentDashboardScreen(
     onNavigateCourses: () -> Unit = {},
     onNavigateTutors: () -> Unit = {},
     onNavigateSessions: () -> Unit = {},
+    onNavigateMaterials: () -> Unit = {},
     onNavigateAlerts: () -> Unit = {},
     onNavigateProfile: () -> Unit = {},
     onViewCourseClick: (String) -> Unit = {},
@@ -397,7 +398,7 @@ fun StudentDashboardScreen(
                 val quickActions = listOf(
                     Triple("My Courses", Icons.AutoMirrored.Filled.MenuBook, onNavigateCourses),
                     Triple("My Sessions", Icons.Default.CalendarToday, onNavigateSessions),
-                    Triple("Materials", Icons.Default.FolderOpen, {}),
+                    Triple("Materials", Icons.Default.FolderOpen, onNavigateMaterials),
                     Triple("Progress", Icons.Default.TrendingUp, {}),
                     Triple("Tutors", Icons.Default.School, onNavigateTutors),
                     Triple("Settings", Icons.Default.Settings, {}),

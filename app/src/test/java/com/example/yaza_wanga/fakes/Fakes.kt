@@ -190,6 +190,15 @@ class FakeMaterialRepository : MaterialRepository(db = null) {
 
     fun refreshFlow() {}
 
+    override fun observeMaterialsForCourse(courseCode: String): Flow<Result<List<Material>>> =
+        flowOf(Result.success(materials.filter { it.courseCode == courseCode }))
+
+    override fun observeMaterialsByStatus(status: String): Flow<Result<List<Material>>> =
+        flowOf(Result.success(materials.filter { it.status == status }))
+
+    override fun observeMaterialsForTutor(tutorId: String): Flow<Result<List<Material>>> =
+        flowOf(Result.success(materials.filter { it.tutorId == tutorId }))
+
     override fun observeMaterials(courseCode: String): Flow<Result<List<Material>>> =
         flowOf(Result.success(materials.filter { it.courseCode == courseCode }))
 
