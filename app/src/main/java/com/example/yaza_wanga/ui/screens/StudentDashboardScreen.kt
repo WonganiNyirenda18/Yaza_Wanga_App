@@ -1,5 +1,6 @@
 package com.example.yaza_wanga.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -27,7 +29,6 @@ import com.example.yaza_wanga.ui.components.YazaBottomBar
 import com.example.yaza_wanga.ui.components.YazaWangaLogo
 import com.example.yaza_wanga.ui.theme.*
 import com.example.yaza_wanga.ui.viewmodel.StudentDashboardViewModel
-import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,25 +44,72 @@ fun StudentDashboardScreen(
     onViewCourseClick: (String) -> Unit = {},
     viewModel: StudentDashboardViewModel = viewModel()
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val user = uiState.user
 
-    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-    val timeGreeting = when (hour) {
-        in 0..11 -> "Good morning"
-        in 12..16 -> "Good afternoon"
-        else -> "Good evening"
-    }
-
-    val displayName = (user?.name?.ifBlank { user.email.substringBefore("@") } ?: user?.email?.substringBefore("@") ?: "").uppercase()
+    val displayName = (user?.name?.ifBlank { user.email.substringBefore("@") } ?: user?.email?.substringBefore("@") ?: "STUDENT").uppercase()
     val studentIdDisplay = user?.studentId?.ifBlank { user.email.substringBefore("@") } ?: user?.email?.substringBefore("@") ?: ""
 
     val primaryBlue = Color(0xFF1D4ED8)
-    val lightBlueBg = Color(0xFFF0F4FF)
+    val lightBlueBg = Color(0xFFEFF6FF)
     val textDark = Color(0xFF0F172A)
     val textGray = Color(0xFF64748B)
 
     Scaffold(
+        topBar = {
+            Column {
+                TopAppBar(
+                    title = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            YazaWangaLogo(size = 38.dp)
+                            Column {
+                                Text(
+                                    text = "Champo Tutors",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = textDark
+                                )
+                                Text(
+                                    text = "Peer Mentorship Portal",
+                                    fontSize = 11.sp,
+                                    color = textGray
+                                )
+                            }
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = onNavigateAlerts) {
+                            Icon(
+                                imageVector = Icons.Default.Notifications,
+                                contentDescription = "Alerts",
+                                tint = textDark
+                            )
+                        }
+                        IconButton(
+                            onClick = onNavigateProfile,
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(primaryBlue)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = "Profile",
+                                tint = Color.White,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                )
+                HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
+            }
+        },
         bottomBar = {
             YazaBottomBar(
                 tabs = listOf(
@@ -90,146 +138,64 @@ fun StudentDashboardScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            // Header Section
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(primaryBlue)
-                    .padding(horizontal = 20.dp, vertical = 20.dp)
+            // Main Blue Container Card matching user screenshot
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = primaryBlue),
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp)
                 ) {
-                    Row(
+                    // Top-Right "T" Badge Icon inside Blue Card
+                    Box(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        contentAlignment = Alignment.TopEnd
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.White.copy(alpha = 0.25f),
+                            modifier = Modifier.size(26.dp)
                         ) {
-                            YazaWangaLogo(size = 40.dp)
-                            Column {
+                            Box(contentAlignment = Alignment.Center) {
                                 Text(
-                                    text = "Champo Tutors",
-                                    fontSize = 18.sp,
+                                    text = "T",
+                                    fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White
                                 )
-                                Text(
-                                    text = "Peer Mentorship Portal",
-                                    fontSize = 11.sp,
-                                    color = Color.White.copy(alpha = 0.8f)
-                                )
-                            }
-                        }
-
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            IconButton(
-                                onClick = onNavigateAlerts,
-                                modifier = Modifier
-                                    .size(38.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.White.copy(alpha = 0.15f))
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Notifications,
-                                    contentDescription = "Notifications",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-
-                            IconButton(
-                                onClick = onNavigateProfile,
-                                modifier = Modifier
-                                    .size(38.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.White.copy(alpha = 0.15f))
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = "Profile",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(20.dp)
-                                )
                             }
                         }
                     }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = "STUDENT DASHBOARD",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White.copy(alpha = 0.8f),
-                                letterSpacing = 1.sp
-                            )
-                            Text(
-                                text = "$timeGreeting, $displayName",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        }
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                        Surface(
-                            shape = RoundedCornerShape(20.dp),
-                            color = Color.White.copy(alpha = 0.2f)
-                        ) {
-                            Text(
-                                text = "VERIFIED STUDENT",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                            )
-                        }
-                    }
-                }
-            }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                // Student Profile Info Card
-                Card(
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
+                    // Inner White Card containing Student Details & Stats
+                    Card(
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
                         ) {
-                            Box(modifier = Modifier.size(52.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Box(
                                     modifier = Modifier
                                         .size(52.dp)
                                         .clip(CircleShape)
-                                        .background(lightBlueBg)
-                                        .border(2.dp, primaryBlue, CircleShape),
+                                        .border(2.dp, primaryBlue, CircleShape)
+                                        .background(lightBlueBg),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
@@ -239,192 +205,198 @@ fun StudentDashboardScreen(
                                         modifier = Modifier.size(28.dp)
                                     )
                                 }
-                            }
 
-                            Spacer(modifier = Modifier.width(12.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
 
-                            Column(modifier = Modifier.weight(1f)) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = displayName,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = textDark
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = "Reg No: $studentIdDisplay",
+                                        fontSize = 12.sp,
+                                        color = textGray
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    val deptStr = user?.department?.takeIf { it.isNotBlank() && it != "null" } ?: "Computer Science"
+                                    val yearStr = user?.yearOfStudy?.takeIf { it.isNotBlank() && it != "null" } ?: "Year 3"
+                                    Text(
+                                        text = "$deptStr • $yearStr",
+                                        fontSize = 12.sp,
+                                        color = primaryBlue,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(8.dp))
+
                                 Text(
-                                    text = displayName,
-                                    fontSize = 16.sp,
+                                    text = "Manage",
+                                    fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = textDark
-                                )
-                                Text(
-                                    text = "Reg No: $studentIdDisplay",
-                                    fontSize = 12.sp,
-                                    color = textGray
-                                )
-                                Text(
-                                    text = "${user?.department?.ifBlank { "Computer Science" }} • ${user?.yearOfStudy?.ifBlank { "Year 3" }}",
-                                    fontSize = 11.sp,
                                     color = primaryBlue,
-                                    fontWeight = FontWeight.SemiBold
+                                    modifier = Modifier.clickable { onNavigateProfile() }
                                 )
                             }
 
-                            Spacer(modifier = Modifier.width(8.dp))
-
-                            Text(
-                                text = "Manage Account",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Normal,
-                                color = primaryBlue,
-                                modifier = Modifier.clickable { onNavigateProfile() }
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(14.dp))
-                        HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        // Middle Stats Row
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = uiState.enrolledCourses.size.toString(),
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = textDark
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = "Enrolled Courses",
-                                    fontSize = 11.sp,
-                                    color = textGray,
-                                    maxLines = 1
-                                )
-                            }
-
-                            VerticalDivider(
-                                color = Color(0xFFE2E8F0),
-                                modifier = Modifier.height(36.dp).padding(horizontal = 8.dp)
-                            )
-
-                            Column(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clickable { onNavigateTutors() }
-                            ) {
-                                Text(
-                                    text = uiState.activeTutorsCount.toString(),
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = textDark
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = "Active Tutors",
-                                    fontSize = 11.sp,
-                                    color = textGray,
-                                    maxLines = 1
-                                )
-                            }
-
-                            VerticalDivider(
-                                color = Color(0xFFE2E8F0),
-                                modifier = Modifier.height(36.dp).padding(horizontal = 8.dp)
-                            )
-
-                            Column(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clickable { onNavigateSessions() }
-                            ) {
-                                Text(
-                                    text = uiState.upcomingSessionsCount.toString(),
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = textDark
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = "Upcoming",
-                                    fontSize = 11.sp,
-                                    color = textGray,
-                                    maxLines = 1
-                                )
-                            }
-                        }
-
-                        if (uiState.enrolledCourses.isNotEmpty()) {
                             Spacer(modifier = Modifier.height(14.dp))
                             HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
                             Spacer(modifier = Modifier.height(14.dp))
 
+                            // Stats Row
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                uiState.enrolledCourses.take(2).forEach { enrollment ->
-                                    Button(
-                                        onClick = { onViewCourseClick(enrollment.courseCode) },
-                                        shape = RoundedCornerShape(10.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEF2F2)),
-                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .height(40.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.AutoMirrored.Filled.MenuBook,
-                                            contentDescription = null,
-                                            tint = Color(0xFFDC2626),
-                                            modifier = Modifier.size(14.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Text(
-                                            text = enrollment.courseCode,
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color(0xFFDC2626),
-                                            maxLines = 1
-                                        )
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = uiState.enrolledCourses.size.toString(),
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = textDark
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "Enrolled Courses",
+                                        fontSize = 11.sp,
+                                        color = textGray
+                                    )
+                                }
+
+                                VerticalDivider(
+                                    color = Color(0xFFE2E8F0),
+                                    modifier = Modifier.height(36.dp)
+                                )
+
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clickable { onNavigateTutors() },
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = uiState.activeTutorsCount.toString(),
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = textDark
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "Active Tutors",
+                                        fontSize = 11.sp,
+                                        color = textGray
+                                    )
+                                }
+
+                                VerticalDivider(
+                                    color = Color(0xFFE2E8F0),
+                                    modifier = Modifier.height(36.dp)
+                                )
+
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clickable { onNavigateSessions() },
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = uiState.upcomingSessionsCount.toString(),
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = textDark
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "Upcoming",
+                                        fontSize = 11.sp,
+                                        color = textGray
+                                    )
+                                }
+                            }
+
+                            if (uiState.enrolledCourses.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(14.dp))
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    uiState.enrolledCourses.take(2).forEach { enrollment ->
+                                        Button(
+                                            onClick = { onViewCourseClick(enrollment.courseCode) },
+                                            shape = RoundedCornerShape(10.dp),
+                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFF1F2)),
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(42.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                                                contentDescription = null,
+                                                tint = Color(0xFFE11D48),
+                                                modifier = Modifier.size(15.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(
+                                                text = enrollment.courseCode,
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color(0xFFE11D48),
+                                                maxLines = 1
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
+            }
 
-                // Quick Actions Section
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Quick Actions",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textDark
-                    )
-                }
+            // Quick Actions Title
+            Text(
+                text = "Quick Actions",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = textDark
+            )
 
-                val quickActions = listOf(
-                    Triple("My Courses", Icons.AutoMirrored.Filled.MenuBook, onNavigateCourses),
-                    Triple("My Sessions", Icons.Default.CalendarToday, onNavigateSessions),
-                    Triple("Materials", Icons.Default.FolderOpen, onNavigateMaterials),
-                    Triple("Progress", Icons.Default.TrendingUp, onNavigateProgress),
-                    Triple("Tutors", Icons.Default.School, onNavigateTutors),
-                    Triple("Settings", Icons.Default.Settings, {}),
-                    Triple("Payments", Icons.Default.AccountBalanceWallet, {}),
-                    Triple("Yaza Assist", Icons.Default.SmartToy, {})
-                )
+            // Quick Actions Container Card
+            val quickActions = listOf(
+                Triple("My Courses", Icons.AutoMirrored.Filled.MenuBook, onNavigateCourses),
+                Triple("My Sessions", Icons.Default.CalendarToday, onNavigateSessions),
+                Triple("Materials", Icons.Default.FolderOpen, onNavigateMaterials),
+                Triple("Progress", Icons.Default.TrendingUp, onNavigateProgress),
+                Triple("Tutors", Icons.Default.School, onNavigateTutors),
+                Triple("Settings", Icons.Default.Settings, onNavigateProfile),
+                Triple("Payments", Icons.Default.AccountBalanceWallet, { Toast.makeText(context, "Coming soon", Toast.LENGTH_SHORT).show() }),
+                Triple("Yaza Assist", Icons.Default.SmartToy, { Toast.makeText(context, "Coming soon", Toast.LENGTH_SHORT).show() })
+            )
 
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White, RoundedCornerShape(16.dp))
-                        .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
-                        .padding(vertical = 12.dp, horizontal = 8.dp)
+                        .padding(vertical = 16.dp, horizontal = 8.dp)
                 ) {
                     quickActions.chunked(4).forEachIndexed { rowIndex, rowItems ->
                         if (rowIndex > 0) {
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
                         }
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -442,7 +414,7 @@ fun StudentDashboardScreen(
                                     Surface(
                                         shape = RoundedCornerShape(14.dp),
                                         color = lightBlueBg,
-                                        modifier = Modifier.size(50.dp)
+                                        modifier = Modifier.size(52.dp)
                                     ) {
                                         Box(contentAlignment = Alignment.Center) {
                                             Icon(
@@ -465,9 +437,9 @@ fun StudentDashboardScreen(
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
