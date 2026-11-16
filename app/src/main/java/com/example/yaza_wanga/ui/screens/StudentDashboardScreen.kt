@@ -168,9 +168,9 @@ fun StudentDashboardScreen(
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(52.dp)
+                                        .size(46.dp)
                                         .clip(CircleShape)
-                                        .border(2.dp, primaryBlue, CircleShape)
+                                        .border(1.5.dp, primaryBlue, CircleShape)
                                         .background(lightBlueBg),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -178,16 +178,20 @@ fun StudentDashboardScreen(
                                         imageVector = Icons.Default.Person,
                                         contentDescription = "Avatar",
                                         tint = primaryBlue,
-                                        modifier = Modifier.size(28.dp)
+                                        modifier = Modifier.size(24.dp)
                                     )
                                 }
 
                                 Spacer(modifier = Modifier.width(12.dp))
 
-                                Column(modifier = Modifier.weight(1f)) {
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(end = 12.dp)
+                                ) {
                                     Text(
                                         text = displayName,
-                                        fontSize = 16.sp,
+                                        fontSize = 15.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = textDark,
                                         maxLines = 1,
@@ -203,15 +207,19 @@ fun StudentDashboardScreen(
                                     )
                                 }
 
-                                Spacer(modifier = Modifier.width(8.dp))
-
-                                Text(
-                                    text = "Manage",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = primaryBlue,
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = lightBlueBg,
                                     modifier = Modifier.clickable { onNavigateProfile() }
-                                )
+                                ) {
+                                    Text(
+                                        text = "Manage",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = primaryBlue,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                    )
+                                }
                             }
 
                             Spacer(modifier = Modifier.height(14.dp))
