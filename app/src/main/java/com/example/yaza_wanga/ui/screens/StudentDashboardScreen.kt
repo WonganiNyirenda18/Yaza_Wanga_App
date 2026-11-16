@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -20,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,6 +31,7 @@ import com.example.yaza_wanga.ui.components.YazaBottomBar
 import com.example.yaza_wanga.ui.components.YazaWangaLogo
 import com.example.yaza_wanga.ui.theme.*
 import com.example.yaza_wanga.ui.viewmodel.StudentDashboardViewModel
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,7 +51,10 @@ fun StudentDashboardScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val user = uiState.user
 
-    val displayName = (user?.name?.ifBlank { user.email.substringBefore("@") } ?: user?.email?.substringBefore("@") ?: "STUDENT").uppercase()
+    val rawName = user?.name?.ifBlank { user.email.substringBefore("@") } ?: user?.email?.substringBefore("@") ?: "Student"
+    val displayName = rawName.split(" ").filter { it.isNotBlank() }.joinToString(" ") { word ->
+        word.lowercase().replaceFirstChar { char -> if (char.isLowerCase()) char.titlecase(Locale.getDefault()) else char.toString() }
+    }
     val studentIdDisplay = user?.studentId?.ifBlank { user.email.substringBefore("@") } ?: user?.email?.substringBefore("@") ?: ""
 
     val primaryBlue = Color(0xFF1D4ED8)
@@ -66,19 +72,12 @@ fun StudentDashboardScreen(
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             YazaWangaLogo(size = 38.dp)
-                            Column {
-                                Text(
-                                    text = "Champo Tutors",
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = textDark
-                                )
-                                Text(
-                                    text = "Peer Mentorship Portal",
-                                    fontSize = 11.sp,
-                                    color = textGray
-                                )
-                            }
+                            Text(
+                                text = "Yaza Wanga",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = textDark
+                            )
                         }
                     },
                     actions = {
@@ -141,7 +140,7 @@ fun StudentDashboardScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            // Main Blue Container Card matching user screenshot
+            // Main Blue Container Card
             Card(
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = primaryBlue),
@@ -152,29 +151,6 @@ fun StudentDashboardScreen(
                         .fillMaxWidth()
                         .padding(14.dp)
                 ) {
-                    // Top-Right "T" Badge Icon inside Blue Card
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.TopEnd
-                    ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = Color.White.copy(alpha = 0.25f),
-                            modifier = Modifier.size(26.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(
-                                    text = "T",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
                     // Inner White Card containing Student Details & Stats
                     Card(
                         shape = RoundedCornerShape(20.dp),
@@ -213,22 +189,17 @@ fun StudentDashboardScreen(
                                         text = displayName,
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = textDark
+                                        color = textDark,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = "Reg No: $studentIdDisplay",
                                         fontSize = 12.sp,
-                                        color = textGray
-                                    )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    val deptStr = user?.department?.takeIf { it.isNotBlank() && it != "null" } ?: "Computer Science"
-                                    val yearStr = user?.yearOfStudy?.takeIf { it.isNotBlank() && it != "null" } ?: "Year 3"
-                                    Text(
-                                        text = "$deptStr • $yearStr",
-                                        fontSize = 12.sp,
-                                        color = primaryBlue,
-                                        fontWeight = FontWeight.SemiBold
+                                        color = textGray,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
 
@@ -266,7 +237,8 @@ fun StudentDashboardScreen(
                                     Text(
                                         text = "Enrolled Courses",
                                         fontSize = 11.sp,
-                                        color = textGray
+                                        color = textGray,
+                                        maxLines = 1
                                     )
                                 }
 
@@ -291,7 +263,8 @@ fun StudentDashboardScreen(
                                     Text(
                                         text = "Active Tutors",
                                         fontSize = 11.sp,
-                                        color = textGray
+                                        color = textGray,
+                                        maxLines = 1
                                     )
                                 }
 
@@ -316,7 +289,8 @@ fun StudentDashboardScreen(
                                     Text(
                                         text = "Upcoming",
                                         fontSize = 11.sp,
-                                        color = textGray
+                                        color = textGray,
+                                        maxLines = 1
                                     )
                                 }
                             }
@@ -325,23 +299,23 @@ fun StudentDashboardScreen(
                                 Spacer(modifier = Modifier.height(14.dp))
 
                                 Row(
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .horizontalScroll(rememberScrollState()),
                                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                                 ) {
-                                    uiState.enrolledCourses.take(2).forEach { enrollment ->
+                                    uiState.enrolledCourses.forEach { enrollment ->
                                         Button(
                                             onClick = { onViewCourseClick(enrollment.courseCode) },
                                             shape = RoundedCornerShape(10.dp),
-                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFF1F2)),
-                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .height(42.dp)
+                                            colors = ButtonDefaults.buttonColors(containerColor = lightBlueBg),
+                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                                            modifier = Modifier.height(40.dp)
                                         ) {
                                             Icon(
                                                 imageVector = Icons.AutoMirrored.Filled.MenuBook,
                                                 contentDescription = null,
-                                                tint = Color(0xFFE11D48),
+                                                tint = primaryBlue,
                                                 modifier = Modifier.size(15.dp)
                                             )
                                             Spacer(modifier = Modifier.width(6.dp))
@@ -349,7 +323,7 @@ fun StudentDashboardScreen(
                                                 text = enrollment.courseCode,
                                                 fontSize = 12.sp,
                                                 fontWeight = FontWeight.Bold,
-                                                color = Color(0xFFE11D48),
+                                                color = primaryBlue,
                                                 maxLines = 1
                                             )
                                         }
