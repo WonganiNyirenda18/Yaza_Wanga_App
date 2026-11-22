@@ -389,6 +389,7 @@ data class CourseDetailsUiState(
     val course: Course? = null,
     val isEnrolled: Boolean = false,
     val tutors: List<TutorProfile> = emptyList(),
+    val hasEligibleTutor: Boolean = false,
     val isLoading: Boolean = false
 )
 class CourseDetailsViewModel : ViewModel() {
@@ -403,12 +404,13 @@ class CourseDetailsViewModel : ViewModel() {
             val isEnrolled = if (user != null) {
                 AppContainer.enrollmentRepository.isEnrolled(user.uid, courseCode).getOrDefault(false)
             } else false
-            val tutors = AppContainer.tutorRepository.getTutorsForCourse(courseCode).getOrElse { emptyList() }
+            val tutors = AppContainer.tutorRepository.getEligibleTutorsForCourse(courseCode).getOrElse { emptyList() }
             _uiState.update {
                 it.copy(
                     course = course,
                     isEnrolled = isEnrolled,
                     tutors = tutors,
+                    hasEligibleTutor = tutors.isNotEmpty(),
                     isLoading = false
                 )
             }
@@ -422,6 +424,23 @@ class CourseDetailsViewModel : ViewModel() {
                 onResult(false, "Please sign in to enroll")
                 return@launch
             }
+
+            val alreadyEnrolled = AppContainer.enrollmentRepository.isEnrolled(user.uid, courseCode).getOrDefault(false)
+            if (alreadyEnrolled) {
+                _uiState.update { it.copy(isEnrolled = true) }
+                onResult(true, null)
+                return@launch
+            }
+
+            val eligibleTutorsRes = AppContainer.tutorRepository.getEligibleTutorsForCourse(courseCode)
+            val eligibleTutors = eligibleTutorsRes.getOrElse { emptyList() }
+            if (eligibleTutors.isEmpty()) {
+                val msg = "No eligible tutor is currently available for this course. Enrollment cannot be completed."
+                _uiState.update { it.copy(tutors = emptyList(), hasEligibleTutor = false) }
+                onResult(false, msg)
+                return@launch
+            }
+
             val enrollment = Enrollment(
                 id = "${user.uid}_$courseCode",
                 studentId = user.uid,
@@ -488,7 +507,7 @@ class TutorDashboardViewModel : ViewModel() {
 }
 
 data class TutorStudentsUiState(
-    val students: List<Pair<User, String>> = emptyList(), // User + CourseCode
+    val students: List<Pair<User, String>> = emptyList(),
     val isLoading: Boolean = false
 )
 class TutorStudentsViewModel : ViewModel() {

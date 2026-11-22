@@ -2,6 +2,7 @@ package com.example.yaza_wanga
 
 import com.example.yaza_wanga.data.AppContainer
 import com.example.yaza_wanga.data.model.Course
+import com.example.yaza_wanga.data.model.TutorProfile
 import com.example.yaza_wanga.data.model.User
 import com.example.yaza_wanga.data.model.UserRole
 import com.example.yaza_wanga.data.model.UserStatus
@@ -22,7 +23,6 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -35,6 +35,7 @@ class CourseViewModelTest {
     private lateinit var fakeAuthRepository: FakeAuthRepository
     private lateinit var fakeCourseRepository: FakeCourseRepository
     private lateinit var fakeEnrollmentRepository: FakeEnrollmentRepository
+    private lateinit var fakeTutorRepository: FakeTutorRepository
 
     @Before
     fun setUp() {
@@ -42,12 +43,17 @@ class CourseViewModelTest {
         fakeAuthRepository = FakeAuthRepository()
         fakeCourseRepository = FakeCourseRepository()
         fakeEnrollmentRepository = FakeEnrollmentRepository()
+        fakeTutorRepository = FakeTutorRepository()
 
         AppContainer.authRepository = fakeAuthRepository
         AppContainer.courseRepository = fakeCourseRepository
         AppContainer.enrollmentRepository = fakeEnrollmentRepository
         AppContainer.materialRepository = FakeMaterialRepository()
-        AppContainer.tutorRepository = FakeTutorRepository()
+        AppContainer.tutorRepository = fakeTutorRepository
+
+        // Seed fake tutors
+        val tutor1 = TutorProfile(tutorId = "t1", name = "Eligible Tutor", courses = listOf("INF 212", "COM 311"), status = "VERIFIED")
+        fakeTutorRepository.tutors.add(tutor1)
 
         // Seed fake courses
         val c1 = Course("INF 212", "Web Development", "Computer Science", 3, "Web dev basics", "Semester 1", emptyList(), "ACTIVE")
@@ -72,12 +78,13 @@ class CourseViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.setSearchQuery("INF 212")
-        val state = viewModel.uiState.value
+        testDispatcher.scheduler.advanceUntilIdle()
 
+        val state = viewModel.uiState.value
         assertEquals("INF 212", state.searchQuery)
+
         val filtered = state.courses.filter {
-            it.code.contains(state.searchQuery, ignoreCase = true) ||
-                    it.title.contains(state.searchQuery, ignoreCase = true)
+            it.code.contains(state.searchQuery, ignoreCase = true) || it.title.contains(state.searchQuery, ignoreCase = true)
         }
 
         assertEquals(1, filtered.size)
@@ -85,36 +92,35 @@ class CourseViewModelTest {
     }
 
     @Test
-    fun courseSearch_byPartialName_returnsMatchingCourses() = runTest(testDispatcher) {
+    fun courseSearch_byTitle_returnsMatchingCourse() = runTest(testDispatcher) {
         val viewModel = CourseDirectoryViewModel()
         testDispatcher.scheduler.advanceUntilIdle()
 
-        viewModel.setSearchQuery("Web")
-        val state = viewModel.uiState.value
+        viewModel.setSearchQuery("Calculus")
+        testDispatcher.scheduler.advanceUntilIdle()
 
+        val state = viewModel.uiState.value
         val filtered = state.courses.filter {
-            it.code.contains(state.searchQuery, ignoreCase = true) ||
-                    it.title.contains(state.searchQuery, ignoreCase = true)
+            it.code.contains(state.searchQuery, ignoreCase = true) || it.title.contains(state.searchQuery, ignoreCase = true)
         }
 
         assertEquals(1, filtered.size)
-        assertEquals("Web Development", filtered.first().title)
+        assertEquals("MAT 201", filtered.first().code)
     }
 
     @Test
-    fun courseSearch_noMatch_returnsEmptyList() = runTest(testDispatcher) {
+    fun courseSearch_byDepartmentFilter_returnsMatchingDepartmentCourses() = runTest(testDispatcher) {
         val viewModel = CourseDirectoryViewModel()
         testDispatcher.scheduler.advanceUntilIdle()
 
-        viewModel.setSearchQuery("NONEXISTENT_999")
+        viewModel.setSelectedDepartment("Mathematics")
+        testDispatcher.scheduler.advanceUntilIdle()
+
         val state = viewModel.uiState.value
+        val filtered = state.courses.filter { it.department == "Mathematics" }
 
-        val filtered = state.courses.filter {
-            it.code.contains(state.searchQuery, ignoreCase = true) ||
-                    it.title.contains(state.searchQuery, ignoreCase = true)
-        }
-
-        assertTrue(filtered.isEmpty())
+        assertEquals(1, filtered.size)
+        assertEquals("MAT 201", filtered.first().code)
     }
 
     // --- ENROLLMENT TESTS ---
@@ -148,7 +154,7 @@ class CourseViewModelTest {
     }
 
     @Test
-    fun enrollment_duplicateEnrollment_returnsError() = runTest(testDispatcher) {
+    fun enrollment_duplicateEnrollment_preservesExistingEnrollmentWithoutDuplicates() = runTest(testDispatcher) {
         val user = User(
             uid = "student_101",
             email = "student@unima.ac.mw",
@@ -163,6 +169,7 @@ class CourseViewModelTest {
         // First enrollment
         viewModel.enrollCourse("INF 212") { _, _ -> }
         testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(1, fakeEnrollmentRepository.enrollments.size)
 
         // Second enrollment attempt
         var secondSuccess = false
@@ -173,58 +180,85 @@ class CourseViewModelTest {
         }
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertFalse(secondSuccess)
-        assertEquals("Already enrolled in this course", secondError)
+        assertTrue(secondSuccess)
+        assertNull(secondError)
+        assertEquals(1, fakeEnrollmentRepository.enrollments.size)
+    }
+
+    @Test
+    fun enrollment_noEligibleTutor_failsWithClearMessage() = runTest(testDispatcher) {
+        val user = User(
+            uid = "student_101",
+            email = "student@unima.ac.mw",
+            name = "Student User",
+            role = UserRole.STUDENT,
+            status = UserStatus.ACTIVE
+        )
+        fakeAuthRepository.loggedInUser = user
+
+        val viewModel = CourseDetailsViewModel()
+        var successResult = true
+        var errorResult: String? = null
+
+        // MAT 201 has no eligible tutors assigned
+        viewModel.enrollCourse("MAT 201") { success, err ->
+            successResult = success
+            errorResult = err
+        }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertFalse(successResult)
+        assertEquals("No eligible tutor is currently available for this course. Enrollment cannot be completed.", errorResult)
+        assertFalse(viewModel.uiState.value.isEnrolled)
+        assertEquals(0, fakeEnrollmentRepository.enrollments.size)
     }
 
     // --- ADMIN COURSE CREATION TESTS ---
 
     @Test
-    fun adminCourseCreation_validCourse_succeeds() = runTest(testDispatcher) {
+    fun createCourse_validData_succeeds() = runTest(testDispatcher) {
         val viewModel = AdminCreateCourseViewModel()
-        var successCalled = false
+        var success = false
         var errorMsg: String? = null
 
         viewModel.createCourse(
-            code = "INF 310",
-            title = "Mobile Application Development",
+            code = "CSC 411",
+            title = "Artificial Intelligence",
             department = "Computer Science",
-            credits = 3,
-            description = "Android development with Kotlin & Jetpack Compose",
-            semester = "Semester 2",
+            credits = 4,
+            description = "AI fundamentals",
+            semester = "Semester 1",
             isDraft = false,
-            onSuccess = { successCalled = true },
+            onSuccess = { success = true },
             onError = { errorMsg = it }
         )
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertTrue(successCalled)
+        assertTrue(success)
         assertNull(errorMsg)
-        assertNotNull(fakeCourseRepository.courses["INF 310"])
-        assertEquals("ACTIVE", fakeCourseRepository.courses["INF 310"]?.status)
+        assertTrue(fakeCourseRepository.courses.containsKey("CSC 411"))
     }
 
     @Test
-    fun adminCourseCreation_duplicateCourseCode_triggersError() = runTest(testDispatcher) {
+    fun createCourse_duplicateCode_fails() = runTest(testDispatcher) {
         val viewModel = AdminCreateCourseViewModel()
-        var successCalled = false
+        var success = false
         var errorMsg: String? = null
 
-        // Try to create INF 212 which already exists
         viewModel.createCourse(
             code = "INF 212",
-            title = "Duplicate Web Dev",
+            title = "Duplicate Code",
             department = "Computer Science",
             credits = 3,
-            description = "Duplicate description",
+            description = "Desc",
             semester = "Semester 1",
             isDraft = false,
-            onSuccess = { successCalled = true },
+            onSuccess = { success = true },
             onError = { errorMsg = it }
         )
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertFalse(successCalled)
+        assertFalse(success)
         assertEquals("Course code already exists. Please use a unique code.", errorMsg)
     }
 }

@@ -59,6 +59,7 @@ fun CourseDetailsScreen(
 
     val course = uiState.course
     val isEnrolled = uiState.isEnrolled
+    val hasEligibleTutor = uiState.hasEligibleTutor
 
     Scaffold(
         topBar = {
@@ -198,34 +199,58 @@ fun CourseDetailsScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    if (!isEnrolled && !hasEligibleTutor) {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFFEF2F2),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(Icons.Default.ErrorOutline, null, tint = Color(0xFFDC2626), modifier = Modifier.size(18.dp))
+                                Text(
+                                    text = "No eligible tutor is currently available for this course. Enrollment is closed.",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color(0xFFDC2626)
+                                )
+                            }
+                        }
+                    }
+
                     // Enroll Course Primary Button
                     Button(
                         onClick = {
                             viewModel.enrollCourse(courseCode) { _, err ->
                                 if (err != null) {
-                                    Toast.makeText(context, err, Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, err, Toast.LENGTH_LONG).show()
                                 }
                             }
                         },
-                        enabled = !isEnrolled,
+                        enabled = !isEnrolled && hasEligibleTutor,
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isEnrolled) Color(0xFF10B981) else primaryBlue,
-                            disabledContainerColor = Color(0xFF10B981)
+                            disabledContainerColor = if (isEnrolled) Color(0xFF10B981) else Color(0xFF94A3B8)
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(46.dp)
                     ) {
                         Icon(
-                            imageVector = if (isEnrolled) Icons.Default.Check else Icons.Default.School,
+                            imageVector = if (isEnrolled) Icons.Default.Check else if (hasEligibleTutor) Icons.Default.School else Icons.Default.Block,
                             contentDescription = null,
                             tint = Color.White,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = if (isEnrolled) "Enrolled in Course" else "Enroll Course",
+                            text = if (isEnrolled) "Enrolled in Course" else if (hasEligibleTutor) "Enroll Course" else "Enrollment Unavailable",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -272,95 +297,86 @@ fun CourseDetailsScreen(
                         .padding(32.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("No tutors currently registered for this course.", fontSize = 13.sp, color = textGray)
+                    Text("No eligible tutor currently available for this course.", fontSize = 13.sp, color = textGray)
                 }
             }
 
             // Tutors List
             uiState.tutors.forEach { tutor ->
                 Card(
-                    shape = RoundedCornerShape(20.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
+                        .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
                 ) {
-                    Column(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Tutor Info
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Box(modifier = Modifier.size(48.dp)) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .clip(CircleShape)
-                                        .background(Color(0xFFE2E8F0)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(Icons.Default.Person, null, tint = textGray)
-                                }
-                                Box(
-                                    modifier = Modifier
-                                        .size(14.dp)
-                                        .clip(CircleShape)
-                                        .background(Color(0xFF10B981))
-                                        .align(Alignment.BottomEnd)
-                                        .border(2.dp, Color.White, CircleShape)
+                        Box(modifier = Modifier.size(52.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .size(52.dp)
+                                    .clip(CircleShape)
+                                    .background(lightBlueBg)
+                                    .border(2.dp, primaryBlue, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = tutor.name.take(2).uppercase().ifEmpty { "TU" },
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = primaryBlue
                                 )
                             }
-
-                            Column {
-                                Text(tutor.name, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = textDark)
-                                Text("Rating: ${tutor.rating} ⭐ (${tutor.reviewCount} reviews)", fontSize = 11.sp, color = textGray)
-                            }
                         }
 
-                        // Mode pill
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = containerBg
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(Icons.Default.Videocam, null, tint = primaryBlue, modifier = Modifier.size(12.dp))
-                                Text(tutor.teachingMethod, fontSize = 11.sp, color = textDark)
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(
+                                    text = tutor.name,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = textDark
+                                )
+                                Icon(Icons.Default.Verified, "Verified", tint = primaryBlue, modifier = Modifier.size(16.dp))
                             }
-                        }
 
-                        // Bio text
-                        Text(
-                            text = tutor.bio,
-                            fontSize = 13.sp,
-                            color = textGray
-                        )
+                            Spacer(modifier = Modifier.height(2.dp))
 
-                        // Session Fee
-                        Column {
-                            Text("Session Fee", fontSize = 10.sp, color = textGray)
-                            val feeText = if (tutor.hourlyRate <= 0.0) "FREE • Peer Volunteer" else "MK ${tutor.hourlyRate.toInt()} / session"
                             Text(
-                                feeText,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (tutor.hourlyRate <= 0.0) Color(0xFF10B981) else primaryBlue
+                                text = "${tutor.teachingMethod} • ${if (tutor.hourlyRate <= 0) "Free" else "MK ${tutor.hourlyRate.toInt()}/session"}",
+                                fontSize = 12.sp,
+                                color = textGray
                             )
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Icon(Icons.Default.Star, null, tint = Color(0xFFF59E0B), modifier = Modifier.size(14.dp))
+                                Text(
+                                    text = "${tutor.rating} (${tutor.reviewCount} reviews)",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = textDark
+                                )
+                            }
                         }
 
-                        // Secondary Contact Button (WhatsApp integration)
-                        Button(
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        IconButton(
                             onClick = {
-                                onContactTutor(tutor.name)
+                                if (!isEnrolled) {
+                                    Toast.makeText(context, "Please enroll in the course first to contact tutor", Toast.LENGTH_LONG).show()
+                                    return@IconButton
+                                }
                                 coroutineScope.launch {
                                     val currentUser = AppContainer.authRepository.fetchCurrentUser().getOrNull()
                                     val studentName = currentUser?.name?.ifBlank { currentUser.email.substringBefore("@") } ?: currentUser?.email?.substringBefore("@") ?: ""
@@ -368,11 +384,12 @@ fun CourseDetailsScreen(
                                     if (phone.isBlank()) {
                                         Toast.makeText(context, "Contact details unavailable for this tutor", Toast.LENGTH_SHORT).show()
                                     } else {
-                                        val message = "Hello ${tutor.name}, I am $studentName from course $courseCode. I would like to inquire about peer tutoring."
+                                        val message = "Hello ${tutor.name}, I am $studentName. I would like to inquire about tutoring for $courseCode."
                                         try {
-                                            val encodedMessage = URLEncoder.encode(message, "UTF-8")
-                                            val uriString = "https://api.whatsapp.com/send?phone=$phone&text=$encodedMessage"
-                                            val intent = Intent(Intent.ACTION_VIEW, uriString.toUri())
+                                            val digits = phone.filter { it.isDigit() }
+                                            val encodedMsg = URLEncoder.encode(message, "UTF-8")
+                                            val uri = "https://wa.me/$digits?text=$encodedMsg".toUri()
+                                            val intent = Intent(Intent.ACTION_VIEW, uri)
                                             context.startActivity(intent)
                                         } catch (_: ActivityNotFoundException) {
                                             Toast.makeText(context, "WhatsApp is not installed on this device", Toast.LENGTH_SHORT).show()
@@ -382,29 +399,16 @@ fun CourseDetailsScreen(
                                     }
                                 }
                             },
-                            enabled = isEnrolled,
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isEnrolled) lightBlueBg else Color(0xFFF1F5F9),
-                                disabledContainerColor = Color(0xFFF1F5F9)
-                            ),
-                            border = if (isEnrolled) BorderStroke(1.dp, primaryBlue) else null,
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(40.dp)
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(if (isEnrolled) primaryBlue else Color(0xFFCBD5E1))
                         ) {
                             Icon(
-                                Icons.AutoMirrored.Filled.Chat,
-                                null,
-                                tint = if (isEnrolled) primaryBlue else textGray,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = if (isEnrolled) "Contact Tutor" else "Enroll to Contact",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isEnrolled) primaryBlue else textGray
+                                imageVector = Icons.AutoMirrored.Filled.Chat,
+                                contentDescription = "Chat on WhatsApp",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
@@ -416,7 +420,7 @@ fun CourseDetailsScreen(
     }
 }
 
-@Preview(showBackground = true, widthDp = 392, heightDp = 1200)
+@Preview(showBackground = true, widthDp = 392, heightDp = 1000)
 @Composable
 fun CourseDetailsPreview() {
     Yaza_WangaTheme {

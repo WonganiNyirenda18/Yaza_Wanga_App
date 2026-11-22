@@ -22,6 +22,8 @@ open class TutorRepository(private val db: FirebaseFirestore? = null) {
                     return@addSnapshotListener
                 }
 
+                val activeUserIds = userSnapshot?.documents?.map { it.id }?.toSet() ?: emptySet()
+
                 safeDb.collection("tutors").get().addOnSuccessListener { tutorSnapshot ->
                     val tutorMap = tutorSnapshot.documents.mapNotNull { doc ->
                         doc.data?.let { data ->
@@ -41,24 +43,22 @@ open class TutorRepository(private val db: FirebaseFirestore? = null) {
                                 name = existing.name.ifBlank { name },
                                 status = "VERIFIED"
                             )
-                        } else {
-                            TutorProfile(
-                                tutorId = uid,
-                                name = name,
-                                bio = "Peer Tutor",
-                                status = "VERIFIED"
-                            )
-                        }
+                        } else null
                     } ?: emptyList()
 
                     val verifiedTutorProfiles = tutorMap.values.filter {
-                        it.status == "VERIFIED" || it.status == "ACTIVE" || it.status == "APPROVED"
+                        (it.status == "VERIFIED" || it.status == "ACTIVE" || it.status == "APPROVED") &&
+                                (activeUserIds.contains(it.tutorId) || activeUserIds.isEmpty())
                     }
 
                     val combined = (activeUserTutors + verifiedTutorProfiles)
                         .distinctBy { it.tutorId }
-                        .filter {
-                            courseCode.isBlank() || it.courses.contains(courseCode) || it.courses.isEmpty()
+                        .filter { tutor ->
+                            if (courseCode.isBlank()) {
+                                true
+                            } else {
+                                tutor.courses.contains(courseCode)
+                            }
                         }
 
                     trySend(Result.success(combined))
@@ -106,12 +106,18 @@ open class TutorRepository(private val db: FirebaseFirestore? = null) {
     }
 
     open suspend fun getTutorsForCourse(courseCode: String): Result<List<TutorProfile>> {
+        return getEligibleTutorsForCourse(courseCode)
+    }
+
+    open suspend fun getEligibleTutorsForCourse(courseCode: String): Result<List<TutorProfile>> {
         return try {
             val userSnapshot = safeDb.collection("users")
                 .whereEqualTo("role", UserRole.TUTOR.name)
                 .whereEqualTo("status", UserStatus.ACTIVE.name)
                 .get()
                 .await()
+
+            val activeUserIds = userSnapshot.documents.map { it.id }.toSet()
 
             val tutorSnapshot = safeDb.collection("tutors").get().await()
             val tutorMap = tutorSnapshot.documents.mapNotNull { doc ->
@@ -132,24 +138,22 @@ open class TutorRepository(private val db: FirebaseFirestore? = null) {
                         name = existing.name.ifBlank { name },
                         status = "VERIFIED"
                     )
-                } else {
-                    TutorProfile(
-                        tutorId = uid,
-                        name = name,
-                        bio = "Peer Tutor",
-                        status = "VERIFIED"
-                    )
-                }
+                } else null
             }
 
             val verifiedTutorProfiles = tutorMap.values.filter {
-                it.status == "VERIFIED" || it.status == "ACTIVE" || it.status == "APPROVED"
+                (it.status == "VERIFIED" || it.status == "ACTIVE" || it.status == "APPROVED") &&
+                        (activeUserIds.contains(it.tutorId) || activeUserIds.isEmpty())
             }
 
             val combined = (activeUserTutors + verifiedTutorProfiles)
                 .distinctBy { it.tutorId }
-                .filter {
-                    courseCode.isBlank() || it.courses.contains(courseCode) || it.courses.isEmpty()
+                .filter { tutor ->
+                    if (courseCode.isBlank()) {
+                        true
+                    } else {
+                        tutor.courses.contains(courseCode)
+                    }
                 }
 
             Result.success(combined)

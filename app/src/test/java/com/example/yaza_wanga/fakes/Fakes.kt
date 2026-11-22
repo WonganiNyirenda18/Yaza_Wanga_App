@@ -225,10 +225,15 @@ class FakeTutorRepository : TutorRepository(db = null) {
     val tutors = mutableListOf<TutorProfile>()
 
     override fun observeVerifiedTutorsForCourse(courseCode: String): Flow<Result<List<TutorProfile>>> =
-        flowOf(Result.success(tutors.filter { (it.status == "VERIFIED" || it.status == "ACTIVE") && (it.courses.contains(courseCode) || it.courses.isEmpty()) }))
+        flowOf(Result.success(tutors.filter { (it.status == "VERIFIED" || it.status == "ACTIVE" || it.status == "APPROVED") && (if (courseCode.isBlank()) true else it.courses.contains(courseCode)) }))
 
     override suspend fun getTutorsForCourse(courseCode: String): Result<List<TutorProfile>> {
-        return Result.success(tutors.filter { (it.status == "VERIFIED" || it.status == "ACTIVE") && (it.courses.contains(courseCode) || it.courses.isEmpty()) })
+        return getEligibleTutorsForCourse(courseCode)
+    }
+
+    override suspend fun getEligibleTutorsForCourse(courseCode: String): Result<List<TutorProfile>> {
+        val eligible = tutors.filter { (it.status == "VERIFIED" || it.status == "ACTIVE" || it.status == "APPROVED") && (if (courseCode.isBlank()) true else it.courses.contains(courseCode)) }
+        return Result.success(eligible)
     }
 }
 
