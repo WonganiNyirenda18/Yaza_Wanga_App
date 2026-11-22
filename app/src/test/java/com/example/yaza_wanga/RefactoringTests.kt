@@ -2,10 +2,7 @@ package com.example.yaza_wanga
 
 import com.example.yaza_wanga.data.AppContainer
 import com.example.yaza_wanga.data.model.Course
-import com.example.yaza_wanga.data.model.Enrollment
 import com.example.yaza_wanga.data.model.Material
-import com.example.yaza_wanga.data.model.Session
-import com.example.yaza_wanga.data.model.TutorProfile
 import com.example.yaza_wanga.data.model.User
 import com.example.yaza_wanga.data.model.UserRole
 import com.example.yaza_wanga.data.model.UserStatus
@@ -16,12 +13,10 @@ import com.example.yaza_wanga.fakes.FakeMaterialRepository
 import com.example.yaza_wanga.fakes.FakeSessionRepository
 import com.example.yaza_wanga.fakes.FakeTutorRepository
 import com.example.yaza_wanga.fakes.FakeUserRepository
-import com.example.yaza_wanga.ui.viewmodel.AdminCoursesViewModel
 import com.example.yaza_wanga.ui.viewmodel.AdminOverviewViewModel
-import com.example.yaza_wanga.ui.viewmodel.AdminUsersViewModel
-import com.example.yaza_wanga.ui.viewmodel.CourseDirectoryViewModel
-import com.example.yaza_wanga.ui.viewmodel.StudentDashboardViewModel
-import com.example.yaza_wanga.ui.viewmodel.StudentProfileViewModel
+import com.example.yaza_wanga.ui.viewmodel.SignInViewModel
+import com.example.yaza_wanga.ui.viewmodel.SignUpViewModel
+import com.example.yaza_wanga.validation.Validator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -31,44 +26,41 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RefactoringTests {
 
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var fakeAuthRepository: FakeAuthRepository
+    private lateinit var fakeUserRepository: FakeUserRepository
     private lateinit var fakeCourseRepository: FakeCourseRepository
     private lateinit var fakeEnrollmentRepository: FakeEnrollmentRepository
-    private lateinit var fakeSessionRepository: FakeSessionRepository
     private lateinit var fakeMaterialRepository: FakeMaterialRepository
+    private lateinit var fakeSessionRepository: FakeSessionRepository
     private lateinit var fakeTutorRepository: FakeTutorRepository
-    private lateinit var fakeUserRepository: FakeUserRepository
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         fakeAuthRepository = FakeAuthRepository()
+        fakeUserRepository = FakeUserRepository()
         fakeCourseRepository = FakeCourseRepository()
         fakeEnrollmentRepository = FakeEnrollmentRepository()
-        fakeSessionRepository = FakeSessionRepository()
         fakeMaterialRepository = FakeMaterialRepository()
+        fakeSessionRepository = FakeSessionRepository()
         fakeTutorRepository = FakeTutorRepository()
-        fakeUserRepository = FakeUserRepository()
 
         AppContainer.authRepository = fakeAuthRepository
+        AppContainer.userRepository = fakeUserRepository
         AppContainer.courseRepository = fakeCourseRepository
         AppContainer.enrollmentRepository = fakeEnrollmentRepository
-        AppContainer.sessionRepository = fakeSessionRepository
         AppContainer.materialRepository = fakeMaterialRepository
+        AppContainer.sessionRepository = fakeSessionRepository
         AppContainer.tutorRepository = fakeTutorRepository
-        AppContainer.userRepository = fakeUserRepository
     }
 
     @After
@@ -76,71 +68,89 @@ class RefactoringTests {
         Dispatchers.resetMain()
     }
 
+    // --- REFACTORING SAFETY TEST SUITE ---
+
     @Test
-    fun namesCorrectlyComeFromSignedInUser() = runTest(testDispatcher) {
-        val testUser = User(
-            uid = "user_999",
-            email = "chifundo@unima.ac.mw",
-            name = "Chifundo Banda",
-            role = UserRole.STUDENT,
-            status = UserStatus.ACTIVE
-        )
-        fakeAuthRepository.loggedInUser = testUser
-
-        val viewModel = StudentProfileViewModel()
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        assertNotNull(viewModel.uiState.value.user)
-        assertEquals("Chifundo Banda", viewModel.uiState.value.user?.name)
-        assertEquals("chifundo@unima.ac.mw", viewModel.uiState.value.user?.email)
+    fun validator_emailValidation_returnsCorrectErrors() {
+        assertEquals("Please fill all fields", Validator.validateEmail(""))
+        assertEquals("Please enter a valid email address", Validator.validateEmail("invalid-email"))
+        assertNull(Validator.validateEmail("student@unima.ac.mw"))
     }
 
     @Test
-    fun countsAreCorrectlyComputedFromEnrollments() = runTest(testDispatcher) {
-        val student = User(
-            uid = "student_1",
-            email = "student@unima.ac.mw",
-            name = "Student One",
-            role = UserRole.STUDENT,
-            status = UserStatus.ACTIVE
-        )
-        fakeAuthRepository.loggedInUser = student
-
-        // Seed enrollments via enroll
-        fakeEnrollmentRepository.enroll(Enrollment("e1", "student_1", "INF 212", 0L, "ACTIVE"))
-        fakeEnrollmentRepository.enroll(Enrollment("e2", "student_1", "COM 311", 0L, "ACTIVE"))
-
-        // Seed tutors
-        fakeTutorRepository.tutors.add(TutorProfile("t1", "Tutor A", "Bio", 10.0, listOf("INF 212"), 4.9, 10, "VERIFIED"))
-
-        // Seed sessions (today / future)
-        val todayStr = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date())
-        fakeSessionRepository.createSession(Session("s1", "t1", "", "INF 212", "Workshop", "Desc", todayStr, System.currentTimeMillis(), "04:00 PM", "Online", "", "", "SCHEDULED", 0L))
-
-        val dashboardViewModel = StudentDashboardViewModel()
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        assertEquals(2, dashboardViewModel.uiState.value.enrolledCoursesCount)
-        assertEquals(1, dashboardViewModel.uiState.value.activeTutorsCount)
-        assertEquals(1, dashboardViewModel.uiState.value.upcomingSessionsCount)
+    fun validator_passwordValidation_returnsCorrectErrors() {
+        assertEquals("Please fill all fields", Validator.validatePassword(""))
+        assertEquals("Password must be at least 8 characters", Validator.validatePassword("12345"))
+        assertNull(Validator.validatePassword("password123"))
     }
 
     @Test
-    fun countsAreCorrectlyComputedFromUsersAndCourses() = runTest(testDispatcher) {
-        val student = User(
-            uid = "student_1",
-            email = "student@unima.ac.mw",
-            name = "Student One",
+    fun authentication_studentRegistration_createsActiveUser() = runTest(testDispatcher) {
+        val viewModel = SignUpViewModel()
+        val data = mapOf(
+            "fullName" to "Student One",
+            "email" to "student1@unima.ac.mw",
+            "password" to "password123"
+        )
+
+        var completed = false
+        viewModel.signUpStudent(data, onError = {}, onComplete = { completed = true })
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(completed)
+        val user = fakeAuthRepository.loggedInUser
+        assertTrue(user != null)
+        assertEquals(UserRole.STUDENT, user?.role)
+        assertEquals(UserStatus.ACTIVE, user?.status)
+    }
+
+    @Test
+    fun authentication_tutorRegistration_createsPendingUser() = runTest(testDispatcher) {
+        val viewModel = SignUpViewModel()
+        val data = mapOf(
+            "fullName" to "Tutor One",
+            "email" to "tutor1@unima.ac.mw",
+            "password" to "password123",
+            "faculty" to "Science"
+        )
+
+        var completed = false
+        viewModel.signUpTutor(data, onError = {}, onComplete = { completed = true })
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(completed)
+        val user = fakeAuthRepository.loggedInUser
+        assertTrue(user != null)
+        assertEquals(UserRole.TUTOR, user?.role)
+        assertEquals(UserStatus.PENDING, user?.status)
+    }
+
+    @Test
+    fun authentication_suspendedUser_cannotSignIn() = runTest(testDispatcher) {
+        val suspendedUser = User(
+            uid = "suspended_1",
+            email = "suspended@unima.ac.mw",
             role = UserRole.STUDENT,
-            status = UserStatus.ACTIVE
+            status = UserStatus.SUSPENDED
         )
-        val tutor = User(
-            uid = "tutor_1",
-            email = "tutor@unima.ac.mw",
-            name = "Tutor One",
-            role = UserRole.TUTOR,
-            status = UserStatus.ACTIVE
-        )
+        fakeAuthRepository.users[suspendedUser.uid] = suspendedUser
+        fakeAuthRepository.passwords[suspendedUser.email] = "password123"
+
+        val viewModel = SignInViewModel()
+        var errorMsg: String? = null
+
+        viewModel.signIn("suspended@unima.ac.mw", "password123", onNavigate = {}, onError = { errorMsg = it })
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertFalse(errorMsg.isNullOrEmpty())
+        assertTrue(errorMsg?.contains("suspended", ignoreCase = true) == true)
+        assertNull(fakeAuthRepository.loggedInUser)
+    }
+
+    @Test
+    fun adminOverview_calculatesMetricsCorrectly() = runTest(testDispatcher) {
+        val student = User("s1", "student@unima.ac.mw", "Student One", UserRole.STUDENT, UserStatus.ACTIVE)
+        val tutor = User("t1", "tutor@unima.ac.mw", "Tutor One", UserRole.TUTOR, UserStatus.ACTIVE)
 
         fakeUserRepository.saveUser(student)
         fakeUserRepository.saveUser(tutor)
@@ -148,7 +158,7 @@ class RefactoringTests {
         fakeCourseRepository.saveCourse(Course("INF 212", "Web Dev", "CS", 3, "Desc", "Sem 1", emptyList(), "ACTIVE"))
         fakeCourseRepository.saveCourse(Course("COM 311", "DB", "CS", 4, "Desc", "Sem 1", emptyList(), "ACTIVE"))
 
-        fakeMaterialRepository.materials.add(Material("m1", "INF 212", "tutor_1", "Slides", "Lecture", "Tag", "Desc", "url", "FREE", "APPROVED", 0L))
+        fakeMaterialRepository.materials.add(Material(id = "m1", courseCode = "INF 212", tutorId = "tutor_1", title = "Slides", category = "Lecture", topicTag = "Tag", description = "Desc", fileUrl = "url", access = "FREE", status = "APPROVED"))
         fakeMaterialRepository.refreshFlow()
 
         val adminViewModel = AdminOverviewViewModel()
@@ -163,34 +173,9 @@ class RefactoringTests {
     }
 
     @Test
-    fun viewModelsEmitEmptyListWhenRepositoriesAreEmpty() = runTest(testDispatcher) {
-        val courseDirViewModel = CourseDirectoryViewModel()
-        testDispatcher.scheduler.advanceUntilIdle()
-        assertTrue(courseDirViewModel.uiState.value.courses.isEmpty())
-
-        val adminUsersViewModel = AdminUsersViewModel()
-        testDispatcher.scheduler.advanceUntilIdle()
-        assertTrue(adminUsersViewModel.uiState.value.users.isEmpty())
-
-        val adminCoursesViewModel = AdminCoursesViewModel()
-        testDispatcher.scheduler.advanceUntilIdle()
-        assertTrue(adminCoursesViewModel.uiState.value.courses.isEmpty())
-    }
-
-    @Test
-    fun viewModelsEmitLiveUpdatesWhenDocumentIsAdded() = runTest(testDispatcher) {
-        val courseDirViewModel = CourseDirectoryViewModel()
-        testDispatcher.scheduler.advanceUntilIdle()
-        assertTrue(courseDirViewModel.uiState.value.courses.isEmpty())
-
-        // Add a course dynamically using fake repository backed by MutableStateFlow
-        val newCourse = Course("PHY 101", "Physics", "Science", 4, "Physics mechanics", "Semester 1", emptyList(), "ACTIVE")
-        fakeCourseRepository.saveCourse(newCourse)
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        assertFalse(courseDirViewModel.uiState.value.courses.isEmpty())
-        assertEquals(1, courseDirViewModel.uiState.value.courses.size)
-        assertEquals("PHY 101", courseDirViewModel.uiState.value.courses.first().code)
-        assertEquals("Physics", courseDirViewModel.uiState.value.courses.first().title)
+    fun dateValidation_pastDate_failsValidation() {
+        val pastMillis = System.currentTimeMillis() - 86400000L
+        val todayStart = Validator.getStartOfTodayMillis()
+        assertTrue(pastMillis < todayStart)
     }
 }

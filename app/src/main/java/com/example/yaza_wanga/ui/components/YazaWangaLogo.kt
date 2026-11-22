@@ -26,7 +26,7 @@ fun YazaWangaLogo(
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.yaza_wanga_logo),
+            painter = painterResource(id = R.drawable.ic_launcher_foreground),
             contentDescription = "Yaza Wanga Logo",
             contentScale = ContentScale.Crop,
             modifier = Modifier.size(size)

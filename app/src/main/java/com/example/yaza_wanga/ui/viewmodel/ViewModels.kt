@@ -742,10 +742,14 @@ class TutorUploadMaterialViewModel : ViewModel() {
         category: String,
         description: String,
         fileUrl: String,
-        fileSizeMb: Double,
-        certified: Boolean,
+        fileName: String = "",
+        mimeType: String = "",
+        fileSizeMb: Double = 0.0,
+        isExternalLink: Boolean = false,
+        certified: Boolean = true,
         tag: String = "",
         accessMode: String = "FREE",
+        customMaterialId: String? = null,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
@@ -762,8 +766,9 @@ class TutorUploadMaterialViewModel : ViewModel() {
                 onError("Please sign in")
                 return@launch
             }
+            val materialId = customMaterialId ?: UUID.randomUUID().toString()
             val material = Material(
-                id = UUID.randomUUID().toString(),
+                id = materialId,
                 courseCode = courseCode,
                 tutorId = user.uid,
                 title = title,
@@ -771,6 +776,10 @@ class TutorUploadMaterialViewModel : ViewModel() {
                 topicTag = tag,
                 description = description,
                 fileUrl = fileUrl,
+                fileName = fileName,
+                mimeType = mimeType,
+                fileSizeMb = fileSizeMb,
+                isExternalLink = isExternalLink,
                 access = accessMode.uppercase(),
                 status = "APPROVED",
                 createdAt = System.currentTimeMillis()
